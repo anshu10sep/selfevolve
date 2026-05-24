@@ -1,71 +1,61 @@
 import logging
-from typing import Any, Callable, Coroutine, TypeVar, Dict
+from typing import Callable, Any
 from functools import wraps
 
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T')
-
-def handle_connection_errors(func: Callable[..., Coroutine[Any, Any, T]]) -> Callable[..., Coroutine[Any, Any, T]]:
+def with_db_error_handling(exceptions: tuple = (Exception,), default_return: Any = None) -> Callable:
     """
-    A decorator to catch and handle connection-related OSErrors in async functions.
+    A decorator to handle database-related errors gracefully.
     
     Args:
-        func: The async function to wrap.
+        exceptions (tuple): A tuple of exception classes to catch.
+        default_return (Any): The value to return if an exception is caught.
         
     Returns:
-        The wrapped function.
+        Callable: The decorated function.
     """
-    @wraps(func)
-    async def wrapper(*args: Any, **kwargs: Any) -> T:
-        try:
-            return await func(*args, **kwargs)
-        except OSError as e:
-            error_msg = str(e)
-            if "Connect call failed" in error_msg or getattr(e, 'errno', None) in (111, 104, 110): 
-                # Connection refused, reset, timeout
-                logger.error(f"Network/Connection error in {func.__name__}: {error_msg}")
-                raise ConnectionError(f"Failed to execute {func.__name__} due to connection issue: {error_msg}") from e
-            logger.error(f"OSError in {func.__name__}: {error_msg}")
-            raise
-        except Exception as e:
-            logger.error(f"Unexpected error in {func.__name__}: {str(e)}")
-            raise
-            
-    return wrapper
+    def decorator(func: Callable) -> Callable:
+        @wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            try:
+                return func(*args, **kwargs)
+            except exceptions as e:
+                logger.error(f"Database error in {func.__name__}: {str(e)}")
+                return default_return
+        return wrapper
+    return decorator
 
-def analyze_connection_error(error: Exception) -> Dict[str, Any]:
+class DatabaseErrorHandler:
     """
-    Analyze a connection error to determine its root cause and suggest actions.
-    
-    Args:
-        error: The exception to analyze.
-        
-    Returns:
-        A dictionary containing the analysis results.
+    Utility class for handling and logging database connection and query errors.
     """
-    analysis = {
-        "error_type": type(error).__name__,
-        "message": str(error),
-        "suggested_action": "Investigate logs",
-        "severity": "high"
-    }
     
-    if isinstance(error, OSError):
-        error_msg = str(error)
-        errno = getattr(error, 'errno', None)
+    @staticmethod
+    def log_connection_error(db_type: str, host: str, port: int, error: Exception) -> None:
+        """
+        Log a database connection error with standard formatting.
         
-        if "Connect call failed" in error_msg:
-            analysis["suggested_action"] = "Check if the target service is running and accessible. Verify network configuration and firewall rules."
-            analysis["severity"] = "critical"
-        elif errno == 111: # ECONNREFUSED
-            analysis["suggested_action"] = "Connection refused. Target service is likely down or not listening on the specified port."
-            analysis["severity"] = "critical"
-        elif errno == 110: # ETIMEDOUT
-            analysis["suggested_action"] = "Connection timed out. Check network latency, routing, or if the target service is overloaded."
-            analysis["severity"] = "high"
-        elif errno == 104: # ECONNRESET
-            analysis["suggested_action"] = "Connection reset by peer. The remote server closed the connection unexpectedly."
-            analysis["severity"] = "high"
+        Args:
+            db_type (str): The type of database (e.g., 'Redis', 'PostgreSQL').
+            host (str): The host address.
+            port (int): The port number.
+            error (Exception): The exception that was raised.
+        """
+        logger.error(f"[{db_type}] Connection failed to {host}:{port}. Error: {error}")
+        
+    @staticmethod
+    def is_recoverable(error: Exception) -> bool:
+        """
+        Determine if a database error is potentially recoverable (e.g., connection timeout).
+        
+        Args:
+            error (Exception): The exception to evaluate.
             
-    return analysis
+        Returns:
+            bool: True if the error is recoverable, False otherwise.
+        """
+        error_str = str(error).lower()
+        recoverable_keywords = ['timeout', 'connection refused', 'network is unreachable', 'reset by peer', 'error 111']
+        
+        return any(keyword in error_str for keyword in recoverable_keywords)
