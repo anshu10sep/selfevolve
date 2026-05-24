@@ -1,64 +1,82 @@
 import logging
-from typing import List, Dict, Any, Optional, Union, Tuple
-from .manage_connections import DatabaseConnectionManager
-from .handle_errors import with_error_handling
+from typing import List, Dict, Any, Optional, Tuple
+import psycopg2
+from psycopg2.extras import RealDictCursor
+from agents.skills.database.manage_connections import DatabaseConnectionManager
+from agents.skills.database.handle_errors import handle_db_errors
 
 logger = logging.getLogger(__name__)
 
-class DatabaseQueryExecutor:
+@handle_db_errors
+def execute_query(
+    query: str, 
+    params: Optional[Tuple] = None, 
+    fetch: bool = True, 
+    **db_kwargs
+) -> Optional[List[Dict[str, Any]]]:
     """
-    Executes SQL queries against the database using a managed connection.
-    """
-    def __init__(self, connection_manager: Optional[DatabaseConnectionManager] = None):
-        self.connection_manager = connection_manager or DatabaseConnectionManager()
-
-    @with_error_handling
-    def execute_query(self, query: str, params: Optional[Union[Tuple, Dict[str, Any]]] = None, fetch: bool = False) -> Optional[List[Tuple]]:
-        """
-        Execute a single SQL query.
+    Execute a SQL query and return the results.
+    
+    Args:
+        query (str): The SQL query to execute.
+        params (tuple, optional): Parameters to substitute into the query.
+        fetch (bool): Whether to fetch results (True for SELECT, False for INSERT/UPDATE/DELETE).
+        **db_kwargs: Additional arguments for DatabaseConnectionManager.
         
-        :param query: SQL query string
-        :param params: Tuple or dict of parameters for the query
-        :param fetch: Boolean indicating if results should be fetched (for SELECT queries)
-        :return: Fetched results if fetch=True, else None
-        """
-        conn = self.connection_manager.get_connection()
-        with conn.cursor() as cursor:
+    Returns:
+        Optional[List[Dict[str, Any]]]: The query results as a list of dictionaries, or None if fetch=False.
+    """
+    with DatabaseConnectionManager(**db_kwargs) as conn:
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
             logger.debug(f"Executing query: {query}")
             cursor.execute(query, params)
             
             if fetch:
                 results = cursor.fetchall()
-                return results
+                # Convert RealDictRow to standard dict
+                return [dict(row) for row in results]
             else:
                 conn.commit()
                 return None
 
-    @with_error_handling
-    def execute_many(self, query: str, params_list: List[Union[Tuple, Dict[str, Any]]]) -> None:
-        """
-        Execute a SQL query multiple times with different parameters (e.g., for bulk inserts).
-        
-        :param query: SQL query string
-        :param params_list: List of tuples or dicts of parameters
-        """
-        conn = self.connection_manager.get_connection()
+@handle_db_errors
+def execute_many(
+    query: str, 
+    params_list: List[Tuple], 
+    **db_kwargs
+) -> None:
+    """
+    Execute a SQL query multiple times with different parameters.
+    
+    Args:
+        query (str): The SQL query to execute.
+        params_list (List[tuple]): A list of parameter tuples.
+        **db_kwargs: Additional arguments for DatabaseConnectionManager.
+    """
+    with DatabaseConnectionManager(**db_kwargs) as conn:
         with conn.cursor() as cursor:
-            logger.debug(f"Executing executemany query: {query} with {len(params_list)} parameter sets")
+            logger.debug(f"Executing query {len(params_list)} times: {query}")
             cursor.executemany(query, params_list)
             conn.commit()
-            
-    @with_error_handling
-    def fetch_one(self, query: str, params: Optional[Union[Tuple, Dict[str, Any]]] = None) -> Optional[Tuple]:
-        """
-        Execute a query and fetch a single row.
+
+@handle_db_errors
+def check_database_health(**db_kwargs) -> bool:
+    """
+    Check if the database is accessible and responding.
+    Useful for readiness probes.
+    
+    Args:
+        **db_kwargs: Additional arguments for DatabaseConnectionManager.
         
-        :param query: SQL query string
-        :param params: Tuple or dict of parameters for the query
-        :return: A single row as a tuple, or None if no results
-        """
-        conn = self.connection_manager.get_connection()
-        with conn.cursor() as cursor:
-            logger.debug(f"Executing fetch_one query: {query}")
-            cursor.execute(query, params)
-            return cursor.fetchone()
+    Returns:
+        bool: True if the database is healthy, False otherwise.
+    """
+    try:
+        result = execute_query("SELECT 1 as health_check", fetch=True, **db_kwargs)
+        if result and result[0].get('health_check') == 1:
+            logger.info("Database health check passed.")
+            return True
+        return False
+    except Exception as e:
+        logger.error(f"Database health check failed: {e}")
+        return False

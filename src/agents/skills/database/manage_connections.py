@@ -1,88 +1,112 @@
-import os
 import time
 import logging
-
-try:
-    import psycopg2
-    from psycopg2 import OperationalError
-except ImportError:
-    raise ImportError("psycopg2 is required for database connections. Please install it using 'pip install psycopg2-binary'")
+import socket
+import psycopg2
+from psycopg2 import OperationalError
 
 logger = logging.getLogger(__name__)
 
+def get_database_connection(
+    host: str = '127.0.0.1', 
+    port: int = 5432, 
+    dbname: str = 'selfevolve', 
+    user: str = 'postgres', 
+    password: str = '', 
+    max_retries: int = 5, 
+    backoff_factor: float = 2.0
+):
+    """
+    Establish a connection to the PostgreSQL database with retry logic.
+    This helps mitigate '[Errno 111] Connect call failed' errors when the DB is starting up.
+    
+    Args:
+        host (str): Database host address.
+        port (int): Database port.
+        dbname (str): Database name.
+        user (str): Database user.
+        password (str): Database password.
+        max_retries (int): Maximum number of connection retries.
+        backoff_factor (float): Multiplier for exponential backoff.
+        
+    Returns:
+        psycopg2.extensions.connection: A database connection object.
+        
+    Raises:
+        OperationalError: If the connection fails after max_retries.
+    """
+    retries = 0
+    delay = 1.0
+    
+    while retries <= max_retries:
+        try:
+            logger.info(f"Attempting to connect to database at {host}:{port} (Attempt {retries + 1}/{max_retries + 1})")
+            conn = psycopg2.connect(
+                host=host,
+                port=port,
+                dbname=dbname,
+                user=user,
+                password=password,
+                connect_timeout=10
+            )
+            logger.info("Successfully connected to the database.")
+            return conn
+        except (OperationalError, socket.error) as e:
+            logger.warning(f"Connection failed: {e}")
+            if retries == max_retries:
+                logger.error("Max retries reached. Could not connect to the database.")
+                raise
+            
+            logger.info(f"Retrying in {delay} seconds...")
+            time.sleep(delay)
+            retries += 1
+            delay *= backoff_factor
+
+def close_connection(conn):
+    """
+    Safely close a database connection.
+    
+    Args:
+        conn (psycopg2.extensions.connection): The database connection to close.
+    """
+    if conn is not None:
+        try:
+            if not conn.closed:
+                conn.close()
+                logger.info("Database connection closed.")
+        except Exception as e:
+            logger.error(f"Error closing database connection: {e}")
+
 class DatabaseConnectionManager:
     """
-    Manages database connections, providing robust retry logic and connection pooling capabilities.
+    Context manager for database connections with built-in retry logic.
     """
-    def __init__(self, host=None, port=None, dbname=None, user=None, password=None):
-        self.host = host or os.getenv("DB_HOST", "127.0.0.1")
-        self.port = port or os.getenv("DB_PORT", "5432")
-        self.dbname = dbname or os.getenv("DB_NAME", "selfevolve")
-        self.user = user or os.getenv("DB_USER", "postgres")
-        self.password = password or os.getenv("DB_PASSWORD", "postgres")
-        self.connection = None
+    def __init__(
+        self, 
+        host: str = '127.0.0.1', 
+        port: int = 5432, 
+        dbname: str = 'selfevolve', 
+        user: str = 'postgres', 
+        password: str = '', 
+        max_retries: int = 5
+    ):
+        self.host = host
+        self.port = port
+        self.dbname = dbname
+        self.user = user
+        self.password = password
+        self.max_retries = max_retries
+        self.conn = None
 
-    def connect(self, max_retries=7, initial_retry_delay=2):
-        """
-        Attempt to connect to the database with exponential backoff retry logic.
-        This is specifically designed to handle [Errno 111] Connection refused errors
-        during system startup when the database might not be fully ready.
-        
-        :param max_retries: Maximum number of connection attempts
-        :param initial_retry_delay: Initial delay between retries in seconds
-        :return: psycopg2 connection object
-        """
-        retries = 0
-        retry_delay = initial_retry_delay
-        
-        while retries < max_retries:
-            try:
-                logger.info(f"Attempting to connect to database at {self.host}:{self.port} (Attempt {retries + 1}/{max_retries})")
-                self.connection = psycopg2.connect(
-                    host=self.host,
-                    port=self.port,
-                    dbname=self.dbname,
-                    user=self.user,
-                    password=self.password
-                )
-                logger.info("Successfully connected to the database.")
-                return self.connection
-            except OperationalError as e:
-                logger.warning(f"Database connection failed: {e}")
-                retries += 1
-                if retries < max_retries:
-                    logger.info(f"Retrying in {retry_delay} seconds...")
-                    time.sleep(retry_delay)
-                    retry_delay *= 2  # Exponential backoff
-                else:
-                    logger.error(f"Max retries ({max_retries}) reached. Could not connect to the database.")
-                    raise ConnectionError(
-                        f"Failed to connect to database at {self.host}:{self.port} after {max_retries} attempts. "
-                        f"Original error: {e}"
-                    ) from e
-            except Exception as e:
-                logger.error(f"Unexpected error during database connection: {e}")
-                raise
+    def __enter__(self):
+        self.conn = get_database_connection(
+            host=self.host,
+            port=self.port,
+            dbname=self.dbname,
+            user=self.user,
+            password=self.password,
+            max_retries=self.max_retries
+        )
+        return self.conn
 
-    def disconnect(self):
-        """
-        Safely close the database connection.
-        """
-        if self.connection:
-            try:
-                self.connection.close()
-                logger.info("Database connection closed gracefully.")
-            except Exception as e:
-                logger.error(f"Error while closing database connection: {e}")
-            finally:
-                self.connection = None
-
-    def get_connection(self):
-        """
-        Get the current database connection, or create a new one if it doesn't exist or is closed.
-        
-        :return: psycopg2 connection object
-        """
-        if not self.connection or self.connection.closed != 0:
-            return self.connect()
-        return self.connection
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        close_connection(self.conn)
