@@ -34,7 +34,6 @@ class ReviewComment:
     message: str
 
     def to_dict(self) -> dict:
-        """Convert to dictionary."""
         return {
             "file": self.file,
             "line": self.line,
@@ -54,16 +53,13 @@ class CodeReviewReport:
 
     @property
     def critical_count(self) -> int:
-        """Count of critical issues."""
         return sum(1 for c in self.comments if c.severity == "CRITICAL")
 
     @property
     def warning_count(self) -> int:
-        """Count of warnings."""
         return sum(1 for c in self.comments if c.severity == "WARNING")
 
     def to_dict(self) -> dict:
-        """Convert to dictionary."""
         return {
             "verdict": self.verdict,
             "summary": self.summary,
@@ -82,7 +78,7 @@ class CodeReviewReport:
             f"**Risk Score:** {'🟢' if self.risk_score < 0.3 else '🟡' if self.risk_score < 0.7 else '🔴'} {self.risk_score:.1f}/1.0",
             f"**Critical:** {self.critical_count} | **Warnings:** {self.warning_count} | **Total Comments:** {len(self.comments)}",
             "",
-            "### Summary",
+            f"### Summary",
             self.summary,
             "",
         ]
@@ -108,13 +104,12 @@ class CodeReviewer:
         self._llm = None
 
     def _get_llm(self):
-        """Lazy-load the LLM from settings."""
         if not self._llm:
             from langchain_google_genai import ChatGoogleGenerativeAI
             from config.settings import get_settings
             settings = get_settings()
             self._llm = ChatGoogleGenerativeAI(
-                model=settings.efficient_model,
+                model="gemini-2.5-flash",
                 google_api_key=settings.gemini_api_key,
                 temperature=0.1,
             )
@@ -191,8 +186,7 @@ Be thorough but fair. Not everything is a bug.
         try:
             llm = self._get_llm()
             response = await llm.ainvoke(prompt)
-            from core.llm_utils import extract_text
-            return self._parse_review(extract_text(response.content), list(file_contents.keys()))
+            return self._parse_review(response.content, list(file_contents.keys()))
         except Exception as e:
             logger.error("review_failed", error=str(e))
             return CodeReviewReport(

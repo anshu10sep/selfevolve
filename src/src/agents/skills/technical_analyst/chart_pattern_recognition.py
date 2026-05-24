@@ -145,4 +145,3 @@ if __name__ == '__main__':
     data_no_close = sample_data.drop(columns=['close'])
     patterns_no_close = recognize_chart_patterns(data_no_close, config_double_top)
     print(f"Patterns without 'close' column: {patterns_no_close}")
-===

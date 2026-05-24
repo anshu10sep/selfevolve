@@ -1,16 +1,25 @@
-def compliance_check(policy_document: str, system_state: dict) -> dict:
-    """
-    Checks the current system state against defined compliance policies and regulations.
+from typing import Dict, Any, List
+from agents.skills.validator import skill
 
+@skill
+def verify_trade_compliance(trade_details: Dict[str, Any], compliance_rules: List[str]) -> bool:
+    """
+    Verifies if a proposed trade meets all compliance rules.
+    
     Args:
-        policy_document: A string containing the compliance policy document.
-        system_state: A dictionary representing the current state of the system.
-
+        trade_details (Dict[str, Any]): A dictionary containing trade information (e.g., asset, amount, price).
+        compliance_rules (List[str]): A list of compliance rule identifiers to check against.
+        
     Returns:
-        A dictionary indicating compliance status and any identified violations.
+        bool: True if the trade is compliant with all rules, False otherwise.
     """
-    print(f"Performing compliance check against policy: {policy_document[:50]}...")
-    # Placeholder for actual compliance logic
-    if "unauthorized_access" in system_state.get("security_events", []):
-        return {"status": "non_compliant", "violations": ["Unauthorized access detected."]}
-    return {"status": "compliant", "violations": []}
+    if not trade_details or not compliance_rules:
+        return False
+        
+    for rule in compliance_rules:
+        if rule == "MAX_VOLUME" and trade_details.get("volume", 0) > 1000000:
+            return False
+        if rule == "RESTRICTED_ASSET" and trade_details.get("asset") in ["XMR", "ZEC"]:
+            return False
+            
+    return True

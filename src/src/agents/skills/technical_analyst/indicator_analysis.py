@@ -82,4 +82,3 @@ if __name__ == '__main__':
     data_no_close = sample_data.drop(columns=['close'])
     results_no_close = perform_indicator_analysis(data_no_close, params)
     print(f"Results without 'close' column: {results_no_close}")
-===

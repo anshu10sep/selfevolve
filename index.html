@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whisper Dictation Editor</title>
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0d0f12;
+            --card-bg: rgba(22, 26, 33, 0.7);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f0f3f6;
+            --text-muted: #8b949e;
+            --accent-primary: #58a6ff;
+            --accent-primary-glow: rgba(88, 166, 255, 0.3);
+            --accent-danger: #ff4d4f;
+            --accent-danger-glow: rgba(255, 77, 79, 0.4);
+            --accent-success: #34d399;
+            --accent-success-glow: rgba(52, 211, 153, 0.3);
+            --font-main: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --transition-speed: 0.3s;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 10% 20%, rgba(26, 32, 48, 0.6) 0px, transparent 50%),
+                radial-gradient(at 90% 80%, rgba(18, 35, 25, 0.4) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* Header section */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 1rem;
+        }
+
+        .logo-section h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, #ffffff 30%, var(--accent-primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(22, 26, 33, 0.8);
+            border: 1px solid var(--card-border);
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: all var(--transition-speed) ease;
+        }
+
+        .status-badge.connected {
+            color: var(--accent-success);
+            border-color: rgba(52, 211, 153, 0.2);
+            box-shadow: 0 0 10px rgba(52, 211, 153, 0.05);
+        }
+
+        .status-badge.disconnected {
+            color: var(--accent-danger);
+            border-color: rgba(255, 77, 79, 0.2);
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--text-muted);
+            transition: background-color var(--transition-speed);
+        }
+
+        .connected .status-indicator {
+            background-color: var(--accent-success);
+            box-shadow: 0 0 8px var(--accent-success);
+        }
+
+        .disconnected .status-indicator {
+            background-color: var(--accent-danger);
+            box-shadow: 0 0 8px var(--accent-danger);
+        }
+
+        .transcribing .status-indicator {
+            background-color: var(--accent-primary);
+            box-shadow: 0 0 8px var(--accent-primary);
+            animation: pulse-blue 1.5s infinite ease-in-out;
+        }
+
+        /* Main Editor Card */
+        .editor-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .editor-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+        }
+
+        .textarea-container {
+            position: relative;
+            width: 100%;
+        }
+
+        textarea {
+            width: 100%;
+            height: 380px;
+            background: rgba(13, 15, 18, 0.6);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            color: var(--text-main);
+            font-family: var(--font-main);
+            font-size: 1.05rem;
+            line-height: 1.6;
+            padding: 1.25rem;
+            resize: none;
+            outline: none;
+            transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+        }
+
+        textarea:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 15px var(--accent-primary-glow), inset 0 1px 2px rgba(0,0,0,0.5);
+        }
+
+        textarea::placeholder {
+            color: var(--text-muted);
+            opacity: 0.6;
+        }
+
+        /* Controls / Buttons Panel */
+        .controls-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .action-group {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        /* Dictation button (The glowing mic button) */
+        .record-btn-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .record-btn {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1f2937, #111827);
+            border: 2px solid var(--card-border);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            transition: all var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            outline: none;
+        }
+
+        .record-btn:hover {
+            color: var(--text-main);
+            border-color: var(--text-muted);
+            transform: scale(1.05);
+        }
+
+        .record-btn svg {
+            width: 28px;
+            height: 28px;
+            transition: transform var(--transition-speed);
+        }
+
+        .record-btn:active svg {
+            transform: scale(0.9);
+        }
+
+        /* Active recording state */
+        .record-btn.recording {
+            background: linear-gradient(135deg, var(--accent-danger), #b91c1c);
+            border-color: var(--accent-danger);
+            color: #ffffff;
+            animation: pulse-red 2s infinite ease-in-out;
+            box-shadow: 0 0 25px var(--accent-danger-glow);
+        }
+
+        .record-btn.recording:hover {
+            transform: scale(1.05);
+        }
+
+        /* Generic premium buttons */
+        .btn {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 0.75rem 1.25rem;
+            border-radius: 10px;
+            font-family: var(--font-main);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .btn:hover {
+            background: rgba(30, 41, 59, 0.8);
+            border-color: var(--text-muted);
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            border-color: #3b82f6;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            border-color: #60a5fa;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Helper label info */
+        .record-label {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .record-sublabel {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        /* Animations */
+        @keyframes pulse-red {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 77, 79, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 15px rgba(255, 77, 79, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 77, 79, 0);
+            }
+        }
+
+        @keyframes pulse-blue {
+            0% {
+                box-shadow: 0 0 0 0 rgba(88, 166, 255, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(88, 166, 255, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(88, 166, 255, 0);
+            }
+        }
+
+        /* Loading / Transcribing Overlay */
+        .overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(13, 15, 18, 0.8);
+            backdrop-filter: blur(4px);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            border-radius: 20px;
+            z-index: 10;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(88, 166, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--accent-primary);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .overlay-text {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--accent-primary);
+            letter-spacing: 0.02em;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(22, 26, 33, 0.95);
+            border: 1px solid var(--accent-success);
+            border-radius: 10px;
+            padding: 1rem 1.5rem;
+            color: var(--text-main);
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo-section">
+                <h1>
+                    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                        <path d="M19 10v1a7 7 0 0 1-14 0v-1"/>
+                        <line x1="12" x2="12" y1="19" y2="22"/>
+                    </svg>
+                    Whisper Dictation
+                </h1>
+            </div>
+            <div class="status-badge disconnected" id="statusBadge">
+                <div class="status-indicator"></div>
+                <span id="statusText">Checking Backend...</span>
+            </div>
+        </header>
+
+        <!-- Main Editor Card -->
+        <div class="editor-card">
+            <!-- Processing Overlay -->
+            <div class="overlay" id="processingOverlay">
+                <div class="spinner"></div>
+                <div class="overlay-text" id="overlayText">Transcribing Audio...</div>
+            </div>
+
+            <!-- Text Editor Area -->
+            <div class="textarea-container">
+                <textarea id="editor" placeholder="Click the microphone to start recording your speech. Whisper will transcribe it and insert it right here..."></textarea>
+            </div>
+
+            <!-- Footer Controls -->
+            <div class="controls-panel">
+                <div class="record-btn-container">
+                    <button class="record-btn" id="recordBtn" title="Start Recording">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                            <path d="M19 10v1a7 7 0 0 1-14 0v-1"/>
+                            <line x1="12" x2="12" y1="19" y2="22"/>
+                        </svg>
+                    </button>
+                    <div class="record-label">
+                        <span id="recordLabelText">Click to Dictate</span>
+                        <span class="record-sublabel" id="recordSublabelText">Uses your local browser mic</span>
+                    </div>
+                </div>
+
+                <div class="action-group">
+                    <button class="btn" id="clearBtn" title="Clear Editor">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2M10 11v6M14 11v6"/>
+                        </svg>
+                        Clear
+                    </button>
+                    <button class="btn" id="downloadBtn" title="Download Text File">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                        </svg>
+                        Download
+                    </button>
+                    <button class="btn btn-primary" id="copyBtn" title="Copy to Clipboard">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                        </svg>
+                        Copy Text
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            Running locally via OpenAI Whisper (CPU-optimized tiny model)
+        </footer>
+    </div>
+
+    <!-- Toast message -->
+    <div class="toast" id="toast">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--accent-success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span id="toastMessage">Copied to clipboard!</span>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin.startsWith("http") ? window.location.origin : "http://127.0.0.1:8001";
+        
+        const editor = document.getElementById("editor");
+        const recordBtn = document.getElementById("recordBtn");
+        const recordLabelText = document.getElementById("recordLabelText");
+        const recordSublabelText = document.getElementById("recordSublabelText");
+        const statusBadge = document.getElementById("statusBadge");
+        const statusText = document.getElementById("statusText");
+        const processingOverlay = document.getElementById("processingOverlay");
+        const overlayText = document.getElementById("overlayText");
+        const copyBtn = document.getElementById("copyBtn");
+        const downloadBtn = document.getElementById("downloadBtn");
+        const clearBtn = document.getElementById("clearBtn");
+        const toast = document.getElementById("toast");
+        const toastMessage = document.getElementById("toastMessage");
+
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let isRecording = false;
+
+        // Ping backend to check connection
+        async function checkBackendConnection() {
+            try {
+                const res = await fetch(`${API_URL}/status`);
+                if (res.ok) {
+                    statusBadge.className = "status-badge connected";
+                    statusText.textContent = "Backend Connected";
+                } else {
+                    throw new Error("Offline");
+                }
+            } catch (err) {
+                statusBadge.className = "status-badge disconnected";
+                statusText.textContent = "Backend Offline";
+            }
+        }
+
+        // Run check on page load and periodically
+        checkBackendConnection();
+        setInterval(checkBackendConnection, 10000);
+
+        // Toast notification helper
+        function showToast(message) {
+            toastMessage.textContent = message;
+            toast.classList.add("show");
+            setTimeout(() => {
+                toast.classList.remove("show");
+            }, 3000);
+        }
+
+        // Dictation Recording Logic
+        recordBtn.addEventListener("click", async () => {
+            if (isRecording) {
+                stopRecording();
+            } else {
+                await startRecording();
+            }
+        });
+
+        async function startRecording() {
+            audioChunks = [];
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
+                };
+
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    // Send to backend for transcription
+                    await transcribeAudio(audioBlob);
+                };
+
+                mediaRecorder.start();
+                isRecording = true;
+                recordBtn.classList.add("recording");
+                recordLabelText.textContent = "Recording...";
+                recordSublabelText.textContent = "Click button again to stop and transcribe";
+                
+                // Update badge status to connected (active)
+                statusBadge.className = "status-badge connected";
+                statusText.textContent = "Recording Audio...";
+            } catch (err) {
+                console.error("Microphone access error:", err);
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    alert("Microphone API not available. This usually happens if you are not using HTTPS or localhost (Secure Context). Try opening the site via http://localhost:8001");
+                    showToast("Microphone API unavailable (Secure Context required).");
+                } else if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                    alert("Microphone permission was denied. Please click the site settings icon (padlock) in your browser address bar and allow microphone access.");
+                    showToast("Permission denied.");
+                } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+                    alert("No microphone device found on your system.");
+                    showToast("No microphone found.");
+                } else {
+                    alert("Microphone error: " + err.message);
+                    showToast("Could not access microphone.");
+                }
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+                // Stop all tracks on the stream to release mic
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                
+                isRecording = false;
+                recordBtn.classList.remove("recording");
+                recordLabelText.textContent = "Click to Dictate";
+                recordSublabelText.textContent = "Uses your local browser mic";
+            }
+        }
+
+        async function transcribeAudio(audioBlob) {
+            // Show overlay loading animation
+            statusBadge.className = "status-badge connected transcribing";
+            statusText.textContent = "Transcribing...";
+            overlayText.textContent = "Whisper is transcribing your speech...";
+            processingOverlay.style.display = "flex";
+
+            const formData = new FormData();
+            formData.append("file", audioBlob, "audio.wav");
+
+            try {
+                const response = await fetch(`${API_URL}/transcribe`, {
+                    method: "POST",
+                    body: formData
+                });
+
+                const data = await response.json();
+                if (data.success && data.text) {
+                    insertText(data.text);
+                    showToast("Speech transcribed successfully!");
+                } else if (data.success) {
+                    showToast("No speech detected.");
+                } else {
+                    showToast("Error transcribing audio: " + data.error);
+                }
+            } catch (err) {
+                console.error("API error:", err);
+                showToast("Unable to reach Whisper server.");
+            } finally {
+                processingOverlay.style.display = "none";
+                checkBackendConnection();
+            }
+        }
+
+        // Insert text at cursor position in textarea
+        function insertText(newText) {
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+            const text = editor.value;
+
+            // Format inserted text: add space if needed
+            let formattedText = newText;
+            if (start > 0 && text[start - 1] !== ' ' && text[start - 1] !== '\n') {
+                formattedText = ' ' + formattedText;
+            }
+            if (end < text.length && text[end] !== ' ' && text[end] !== '\n') {
+                formattedText = formattedText + ' ';
+            }
+
+            editor.value = text.substring(0, start) + formattedText + text.substring(end);
+            editor.focus();
+            
+            // Put cursor right after the newly inserted text
+            const newCursorPos = start + formattedText.length;
+            editor.selectionStart = editor.selectionEnd = newCursorPos;
+        }
+
+        // Clipboard Copy Action
+        copyBtn.addEventListener("click", () => {
+            const textVal = editor.value.trim();
+            if (!textVal) {
+                showToast("Editor is empty!");
+                return;
+            }
+            navigator.clipboard.writeText(textVal)
+                .then(() => showToast("Copied to clipboard!"))
+                .catch(() => showToast("Failed to copy."));
+        });
+
+        // Download Action
+        downloadBtn.addEventListener("click", () => {
+            const textVal = editor.value.trim();
+            if (!textVal) {
+                showToast("Editor is empty!");
+                return;
+            }
+            const blob = new Blob([textVal], { type: "text/plain;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `dictation-${new Date().toISOString().slice(0,10)}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast("Downloaded text file.");
+        });
+
+        // Clear Action
+        clearBtn.addEventListener("click", () => {
+            if (editor.value.trim() && confirm("Are you sure you want to clear the editor?")) {
+                editor.value = "";
+                showToast("Editor cleared.");
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,20 +1,38 @@
-def evaluate_crypto_projects(project_name: str, whitepaper_url: str, tokenomics_data: dict) -> dict:
-    """
-    Evaluates the fundamental aspects of a cryptocurrency project, including its technology, team, and tokenomics.
+from typing import Dict, Any
+from agents.skills.validator import skill
 
+@skill
+def evaluate_tokenomics(total_supply: float, circulating_supply: float, inflation_rate: float) -> Dict[str, Any]:
+    """
+    Evaluates the tokenomics of a cryptocurrency project.
+    
     Args:
-        project_name: The name of the cryptocurrency project.
-        whitepaper_url: URL to the project's whitepaper.
-        tokenomics_data: A dictionary containing token distribution, vesting schedules, and utility.
-
+        total_supply (float): The maximum or total supply of the token.
+        circulating_supply (float): The currently circulating supply of the token.
+        inflation_rate (float): The annual inflation rate of the token supply.
+        
     Returns:
-        A dictionary with an overall project score, strengths, weaknesses, and potential.
+        Dict[str, Any]: An evaluation report containing a score and risk assessment.
     """
-    print(f"Evaluating crypto project: {project_name} from whitepaper {whitepaper_url}")
-    # Placeholder for actual project evaluation logic
-    score = 0
-    if "strong_team" in tokenomics_data.get("team_info", []):
-        score += 0.3
-    if tokenomics_data.get("supply_cap") and tokenomics_data["supply_cap"] > 0:
-        score += 0.4 # Good tokenomics
-    return {"project_score": score, "strengths": ["innovative_tech"], "weaknesses": ["early_stage"], "potential": "high"}
+    score = 100
+    risk = "LOW"
+    
+    if total_supply <= 0 or circulating_supply < 0:
+        return {"tokenomics_score": 0, "risk_level": "CRITICAL", "is_viable": False}
+        
+    if circulating_supply / total_supply < 0.2:
+        score -= 30
+        risk = "HIGH"
+        
+    if inflation_rate > 0.15:
+        score -= 40
+        risk = "HIGH"
+    elif inflation_rate > 0.05:
+        score -= 15
+        risk = "MEDIUM"
+        
+    return {
+        "tokenomics_score": max(0, score),
+        "risk_level": risk,
+        "is_viable": score >= 60
+    }

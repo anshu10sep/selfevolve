@@ -1,17 +1,28 @@
-def identify_bullish_signals(market_data: dict) -> list:
-    """
-    Analyzes market data to identify potential bullish signals.
+from typing import List
+from agents.skills.validator import skill
 
+@skill
+def detect_golden_cross(short_term_ma: List[float], long_term_ma: List[float]) -> bool:
+    """
+    Detects a 'Golden Cross' bullish signal where a short-term moving average crosses above a long-term moving average.
+    
     Args:
-        market_data: A dictionary containing various market indicators (e.g., price, volume, news sentiment).
-
+        short_term_ma (List[float]): Time series data for the short-term moving average.
+        long_term_ma (List[float]): Time series data for the long-term moving average.
+        
     Returns:
-        A list of identified bullish signals, if any.
+        bool: True if a golden cross is detected in the most recent data points, False otherwise.
     """
-    print(f"Identifying bullish signals from market data: {market_data.get('symbol', 'N/A')}")
-    signals = []
-    if market_data.get("price_trend") == "upward" and market_data.get("volume_trend") == "increasing":
-        signals.append("High volume upward trend")
-    if market_data.get("news_sentiment") == "positive" and market_data.get("rsi") > 70:
-        signals.append("Positive sentiment with overbought conditions (potential for continued momentum)")
-    return signals
+    if len(short_term_ma) < 2 or len(long_term_ma) < 2:
+        return False
+        
+    # Check if previously short term was below long term, and now it is above
+    prev_short = short_term_ma[-2]
+    prev_long = long_term_ma[-2]
+    curr_short = short_term_ma[-1]
+    curr_long = long_term_ma[-1]
+    
+    if prev_short <= prev_long and curr_short > curr_long:
+        return True
+        
+    return False

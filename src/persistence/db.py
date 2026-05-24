@@ -304,6 +304,51 @@ def get_open_bugs_sorted() -> list[dict]:
         return [b.to_dict() for b in bugs]
 
 
+def get_stuck_bugs(stuck_minutes: int = 60) -> list[dict]:
+    """Get IN_PROGRESS bugs that have a worker_error or have been stuck too long.
+
+    A bug is considered 'stuck' if:
+    - Status is IN_PROGRESS AND has a worker_error set, OR
+    - Status is IN_PROGRESS AND started_at is older than stuck_minutes ago
+    """
+    from datetime import timedelta
+    cutoff = datetime.now(timezone.utc) - timedelta(minutes=stuck_minutes)
+    with get_session() as s:
+        bugs = s.query(Bug).filter(
+            Bug.status == "IN_PROGRESS",
+        ).all()
+        stuck = []
+        for b in bugs:
+            has_error = bool(b.worker_error)
+            is_stale = b.started_at and b.started_at.replace(
+                tzinfo=timezone.utc if b.started_at.tzinfo is None else b.started_at.tzinfo
+            ) < cutoff
+            if has_error or is_stale:
+                stuck.append(b.to_dict())
+        return stuck
+
+
+def reset_stuck_bugs(stuck_minutes: int = 60) -> int:
+    """Reset stuck IN_PROGRESS bugs back to OPEN so bug worker retries them.
+
+    Returns the number of bugs reset.
+    """
+    stuck = get_stuck_bugs(stuck_minutes=stuck_minutes)
+    count = 0
+    for bug_dict in stuck:
+        update_bug(
+            bug_dict["id"],
+            status="OPEN",
+            worker_error=None,
+            started_at=None,
+        )
+        count += 1
+        logger.info("bug_reset_to_open", bug_id=bug_dict["id"][:8],
+                     title=bug_dict["title"][:50], reason="stuck_in_progress")
+    return count
+
+
+
 # ── Feature Request Operations ────────────────────────────────────
 
 def create_feature_request(

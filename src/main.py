@@ -237,6 +237,33 @@ class SelfEvolveSystem:
             if logger:
                 await logger.awarning("evolution_loop_init_failed", error=str(e))
 
+        # Start Bug Scanner (proactive log/import scanning → auto-files bugs)
+        try:
+            from evolution.bug_scanner import bug_scanner
+            bug_scanner_task = asyncio.create_task(bug_scanner.run_loop(interval_minutes=30))
+        except Exception as e:
+            bug_scanner_task = None
+            if logger:
+                await logger.awarning("bug_scanner_init_failed", error=str(e))
+
+        # Start TPM Tracker (watchdog: escalates stuck bugs, dispatches engineer)
+        try:
+            from evolution.tpm_tracker import tpm_tracker
+            tpm_tracker_task = asyncio.create_task(tpm_tracker.run_loop(interval_minutes=30))
+        except Exception as e:
+            tpm_tracker_task = None
+            if logger:
+                await logger.awarning("tpm_tracker_init_failed", error=str(e))
+
+        # Start Process Monitor (meta-watchdog: ensures pipeline is alive)
+        try:
+            from evolution.process_monitor import process_monitor
+            process_monitor_task = asyncio.create_task(process_monitor.run_loop(interval_minutes=30))
+        except Exception as e:
+            process_monitor_task = None
+            if logger:
+                await logger.awarning("process_monitor_init_failed", error=str(e))
+
         try:
             while self._running:
                 try:
@@ -281,6 +308,12 @@ class SelfEvolveSystem:
                 pr_review_task.cancel()
             if evolution_task:
                 evolution_task.cancel()
+            if bug_scanner_task:
+                bug_scanner_task.cancel()
+            if tpm_tracker_task:
+                tpm_tracker_task.cancel()
+            if process_monitor_task:
+                process_monitor_task.cancel()
             await self.shutdown()
 
     def _setup_schedule(self) -> None:
@@ -788,11 +821,18 @@ class SelfEvolveSystem:
                     pass
             await mdc.close()
 
-            # 2. Run system audit
-            from agents.skills.jarvis.system_audit import SystemAuditor
-            auditor = SystemAuditor()
-            audit = auditor.run_audit()
-            readiness = audit.get("readiness_score", 0) * 100
+            # 2. Run system audit (guarded — don't let audit failure kill evolution)
+            readiness = 0
+            try:
+                from agents.skills.jarvis.system_audit import SystemAuditor
+                auditor = SystemAuditor()
+                audit = auditor.run_audit()
+                readiness = audit.get("readiness_score", 0) * 100
+            except Exception as audit_err:
+                if logger: await logger.awarning(
+                    "system_audit_skipped", error=str(audit_err),
+                    message="Evolution continues without audit data",
+                )
 
             # 3. Ask Gemini to analyze and suggest improvements
             from core.llm_factory import get_efficient_llm

@@ -95,4 +95,3 @@ if __name__ == '__main__':
     data_no_close = sample_data.drop(columns=['close'])
     predictions_no_close = predict_future_prices(data_no_close, params_simple)
     print(f"Predictions without 'close' column: {predictions_no_close}")
-===

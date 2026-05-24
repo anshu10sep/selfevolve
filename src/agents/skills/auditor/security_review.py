@@ -1,16 +1,34 @@
-def security_review(codebase_path: str, configuration_data: dict) -> dict:
-    """
-    Conducts a security review of the codebase and system configurations.
+from typing import Dict, Any, List
+from agents.skills.validator import skill
 
+@skill
+def review_smart_contract_security(contract_code: str, known_vulnerabilities: List[str]) -> Dict[str, Any]:
+    """
+    Reviews smart contract code for known security vulnerabilities.
+    
     Args:
-        codebase_path: The path to the codebase to be reviewed.
-        configuration_data: A dictionary of system configuration settings.
-
+        contract_code (str): The source code of the smart contract.
+        known_vulnerabilities (List[str]): A list of known vulnerability patterns to look for.
+        
     Returns:
-        A dictionary detailing security vulnerabilities and recommendations.
+        Dict[str, Any]: A report containing the security score and any found vulnerabilities.
     """
-    print(f"Initiating security review for codebase at {codebase_path} and configurations.")
-    # Placeholder for actual security scanning logic
-    if configuration_data.get("open_ports", []) and "8080" in configuration_data["open_ports"]:
-        return {"status": "vulnerabilities_found", "details": "Unsecured port 8080 detected."}
-    return {"status": "secure", "details": "No major vulnerabilities identified."}
+    report = {
+        "is_secure": True,
+        "vulnerabilities_found": [],
+        "security_score": 100
+    }
+    
+    if not contract_code:
+        report["is_secure"] = False
+        report["security_score"] = 0
+        return report
+        
+    for vuln in known_vulnerabilities:
+        if vuln in contract_code:
+            report["vulnerabilities_found"].append(vuln)
+            report["is_secure"] = False
+            report["security_score"] -= 20
+            
+    report["security_score"] = max(0, report["security_score"])
+    return report
