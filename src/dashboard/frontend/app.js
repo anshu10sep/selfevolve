@@ -95,7 +95,7 @@ async function loadOverview() {
   document.getElementById('stat-unsettled').textContent = fmt(p.unsettled_cash || 0);
   document.getElementById('stat-tranches').textContent = `${p.available_tranches || 0}/10`;
   document.getElementById('stat-drawdown').textContent = `${(p.drawdown_pct || 0).toFixed(1)}%`;
-  document.getElementById('stat-model').textContent = (data.model_config || {}).current_model || 'gemini-3.1-pro';
+  document.getElementById('stat-model').textContent = (data.model_config || {}).current_model || 'gemini-2.5-flash';
   document.getElementById('stat-uptime').textContent = `${(data.uptime_hours || 0).toFixed(1)}h`;
 
   // System status
@@ -202,7 +202,7 @@ async function openAgentDetail(agentId) {
   statusEl.textContent = data.status || '—';
   statusEl.className = 'detail-val' + (data.status === 'ACTIVE' ? ' active' : data.status === 'EVOLVING' ? ' warning' : '');
 
-  document.getElementById('ad-model').textContent = data.model || 'gemini-3.1-pro';
+  document.getElementById('ad-model').textContent = data.model || 'gemini-2.5-flash';
 
   // Metrics
   const m = data.metrics || {};

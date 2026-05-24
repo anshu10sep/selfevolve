@@ -62,13 +62,13 @@ class Settings(BaseSettings):
 
     # ── Efficient Tier Model ──────────────────────────────────────
     efficient_model: str = Field(
-        default="gemini-3.1-pro",
-        description="Cost-efficient model for triage/parsing tasks (locked to Gemini 3.1 Pro until multi-model subscriptions active)",
+        default="gemini-2.5-flash",
+        description="Cost-efficient model for triage/parsing/code-gen tasks",
     )
     # ── Premium Tier Model ────────────────────────────────────────
     premium_model: str = Field(
-        default="gemini-3.1-pro",
-        description="Premium model for debate/judge/evolution tasks (locked to Gemini 3.1 Pro until multi-model subscriptions active)",
+        default="gemini-2.5-pro",
+        description="Premium model for debate/judge/evolution tasks",
     )
 
     # ── Communication ─────────────────────────────────────────────

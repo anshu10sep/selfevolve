@@ -948,3 +948,52 @@ AFC is enabled with max remote calls: 10.
 {"component": "dashboard_api", "equity": 99999.96, "cash": 99980.4, "positions": 2, "daily_pnl": -0.03999999999359716, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "ff7ba7f7", "timestamp": "2026-05-24T05:12:22.382397Z"}
 {"component": "hot_reloader", "module": "integrations.telegram_bot", "file": "/home/agentx/self-evolving/src/integrations/telegram_bot.py", "event": "module_reloaded", "logger": "evolution.hot_reloader", "level": "info", "correlation_id": "ff7ba7f7", "timestamp": "2026-05-24T05:12:33.173679Z"}
 {"component": "telegram_bot", "length": 70, "event": "telegram_alert_sent", "logger": "integrations.telegram_bot", "level": "info", "correlation_id": "ff7ba7f7", "timestamp": "2026-05-24T05:12:34.249990Z"}
+{"component": "main", "environment": "paper", "initial_capital": 100000.0, "version": "1.0.0", "event": "selfevolve_starting", "logger": "__main__", "level": "info", "correlation_id": "d64edc5e", "timestamp": "2026-05-24T05:23:03.043971Z"}
+{"component": "database", "url": "localhost:5432/selfevolve", "event": "database_engine_created", "logger": "persistence.database", "level": "info", "correlation_id": "68afce95", "timestamp": "2026-05-24T05:23:03.072467Z"}
+{"component": "main", "error": "[Errno 111] Connect call failed ('127.0.0.1', 5432)", "event": "database_init_failed", "logger": "__main__", "level": "error", "correlation_id": "68afce95", "timestamp": "2026-05-24T05:23:03.075739Z"}
+{"component": "redis_client", "url": "redis://localhost:6379/0", "event": "redis_client_created", "logger": "persistence.redis_client", "level": "info", "correlation_id": "68afce95", "timestamp": "2026-05-24T05:23:03.076278Z"}
+{"component": "main", "error": "Error 111 connecting to localhost:6379. Connect call failed ('127.0.0.1', 6379).", "message": "Running in DASHBOARD-ONLY mode. Start Redis/Postgres for full trading functionality.", "event": "infra_not_available", "logger": "__main__", "level": "warning", "correlation_id": "68afce95", "timestamp": "2026-05-24T05:23:03.077215Z"}
+Scheduler started
+Application started
+{"component": "telegram_bot", "username": "selfevolve_trade_bot", "event": "telegram_bot_started", "logger": "integrations.telegram_bot", "level": "info", "correlation_id": "68afce95", "timestamp": "2026-05-24T05:23:04.107075Z"}
+{"component": "telegram_bot", "length": 85, "event": "telegram_alert_sent", "logger": "integrations.telegram_bot", "level": "info", "correlation_id": "68afce95", "timestamp": "2026-05-24T05:23:04.884070Z"}
+{"component": "main", "event": "telegram_bot_started", "logger": "__main__", "level": "info", "correlation_id": "68afce95", "timestamp": "2026-05-24T05:23:04.884392Z"}
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Added job "SelfEvolveSystem._run_pre_market" to job store "default"
+Added job "SelfEvolveSystem._run_market_open" to job store "default"
+Added job "SelfEvolveSystem._run_intraday_scan" to job store "default"
+Added job "SelfEvolveSystem._run_intraday_scan" to job store "default"
+Added job "SelfEvolveSystem._run_intraday_scan" to job store "default"
+Added job "SelfEvolveSystem._run_market_close" to job store "default"
+Added job "SelfEvolveSystem._run_post_market_evolution" to job store "default"
+Added job "SelfEvolveSystem._run_crypto_scan" to job store "default"
+Added job "SelfEvolveSystem._run_continuous_evolution" to job store "default"
+Scheduler started
+{"component": "main", "event": "scheduler_started", "logger": "__main__", "level": "info", "correlation_id": "68afce95", "timestamp": "2026-05-24T05:23:04.887495Z"}
+{"component": "main", "status": "RUNNING", "event": "selfevolve_started", "logger": "__main__", "level": "info", "correlation_id": "68afce95", "timestamp": "2026-05-24T05:23:04.887772Z"}
+{"component": "main", "error": "cannot import name 'review_pipeline' from 'agents.skills.pr_reviewer.review_pipeline' (/home/agentx/self-evolving/src/agents/skills/pr_reviewer/review_pipeline.py)", "event": "pr_review_loop_init_failed", "logger": "__main__", "level": "warning", "correlation_id": "68afce95", "timestamp": "2026-05-24T05:23:04.889503Z"}
+{"component": "database", "url": "sqlite:////home/agentx/self-evolving/src/persistence/../../data/jarvis.db", "tables": 6, "event": "database_initialized", "logger": "persistence.db", "level": "info", "correlation_id": "68afce95", "timestamp": "2026-05-24T05:23:04.972504Z"}
+{"component": "database", "bugs": 8, "frs": 2, "trades": 0, "event": "state_synced_from_db", "logger": "persistence.db", "level": "info", "correlation_id": "68afce95", "timestamp": "2026-05-24T05:23:04.980145Z"}
+{"component": "dashboard_api", "bugs": 8, "frs": 2, "event": "database_ready", "logger": "dashboard.api.main", "level": "info", "correlation_id": "68afce95", "timestamp": "2026-05-24T05:23:04.980240Z"}
+{"component": "hot_reloader", "watched_dirs": 3, "files_tracked": 71, "event": "hot_reloader_started", "logger": "evolution.hot_reloader", "level": "info", "correlation_id": "68afce95", "timestamp": "2026-05-24T05:23:05.013488Z"}
+{"component": "bug_worker", "interval": "30min", "event": "bug_worker_started", "logger": "evolution.bug_worker", "level": "info", "correlation_id": "68afce95", "timestamp": "2026-05-24T05:23:05.014691Z"}
+{"component": "bug_worker", "bug_id": "ef9dcdae", "title": "Create skills.py for Technical Analyst", "event": "bug_worker_starting", "logger": "evolution.bug_worker", "level": "info", "correlation_id": "68afce95", "timestamp": "2026-05-24T05:23:05.017167Z"}
+{"component": "self_evolution", "interval": "10min", "event": "evolution_loop_started", "logger": "evolution.self_evolution", "level": "info", "correlation_id": "68afce95", "timestamp": "2026-05-24T05:23:05.034313Z"}
+{"component": "dashboard_api", "equity": 99999.96, "cash": 99980.4, "positions": 2, "daily_pnl": -0.03999999999359716, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "68afce95", "timestamp": "2026-05-24T05:23:05.392375Z"}
+{"component": "telegram_bot", "length": 104, "event": "telegram_alert_sent", "logger": "integrations.telegram_bot", "level": "info", "correlation_id": "68afce95", "timestamp": "2026-05-24T05:23:05.523835Z"}
+AFC is enabled with max remote calls: 10.
+{"component": "bug_worker", "bug_id": "ef9dcdae", "error": "Error calling model 'gemini-3.1-pro' (NOT_FOUND): 404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-3.1-pro is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.', 'status': 'NOT_FOUND'}}", "event": "bug_fix_failed", "logger": "evolution.bug_worker", "level": "warning", "correlation_id": "68afce95", "timestamp": "2026-05-24T05:23:06.315405Z"}
+{"component": "dashboard_api", "equity": 99999.96, "cash": 99980.4, "positions": 2, "daily_pnl": -0.03999999999359716, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "68afce95", "timestamp": "2026-05-24T05:23:22.374280Z"}
+{"component": "bug_worker", "bug_id": "ef9dcdae", "title": "Create skills.py for Technical Analyst", "event": "bug_worker_starting", "logger": "evolution.bug_worker", "level": "info", "correlation_id": "68afce95", "timestamp": "2026-05-24T05:23:27.091488Z"}
+{"component": "telegram_bot", "length": 104, "event": "telegram_alert_sent", "logger": "integrations.telegram_bot", "level": "info", "correlation_id": "68afce95", "timestamp": "2026-05-24T05:23:27.590620Z"}
+AFC is enabled with max remote calls: 10.
+{"component": "bug_worker", "bug_id": "ef9dcdae", "error": "Error calling model 'gemini-3.1-pro' (NOT_FOUND): 404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-3.1-pro is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.', 'status': 'NOT_FOUND'}}", "event": "bug_fix_failed", "logger": "evolution.bug_worker", "level": "warning", "correlation_id": "68afce95", "timestamp": "2026-05-24T05:23:27.791723Z"}
+{"component": "dashboard_api", "equity": 99999.96, "cash": 99980.4, "positions": 2, "daily_pnl": -0.03999999999359716, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "68afce95", "timestamp": "2026-05-24T05:24:22.379160Z"}
