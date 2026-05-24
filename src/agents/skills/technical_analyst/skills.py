@@ -1,226 +1,203 @@
 import pandas as pd
 import numpy as np
-from typing import Dict, List, Union, Optional
+from typing import List, Dict, Union, Optional
 
-def calculate_sma(prices: pd.Series, period: int = 14) -> pd.Series:
+def calculate_sma(prices: List[float], period: int = 14) -> List[float]:
     """
-    Calculate the Simple Moving Average (SMA).
+    Calculate the Simple Moving Average (SMA) for a given list of prices.
     
     Args:
-        prices (pd.Series): Series of prices.
-        period (int): Number of periods for the SMA.
+        prices (List[float]): List of historical prices.
+        period (int): The number of periods to calculate the SMA over.
         
     Returns:
-        pd.Series: SMA values.
+        List[float]: A list of SMA values. The first `period - 1` values will be NaN.
     """
-    return prices.rolling(window=period).mean()
+    series = pd.Series(prices)
+    sma = series.rolling(window=period).mean()
+    return sma.fillna(float('nan')).tolist()
 
-def calculate_ema(prices: pd.Series, period: int = 14) -> pd.Series:
+def calculate_ema(prices: List[float], period: int = 14) -> List[float]:
     """
-    Calculate the Exponential Moving Average (EMA).
+    Calculate the Exponential Moving Average (EMA) for a given list of prices.
     
     Args:
-        prices (pd.Series): Series of prices.
-        period (int): Number of periods for the EMA.
+        prices (List[float]): List of historical prices.
+        period (int): The number of periods to calculate the EMA over.
         
     Returns:
-        pd.Series: EMA values.
+        List[float]: A list of EMA values.
     """
-    return prices.ewm(span=period, adjust=False).mean()
+    series = pd.Series(prices)
+    ema = series.ewm(span=period, adjust=False).mean()
+    return ema.fillna(float('nan')).tolist()
 
-def calculate_rsi(prices: pd.Series, period: int = 14) -> pd.Series:
+def calculate_rsi(prices: List[float], period: int = 14) -> List[float]:
     """
-    Calculate the Relative Strength Index (RSI) using Wilder's smoothing.
+    Calculate the Relative Strength Index (RSI) for a given list of prices.
     
     Args:
-        prices (pd.Series): Series of prices.
-        period (int): Number of periods for the RSI.
+        prices (List[float]): List of historical prices.
+        period (int): The number of periods to calculate the RSI over.
         
     Returns:
-        pd.Series: RSI values.
+        List[float]: A list of RSI values.
     """
-    delta = prices.diff()
-    gain = delta.clip(lower=0)
-    loss = -delta.clip(upper=0)
+    series = pd.Series(prices)
+    delta = series.diff()
     
-    # Use exponential moving average for Wilder's RSI
+    # Calculate gains and losses
+    gain = delta.where(delta > 0, 0.0)
+    loss = -delta.where(delta < 0, 0.0)
+    
+    # Calculate exponential moving average of gains and losses
     avg_gain = gain.ewm(alpha=1/period, min_periods=period, adjust=False).mean()
     avg_loss = loss.ewm(alpha=1/period, min_periods=period, adjust=False).mean()
     
     rs = avg_gain / avg_loss
     rsi = 100 - (100 / (1 + rs))
-    return rsi
+    
+    return rsi.fillna(float('nan')).tolist()
 
-def calculate_macd(prices: pd.Series, fast_period: int = 12, slow_period: int = 26, signal_period: int = 9) -> pd.DataFrame:
+def calculate_macd(prices: List[float], fast_period: int = 12, slow_period: int = 26, signal_period: int = 9) -> Dict[str, List[float]]:
     """
     Calculate the Moving Average Convergence Divergence (MACD).
     
     Args:
-        prices (pd.Series): Series of prices.
-        fast_period (int): Fast EMA period.
-        slow_period (int): Slow EMA period.
-        signal_period (int): Signal line EMA period.
+        prices (List[float]): List of historical prices.
+        fast_period (int): The fast EMA period.
+        slow_period (int): The slow EMA period.
+        signal_period (int): The signal line EMA period.
         
     Returns:
-        pd.DataFrame: DataFrame containing 'MACD', 'Signal', and 'Histogram'.
+        Dict[str, List[float]]: A dictionary containing 'macd', 'signal', and 'histogram'.
     """
-    fast_ema = calculate_ema(prices, fast_period)
-    slow_ema = calculate_ema(prices, slow_period)
+    series = pd.Series(prices)
+    ema_fast = series.ewm(span=fast_period, adjust=False).mean()
+    ema_slow = series.ewm(span=slow_period, adjust=False).mean()
     
-    macd = fast_ema - slow_ema
+    macd = ema_fast - ema_slow
     signal = macd.ewm(span=signal_period, adjust=False).mean()
     histogram = macd - signal
     
-    return pd.DataFrame({
-        'MACD': macd,
-        'Signal': signal,
-        'Histogram': histogram
-    })
+    return {
+        "macd": macd.fillna(float('nan')).tolist(),
+        "signal": signal.fillna(float('nan')).tolist(),
+        "histogram": histogram.fillna(float('nan')).tolist()
+    }
 
-def calculate_bollinger_bands(prices: pd.Series, period: int = 20, std_dev: float = 2.0) -> pd.DataFrame:
+def calculate_bollinger_bands(prices: List[float], period: int = 20, std_dev: float = 2.0) -> Dict[str, List[float]]:
     """
     Calculate Bollinger Bands.
     
     Args:
-        prices (pd.Series): Series of prices.
-        period (int): Number of periods for the SMA.
-        std_dev (float): Number of standard deviations for the bands.
+        prices (List[float]): List of historical prices.
+        period (int): The SMA period.
+        std_dev (float): The number of standard deviations for the bands.
         
     Returns:
-        pd.DataFrame: DataFrame containing 'Upper', 'Middle' (SMA), and 'Lower' bands.
+        Dict[str, List[float]]: A dictionary containing 'upper_band', 'middle_band', and 'lower_band'.
     """
-    sma = calculate_sma(prices, period)
-    rolling_std = prices.rolling(window=period).std()
+    series = pd.Series(prices)
+    middle_band = series.rolling(window=period).mean()
+    std = series.rolling(window=period).std()
     
-    upper_band = sma + (rolling_std * std_dev)
-    lower_band = sma - (rolling_std * std_dev)
+    upper_band = middle_band + (std * std_dev)
+    lower_band = middle_band - (std * std_dev)
     
-    return pd.DataFrame({
-        'Upper': upper_band,
-        'Middle': sma,
-        'Lower': lower_band
-    })
-
-def calculate_atr(df: pd.DataFrame, period: int = 14) -> pd.Series:
-    """
-    Calculate the Average True Range (ATR).
-    
-    Args:
-        df (pd.DataFrame): DataFrame containing 'High', 'Low', and 'Close' columns.
-        period (int): Number of periods for the ATR.
-        
-    Returns:
-        pd.Series: ATR values.
-    """
-    high = df['High']
-    low = df['Low']
-    close = df['Close']
-    
-    tr1 = high - low
-    tr2 = (high - close.shift()).abs()
-    tr3 = (low - close.shift()).abs()
-    
-    tr = pd.concat([tr1, tr2, tr3], axis=1).max(axis=1)
-    atr = tr.ewm(alpha=1/period, min_periods=period, adjust=False).mean()
-    
-    return atr
-
-def identify_support_resistance(highs: pd.Series, lows: pd.Series, window: int = 20) -> Dict[str, List[float]]:
-    """
-    Identify potential support and resistance levels using rolling min/max.
-    
-    Args:
-        highs (pd.Series): Series of high prices.
-        lows (pd.Series): Series of low prices.
-        window (int): Lookback window to identify local extrema.
-        
-    Returns:
-        Dict[str, List[float]]: Dictionary with 'support' and 'resistance' levels.
-    """
-    resistance_levels = highs.rolling(window=window, center=True).max().dropna().unique().tolist()
-    support_levels = lows.rolling(window=window, center=True).min().dropna().unique().tolist()
-    
-    # Filter out close levels to avoid clutter
-    def filter_levels(levels, threshold=0.01):
-        filtered = []
-        for level in sorted(levels):
-            if not filtered or all(abs(level - f) / f > threshold for f in filtered):
-                filtered.append(level)
-        return filtered
-
     return {
-        'support': filter_levels(support_levels),
-        'resistance': filter_levels(resistance_levels)
+        "upper_band": upper_band.fillna(float('nan')).tolist(),
+        "middle_band": middle_band.fillna(float('nan')).tolist(),
+        "lower_band": lower_band.fillna(float('nan')).tolist()
     }
 
-def identify_doji(df: pd.DataFrame, threshold: float = 0.1) -> pd.Series:
+def identify_support_resistance(prices: List[float], window: int = 5) -> Dict[str, List[float]]:
     """
-    Identify Doji candlestick patterns.
+    Identify potential support and resistance levels using local minima and maxima.
     
     Args:
-        df (pd.DataFrame): DataFrame containing 'Open', 'High', 'Low', 'Close'.
-        threshold (float): Maximum body size as a percentage of the total range.
+        prices (List[float]): List of historical prices.
+        window (int): The window size to check for local extrema.
         
     Returns:
-        pd.Series: Boolean series where True indicates a Doji pattern.
+        Dict[str, List[float]]: Dictionary containing lists of 'support_levels' and 'resistance_levels'.
     """
-    body = (df['Close'] - df['Open']).abs()
-    total_range = df['High'] - df['Low']
+    supports = []
+    resistances = []
     
-    # Avoid division by zero
-    is_doji = (body / total_range.replace(0, np.nan)) <= threshold
-    return is_doji.fillna(False)
-
-def generate_technical_summary(df: pd.DataFrame) -> Dict[str, Union[str, float, bool, None]]:
-    """
-    Generate a summary of technical indicators for the latest data point.
-    
-    Args:
-        df (pd.DataFrame): DataFrame containing 'Open', 'High', 'Low', 'Close' columns.
+    for i in range(window, len(prices) - window):
+        is_support = True
+        is_resistance = True
         
-    Returns:
-        Dict[str, Union[str, float, bool, None]]: Summary of technical indicators and signals.
-    """
-    required_cols = ['Open', 'High', 'Low', 'Close']
-    for col in required_cols:
-        if col not in df.columns:
-            raise ValueError(f"DataFrame must contain a '{col}' column.")
+        for j in range(1, window + 1):
+            if prices[i] > prices[i - j] or prices[i] > prices[i + j]:
+                is_support = False
+            if prices[i] < prices[i - j] or prices[i] < prices[i + j]:
+                is_resistance = False
+                
+        if is_support:
+            supports.append(prices[i])
+        if is_resistance:
+            resistances.append(prices[i])
             
-    close = df['Close']
-    
-    rsi = calculate_rsi(close).iloc[-1]
-    macd_df = calculate_macd(close)
-    macd_val = macd_df['MACD'].iloc[-1]
-    macd_sig = macd_df['Signal'].iloc[-1]
-    
-    bb_df = calculate_bollinger_bands(close)
-    upper_bb = bb_df['Upper'].iloc[-1]
-    lower_bb = bb_df['Lower'].iloc[-1]
-    
-    atr = calculate_atr(df).iloc[-1]
-    is_doji = identify_doji(df).iloc[-1]
-    
-    current_price = close.iloc[-1]
-    
-    # Basic signal logic
-    signal = "NEUTRAL"
-    if rsi < 30 and current_price <= lower_bb:
-        signal = "STRONG BUY"
-    elif rsi > 70 and current_price >= upper_bb:
-        signal = "STRONG SELL"
-    elif macd_val > macd_sig and rsi < 60:
-        signal = "BUY"
-    elif macd_val < macd_sig and rsi > 40:
-        signal = "SELL"
-        
     return {
-        'current_price': float(current_price),
-        'rsi': float(rsi) if not pd.isna(rsi) else None,
-        'macd': float(macd_val) if not pd.isna(macd_val) else None,
-        'macd_signal': float(macd_sig) if not pd.isna(macd_sig) else None,
-        'bollinger_upper': float(upper_bb) if not pd.isna(upper_bb) else None,
-        'bollinger_lower': float(lower_bb) if not pd.isna(lower_bb) else None,
-        'atr': float(atr) if not pd.isna(atr) else None,
-        'is_doji': bool(is_doji),
-        'overall_signal': signal
+        "support_levels": supports,
+        "resistance_levels": resistances
+    }
+
+def identify_trend(prices: List[float], period: int = 14) -> str:
+    """
+    Identify the current trend based on SMA and recent price action.
+    
+    Args:
+        prices (List[float]): List of historical prices.
+        period (int): The period to use for trend analysis.
+        
+    Returns:
+        str: 'bullish', 'bearish', or 'neutral'.
+    """
+    if len(prices) < period:
+        return "neutral"
+        
+    sma = calculate_sma(prices, period)
+    current_price = prices[-1]
+    current_sma = sma[-1]
+    
+    if pd.isna(current_sma):
+        return "neutral"
+        
+    if current_price > current_sma * 1.01:
+        return "bullish"
+    elif current_price < current_sma * 0.99:
+        return "bearish"
+    else:
+        return "neutral"
+
+def get_technical_summary(prices: List[float]) -> Dict[str, Union[float, str, bool]]:
+    """
+    Get a summary of technical indicators for the latest price point.
+    
+    Args:
+        prices (List[float]): List of historical prices.
+        
+    Returns:
+        Dict[str, Union[float, str, bool]]: A dictionary of the latest indicator values and trend.
+    """
+    if len(prices) < 26:
+        return {"error": "Not enough data points. Minimum 26 required."}
+        
+    rsi = calculate_rsi(prices, 14)[-1]
+    macd_data = calculate_macd(prices)
+    macd = macd_data["macd"][-1]
+    signal = macd_data["signal"][-1]
+    trend = identify_trend(prices, 20)
+    
+    return {
+        "current_price": prices[-1],
+        "rsi_14": rsi if not pd.isna(rsi) else 0.0,
+        "macd": macd if not pd.isna(macd) else 0.0,
+        "macd_signal": signal if not pd.isna(signal) else 0.0,
+        "trend": trend,
+        "is_overbought": bool(rsi > 70) if not pd.isna(rsi) else False,
+        "is_oversold": bool(rsi < 30) if not pd.isna(rsi) else False
     }
