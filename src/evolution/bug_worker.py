@@ -44,19 +44,14 @@ class BugWorker:
 
         self._processing = True
         try:
-            from dashboard.api.main import system_state
+            from persistence.db import get_open_bugs_sorted, update_bug
 
-            # Get OPEN bugs sorted by severity
-            bugs = system_state.get("bugs", [])
-            open_bugs = [b for b in bugs if b.get("status") == "OPEN"]
+            # Get OPEN bugs sorted by severity from DB
+            open_bugs = get_open_bugs_sorted()
 
             if not open_bugs:
                 logger.info("bug_worker_idle", message="No open bugs")
                 return None
-
-            open_bugs.sort(
-                key=lambda b: SEVERITY_PRIORITY.get(b.get("severity", "LOW"), 3)
-            )
 
             bug = open_bugs[0]
             bug_id = bug["id"]
@@ -64,9 +59,9 @@ class BugWorker:
 
             logger.info("bug_worker_starting", bug_id=bug_id[:8], title=bug_title[:50])
 
-            # Mark as IN_PROGRESS
-            bug["status"] = "IN_PROGRESS"
-            bug["started_at"] = datetime.now(timezone.utc).isoformat()
+            # Mark as IN_PROGRESS in DB
+            update_bug(bug_id, status="IN_PROGRESS",
+                       started_at=datetime.now(timezone.utc))
 
             # Notify via Telegram
             try:
@@ -87,22 +82,24 @@ class BugWorker:
                 # Create PR
                 pr_info = await self._create_pr(bug, result)
 
-                bug["status"] = "RESOLVED"
-                bug["resolved_at"] = datetime.now(timezone.utc).isoformat()
-                bug["pr_url"] = pr_info.get("url") if pr_info else None
+                # Update DB
+                pr_url_val = pr_info.get("url") if pr_info else None
+                update_bug(bug_id, status="RESOLVED",
+                           resolved_at=datetime.now(timezone.utc),
+                           pr_url=pr_url_val)
 
                 self._processed_count += 1
                 self._history.append({
                     "bug_id": bug_id[:8],
                     "title": bug_title[:60],
                     "status": "RESOLVED",
-                    "pr_url": pr_info.get("url") if pr_info else None,
+                    "pr_url": pr_url_val,
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                 })
 
                 # Notify success
                 try:
-                    pr_url = pr_info.get("url", "no PR") if pr_info else "no PR"
+                    pr_url = pr_url_val or "no PR"
                     await send_alert(
                         f"✅ *Bug Resolved*\n\n"
                         f"`{bug_title[:60]}`\n"
@@ -116,8 +113,8 @@ class BugWorker:
                 return {"bug_id": bug_id, "status": "RESOLVED", "pr": pr_info}
 
             else:
-                bug["status"] = "OPEN"  # Put it back
-                bug["worker_error"] = result.get("error", "Unknown")
+                update_bug(bug_id, status="OPEN",
+                           worker_error=result.get("error", "Unknown"))
                 logger.warning("bug_fix_failed", bug_id=bug_id[:8], error=result.get("error"))
                 return {"bug_id": bug_id, "status": "FAILED", "error": result.get("error")}
 
@@ -126,13 +123,6 @@ class BugWorker:
             return {"status": "ERROR", "error": str(e)}
         finally:
             self._processing = False
-            # Persist state after any bug status change
-            try:
-                from persistence.state_store import save_now
-                from dashboard.api.main import system_state
-                save_now(system_state)
-            except Exception:
-                pass
 
     async def _generate_fix(self, bug: dict) -> dict:
         """Use Gemini to generate code that fixes the bug."""

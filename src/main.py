@@ -215,15 +215,8 @@ class SelfEvolveSystem:
             if logger:
                 await logger.awarning("bug_worker_init_failed", error=str(e))
 
-        # Start Auto-Save (persists state to disk every 60s)
-        try:
-            from persistence.state_store import auto_save_loop
-            from dashboard.api.main import system_state as _ss
-            auto_save_task = asyncio.create_task(auto_save_loop(_ss, interval_sec=60))
-        except Exception as e:
-            auto_save_task = None
-            if logger:
-                await logger.awarning("auto_save_init_failed", error=str(e))
+        # DB handles persistence — no auto-save loop needed
+        auto_save_task = None
 
         try:
             while self._running:

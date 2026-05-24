@@ -326,17 +326,14 @@ async def cmd_fr(update: Update, context: ContextTypes.DEFAULT_TYPE):
         import uuid as _uuid
         from datetime import datetime as _dt, timezone as _tz
         from dashboard.api.main import system_state
+        from persistence.db import create_bug, create_feature_request
 
-        # Create the FR record
+        # Create the FR record — DB + memory
         fr_id = str(_uuid.uuid4())
-        fr_record = {
-            "id": fr_id,
-            "title": fr_text[:100],
-            "description": fr_text,
-            "analysis": analysis,
-            "status": "IN_PROGRESS",
-            "created_at": _dt.now(_tz.utc).isoformat(),
-        }
+        fr_record = create_feature_request(
+            id=fr_id, title=fr_text[:100],
+            description=fr_text, analysis=analysis,
+        )
         system_state.setdefault("feature_requests", []).append(fr_record)
 
         # Parse and create bugs from Gemini's response
@@ -360,31 +357,23 @@ async def cmd_fr(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         break
 
                 bug_id = str(_uuid.uuid4())
-                bug = {
-                    "id": bug_id,
-                    "title": bug_text[:100],
-                    "severity": severity,
-                    "status": "OPEN",
-                    "source": f"FR #{fr_id[:8]}",
-                    "description": fr_text,
-                    "created_at": _dt.now(_tz.utc).isoformat(),
-                }
-                system_state["bugs"].append(bug)
+                bug_dict = create_bug(
+                    id=bug_id, title=bug_text[:100],
+                    severity=severity, source=f"FR #{fr_id[:8]}",
+                    description=fr_text,
+                )
+                system_state["bugs"].append(bug_dict)
                 bugs_created.append(f"🐛 [{severity}] {bug_text[:60]}")
 
         # If Gemini didn't create any BUG: lines, create one from the FR itself
         if not bugs_created:
             bug_id = str(_uuid.uuid4())
-            bug = {
-                "id": bug_id,
-                "title": fr_text[:100],
-                "severity": "MEDIUM",
-                "status": "OPEN",
-                "source": f"FR #{fr_id[:8]}",
-                "description": fr_text,
-                "created_at": _dt.now(_tz.utc).isoformat(),
-            }
-            system_state["bugs"].append(bug)
+            bug_dict = create_bug(
+                id=bug_id, title=fr_text[:100],
+                severity="MEDIUM", source=f"FR #{fr_id[:8]}",
+                description=fr_text,
+            )
+            system_state["bugs"].append(bug_dict)
             bugs_created.append(f"🐛 [MEDIUM] {fr_text[:60]}")
 
         # Build response
@@ -399,10 +388,6 @@ async def cmd_fr(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await update.message.reply_text(reply, parse_mode=None)
         logger.info("feature_request", fr_id=fr_id[:8], bugs=len(bugs_created), text=fr_text[:50])
-
-        # Persist to disk immediately
-        from persistence.state_store import save_now
-        save_now(system_state)
 
     except Exception as e:
         logger.error("fr_command_failed", error=str(e))

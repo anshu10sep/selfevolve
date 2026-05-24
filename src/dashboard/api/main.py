@@ -127,14 +127,16 @@ system_state: dict[str, Any] = {
     },
 }
 
-# ── LOAD PERSISTED STATE ──────────────────────────────────────────
-# Restores bugs, FRs, trades, agent scores from previous session
-from persistence.state_store import load_state, save_now
-_loaded = load_state(system_state)
-if _loaded:
-    logger.info("persisted_state_restored")
-else:
-    logger.info("starting_fresh_state")
+# ── DATABASE INITIALIZATION ───────────────────────────────────────
+# Production-ready SQLAlchemy DB (SQLite now, Postgres later)
+from persistence.db import init_db, migrate_json_to_db, sync_state_from_db
+
+init_db()               # Create tables if they don't exist
+migrate_json_to_db()    # One-time: import any existing state.json
+sync_state_from_db(system_state)  # Load bugs, FRs, trades into memory
+
+logger.info("database_ready", bugs=len(system_state["bugs"]),
+            frs=len(system_state.get("feature_requests", [])))
 
 
 active_connections: list[WebSocket] = []
