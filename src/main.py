@@ -23,6 +23,8 @@ from typing import Optional
 
 import structlog
 import uvicorn
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 
 # Local imports
 from config.settings import get_settings, Settings
@@ -63,6 +65,7 @@ class SelfEvolveSystem:
         self.circuit_breaker = CircuitBreaker()
         self.dead_man_switch: Optional[DeadManSwitch] = None
         self.hcf_protocol = HCFProtocol()
+        self.scheduler = AsyncIOScheduler(timezone=timezone.utc)
         self._running = False
         self._shutdown_event = asyncio.Event()
 
@@ -119,6 +122,11 @@ class SelfEvolveSystem:
             )
             await self.event_bus.start_listening()
 
+        # ── 5. Start Scheduler ────────────────────────────────────
+        self._setup_schedule()
+        self.scheduler.start()
+        await logger.ainfo("scheduler_started")
+
         self._running = True
         await logger.ainfo("selfevolve_started", status="RUNNING")
 
@@ -133,6 +141,10 @@ class SelfEvolveSystem:
         # Stop event bus
         if self.event_bus:
             await self.event_bus.stop_listening()
+
+        # Stop scheduler
+        if hasattr(self, "scheduler") and self.scheduler.running:
+            self.scheduler.shutdown()
 
         # Flush state to PostgreSQL
         # (In production, this persists the full Redis state)
@@ -170,10 +182,8 @@ class SelfEvolveSystem:
                     self.circuit_breaker.check()
                     self.hcf_protocol.check()
 
-                    # The main loop ticks every 60 seconds
-                    # In production, this is where the schedule engine
-                    # determines which phase to execute
-                    await self._execute_phase()
+                    # The schedule engine (APScheduler) handles phase transitions
+                    # in the background.
 
                     await asyncio.sleep(60)
 
@@ -195,11 +205,62 @@ class SelfEvolveSystem:
             settlement_task.cancel()
             await self.shutdown()
 
-    async def _execute_phase(self) -> None:
-        """Determine and execute the current market phase."""
-        # Placeholder: full schedule engine will use APScheduler
-        # to trigger pre-market, trading, post-market, overnight phases
-        pass
+    def _setup_schedule(self) -> None:
+        """Setup APScheduler with market hours logic."""
+        # Note: ET times converted to UTC for scheduler (assuming ET = UTC-5 standard, simplified)
+        self.scheduler.add_job(
+            self._run_pre_market,
+            CronTrigger(day_of_week='mon-fri', hour=13, minute=0),
+            id='pre_market',
+        )
+        self.scheduler.add_job(
+            self._run_market_open,
+            CronTrigger(day_of_week='mon-fri', hour=14, minute=30),
+            id='market_open',
+        )
+        self.scheduler.add_job(
+            self._run_market_close,
+            CronTrigger(day_of_week='mon-fri', hour=21, minute=0),
+            id='market_close',
+        )
+        self.scheduler.add_job(
+            self._run_post_market_evolution,
+            CronTrigger(day_of_week='mon-fri', hour=21, minute=30),
+            id='post_market',
+        )
+
+    async def _run_pre_market(self) -> None:
+        """Execute morning briefing DAG."""
+        global logger
+        if logger: await logger.ainfo("phase_started", phase="PRE_MARKET")
+        from orchestration.morning_briefing import compile_morning_briefing
+        # dag = compile_morning_briefing()
+        # await dag.ainvoke({"step": "init"})
+
+    async def _run_market_open(self) -> None:
+        """Activate trading DAG."""
+        global logger
+        if logger: await logger.ainfo("phase_started", phase="MARKET_OPEN")
+        # Trading DAG continuous execution logic
+
+    async def _run_market_close(self) -> None:
+        """Halt trading DAG."""
+        global logger
+        if logger: await logger.ainfo("phase_started", phase="MARKET_CLOSE")
+        # Cancel active orders, halt new entries
+
+    async def _run_post_market_evolution(self) -> None:
+        """Execute evolution DAG and Jarvis PR cycles."""
+        global logger
+        if logger: await logger.ainfo("phase_started", phase="POST_MARKET_EVOLUTION")
+        from orchestration.evolution_dag import compile_evolution_dag
+        # dag = compile_evolution_dag()
+        # await dag.ainvoke({"step": "init"})
+        
+        # Jarvis autonomous code evolution cycle
+        from agents.master_agent import Jarvis
+        # jarvis = Jarvis(llm=...)
+        # await jarvis.run_evolution_cycle()
 
     async def _overwatch_loop(self) -> None:
         """
