@@ -1,0 +1,172 @@
+{
+  "saved_at": "2026-05-24T04:39:10.889230+00:00",
+  "version": 1,
+  "bugs": [
+    {
+      "id": "c71fa4a7-b497-4fc4-91d0-b609633d3882",
+      "title": "Define skills schema",
+      "severity": "HIGH",
+      "status": "OPEN",
+      "source": "FR #test",
+      "created_at": "2026-05-24T04:39:10.889111+00:00"
+    },
+    {
+      "id": "c883bbc2-2362-470a-9657-cdeea04cc1bb",
+      "title": "Create skill files for all agents",
+      "severity": "HIGH",
+      "status": "OPEN",
+      "source": "FR #test",
+      "created_at": "2026-05-24T04:39:10.889128+00:00"
+    },
+    {
+      "id": "bcd77e10-6075-411f-aac7-bc779dc47536",
+      "title": "Add skills validation",
+      "severity": "HIGH",
+      "status": "OPEN",
+      "source": "FR #test",
+      "created_at": "2026-05-24T04:39:10.889133+00:00"
+    }
+  ],
+  "feature_requests": [
+    {
+      "id": "c47f07ba-1071-492e-a6f1-a23018f7a902",
+      "title": "Test FR for persistence",
+      "status": "IN_PROGRESS",
+      "created_at": "2026-05-24T04:39:10.889138+00:00"
+    }
+  ],
+  "recent_trades": [],
+  "evolution_events": [],
+  "daily_progress": [],
+  "roadmap": [],
+  "hitl_queue": [],
+  "system_audit": {
+    "readiness_score": 0.81,
+    "total_files": 88,
+    "total_lines": 8975,
+    "critical_findings": 0,
+    "high_findings": 0
+  },
+  "agent_scores": {
+    "MASTER": {
+      "trust_weight": 1.0,
+      "brier_score": null,
+      "tasks_today": 0,
+      "cost_today": 0.0
+    },
+    "CTO": {
+      "trust_weight": 1.0,
+      "brier_score": null,
+      "tasks_today": 0,
+      "cost_today": 0.0
+    },
+    "CTO_CRYPTO": {
+      "trust_weight": 1.0,
+      "brier_score": null,
+      "tasks_today": 0,
+      "cost_today": 0.0
+    },
+    "CSO": {
+      "trust_weight": 1.0,
+      "brier_score": null,
+      "tasks_today": 0,
+      "cost_today": 0.0
+    },
+    "QA": {
+      "trust_weight": 1.0,
+      "brier_score": null,
+      "tasks_today": 0,
+      "cost_today": 0.0
+    },
+    "DEVELOPER": {
+      "trust_weight": 1.0,
+      "brier_score": null,
+      "tasks_today": 0,
+      "cost_today": 0.0
+    },
+    "PRODUCT": {
+      "trust_weight": 1.0,
+      "brier_score": null,
+      "tasks_today": 0,
+      "cost_today": 0.0
+    },
+    "FUNDAMENTAL_ANALYST": {
+      "trust_weight": 1.0,
+      "brier_score": 0.22,
+      "tasks_today": 0,
+      "cost_today": 0.0
+    },
+    "TECHNICAL_ANALYST": {
+      "trust_weight": 1.0,
+      "brier_score": 0.19,
+      "tasks_today": 0,
+      "cost_today": 0.0
+    },
+    "SENTIMENT_ANALYST": {
+      "trust_weight": 1.0,
+      "brier_score": 0.28,
+      "tasks_today": 0,
+      "cost_today": 0.0
+    },
+    "MACRO_ANALYST": {
+      "trust_weight": 1.0,
+      "brier_score": 0.24,
+      "tasks_today": 0,
+      "cost_today": 0.0
+    },
+    "BULL": {
+      "trust_weight": 1.0,
+      "brier_score": null,
+      "tasks_today": 0,
+      "cost_today": 0.0
+    },
+    "BEAR": {
+      "trust_weight": 1.0,
+      "brier_score": null,
+      "tasks_today": 0,
+      "cost_today": 0.0
+    },
+    "JUDGE": {
+      "trust_weight": 1.0,
+      "brier_score": 0.18,
+      "tasks_today": 0,
+      "cost_today": 0.0
+    },
+    "META_REVIEW": {
+      "trust_weight": 1.0,
+      "brier_score": null,
+      "tasks_today": 0,
+      "cost_today": 0.0
+    },
+    "JOURNALING": {
+      "trust_weight": 1.0,
+      "brier_score": null,
+      "tasks_today": 0,
+      "cost_today": 0.0
+    },
+    "AUDITOR": {
+      "trust_weight": 1.0,
+      "brier_score": null,
+      "tasks_today": 0,
+      "cost_today": 0.0
+    },
+    "MODEL_ORCHESTRATOR": {
+      "trust_weight": 1.0,
+      "brier_score": null,
+      "tasks_today": 0,
+      "cost_today": 0.0
+    },
+    "CRYPTO_ANALYST": {
+      "trust_weight": 1.0,
+      "brier_score": null,
+      "tasks_today": 0,
+      "cost_today": 0.0
+    },
+    "CRYPTO_SENTIMENT": {
+      "trust_weight": 1.0,
+      "brier_score": null,
+      "tasks_today": 0,
+      "cost_today": 0.0
+    }
+  }
+}

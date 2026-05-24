@@ -127,6 +127,15 @@ system_state: dict[str, Any] = {
     },
 }
 
+# ── LOAD PERSISTED STATE ──────────────────────────────────────────
+# Restores bugs, FRs, trades, agent scores from previous session
+from persistence.state_store import load_state, save_now
+_loaded = load_state(system_state)
+if _loaded:
+    logger.info("persisted_state_restored")
+else:
+    logger.info("starting_fresh_state")
+
 
 active_connections: list[WebSocket] = []
 

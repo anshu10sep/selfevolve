@@ -400,6 +400,10 @@ async def cmd_fr(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(reply, parse_mode=None)
         logger.info("feature_request", fr_id=fr_id[:8], bugs=len(bugs_created), text=fr_text[:50])
 
+        # Persist to disk immediately
+        from persistence.state_store import save_now
+        save_now(system_state)
+
     except Exception as e:
         logger.error("fr_command_failed", error=str(e))
         await update.message.reply_text(f"❌ FR error: {str(e)[:100]}")

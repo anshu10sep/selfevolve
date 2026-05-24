@@ -126,6 +126,13 @@ class BugWorker:
             return {"status": "ERROR", "error": str(e)}
         finally:
             self._processing = False
+            # Persist state after any bug status change
+            try:
+                from persistence.state_store import save_now
+                from dashboard.api.main import system_state
+                save_now(system_state)
+            except Exception:
+                pass
 
     async def _generate_fix(self, bug: dict) -> dict:
         """Use Gemini to generate code that fixes the bug."""

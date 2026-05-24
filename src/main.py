@@ -215,6 +215,16 @@ class SelfEvolveSystem:
             if logger:
                 await logger.awarning("bug_worker_init_failed", error=str(e))
 
+        # Start Auto-Save (persists state to disk every 60s)
+        try:
+            from persistence.state_store import auto_save_loop
+            from dashboard.api.main import system_state as _ss
+            auto_save_task = asyncio.create_task(auto_save_loop(_ss, interval_sec=60))
+        except Exception as e:
+            auto_save_task = None
+            if logger:
+                await logger.awarning("auto_save_init_failed", error=str(e))
+
         try:
             while self._running:
                 try:
@@ -253,6 +263,8 @@ class SelfEvolveSystem:
                 hot_reload_task.cancel()
             if bug_worker_task:
                 bug_worker_task.cancel()
+            if auto_save_task:
+                auto_save_task.cancel()  # Triggers final save in CancelledError handler
             await self.shutdown()
 
     def _setup_schedule(self) -> None:
