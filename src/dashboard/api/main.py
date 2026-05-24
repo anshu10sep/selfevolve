@@ -129,6 +129,81 @@ active_connections: list[WebSocket] = []
 
 
 # ════════════════════════════════════════════════════════════════════
+# ALPACA LIVE SYNC
+# ════════════════════════════════════════════════════════════════════
+
+async def sync_alpaca_portfolio():
+    """Fetch live portfolio data from Alpaca and update system_state."""
+    try:
+        from broker.alpaca_client import AlpacaClient
+        client = AlpacaClient()
+        account = await client.get_account()
+        positions_raw = await client.get_positions()
+        await client.close()
+
+        equity = float(account.get("equity", 0))
+        cash = float(account.get("cash", 0))
+        buying_power = float(account.get("buying_power", 0))
+        last_equity = float(account.get("last_equity", equity))
+        daily_pnl = equity - last_equity
+
+        positions = {}
+        for pos in positions_raw:
+            ticker = pos.get("symbol", "")
+            positions[ticker] = {
+                "ticker": ticker,
+                "quantity": float(pos.get("qty", 0)),
+                "avg_entry_price": float(pos.get("avg_entry_price", 0)),
+                "current_price": float(pos.get("current_price", 0)),
+                "market_value": float(pos.get("market_value", 0)),
+                "unrealized_pnl": float(pos.get("unrealized_pl", 0)),
+                "side": pos.get("side", "long"),
+            }
+
+        # Calculate tranches based on actual equity
+        tranche_size = equity / 10.0
+        locked_count = len(positions)
+
+        system_state["portfolio"] = {
+            "total_equity": equity,
+            "settled_cash": cash,
+            "unsettled_cash": max(0, equity - cash - sum(p.get("market_value", 0) for p in positions.values())),
+            "buying_power": buying_power,
+            "daily_pnl": daily_pnl,
+            "total_pnl": equity - 100000.0,  # vs starting capital
+            "total_api_cost_today": system_state["portfolio"].get("total_api_cost_today", 0),
+            "total_api_cost_alltime": system_state["portfolio"].get("total_api_cost_alltime", 0),
+            "net_pnl": daily_pnl,
+            "positions": positions,
+            "drawdown_pct": max(0, (last_equity - equity) / last_equity * 100) if last_equity > 0 else 0,
+            "available_tranches": max(0, 10 - locked_count),
+            "locked_tranches": locked_count,
+            "settling_tranches": 0,
+            "tranche_size": tranche_size,
+            "account_status": account.get("status", "UNKNOWN"),
+            "account_number": account.get("account_number", ""),
+            "last_synced": datetime.now(timezone.utc).isoformat(),
+        }
+
+        logger.info(
+            "alpaca_synced",
+            equity=equity,
+            cash=cash,
+            positions=len(positions),
+            daily_pnl=daily_pnl,
+        )
+
+    except Exception as e:
+        logger.error("alpaca_sync_failed", error=str(e))
+
+
+@app.on_event("startup")
+async def startup_sync():
+    """Sync with Alpaca on dashboard startup."""
+    await sync_alpaca_portfolio()
+
+
+# ════════════════════════════════════════════════════════════════════
 # HEALTH & STATUS
 # ════════════════════════════════════════════════════════════════════
 
@@ -143,6 +218,8 @@ async def health_check():
 
 @app.get("/api/status")
 async def get_system_status():
+    # Sync live data from Alpaca
+    await sync_alpaca_portfolio()
     # Compute uptime
     started = datetime.fromisoformat(system_state["started_at"])
     uptime = datetime.now(timezone.utc) - started
@@ -156,6 +233,7 @@ async def get_system_status():
 
 @app.get("/api/portfolio")
 async def get_portfolio():
+    await sync_alpaca_portfolio()
     return system_state["portfolio"]
 
 

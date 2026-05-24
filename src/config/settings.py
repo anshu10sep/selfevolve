@@ -107,7 +107,7 @@ class Settings(BaseSettings):
         description="Maximum daily drawdown percentage before HCF",
     )
     initial_capital: float = Field(
-        default=100.00,
+        default=100000.00,
         description="Starting capital in USD",
     )
     account_type: AccountType = Field(

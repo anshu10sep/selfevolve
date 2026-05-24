@@ -1,0 +1,102 @@
+{"component": "main", "environment": "paper", "initial_capital": 100.0, "version": "1.0.0", "event": "selfevolve_starting", "logger": "__main__", "level": "info", "correlation_id": "9a05f0eb", "timestamp": "2026-05-24T01:42:12.231680Z"}
+{"component": "database", "url": "postgres:5432/selfevolve", "event": "database_engine_created", "logger": "persistence.database", "level": "info", "correlation_id": "3a47a55b", "timestamp": "2026-05-24T01:42:12.260532Z"}
+{"component": "main", "error": "[Errno -3] Temporary failure in name resolution", "event": "database_init_failed", "logger": "__main__", "level": "error", "correlation_id": "3a47a55b", "timestamp": "2026-05-24T01:42:12.271022Z"}
+{"component": "redis_client", "url": "redis://redis:6379/0", "event": "redis_client_created", "logger": "persistence.redis_client", "level": "info", "correlation_id": "3a47a55b", "timestamp": "2026-05-24T01:42:12.271549Z"}
+{"component": "main", "event": "redis_initialized", "logger": "__main__", "level": "info", "correlation_id": "3a47a55b", "timestamp": "2026-05-24T01:42:12.271675Z"}
+{"component": "main", "environment": "paper", "initial_capital": 100.0, "version": "1.0.0", "event": "selfevolve_starting", "logger": "__main__", "level": "info", "correlation_id": "c6894f99", "timestamp": "2026-05-24T01:42:22.872537Z"}
+{"component": "database", "url": "postgres:5432/selfevolve", "event": "database_engine_created", "logger": "persistence.database", "level": "info", "correlation_id": "d151de81", "timestamp": "2026-05-24T01:42:22.899163Z"}
+{"component": "main", "error": "[Errno -3] Temporary failure in name resolution", "event": "database_init_failed", "logger": "__main__", "level": "error", "correlation_id": "d151de81", "timestamp": "2026-05-24T01:42:22.909432Z"}
+{"component": "redis_client", "url": "redis://redis:6379/0", "event": "redis_client_created", "logger": "persistence.redis_client", "level": "info", "correlation_id": "d151de81", "timestamp": "2026-05-24T01:42:22.909895Z"}
+{"component": "main", "event": "redis_initialized", "logger": "__main__", "level": "info", "correlation_id": "d151de81", "timestamp": "2026-05-24T01:42:22.910003Z"}
+{"component": "main", "environment": "paper", "initial_capital": 100.0, "version": "1.0.0", "event": "selfevolve_starting", "logger": "__main__", "level": "info", "correlation_id": "90c4f0b6", "timestamp": "2026-05-24T01:42:33.378597Z"}
+{"component": "database", "url": "postgres:5432/selfevolve", "event": "database_engine_created", "logger": "persistence.database", "level": "info", "correlation_id": "521e554c", "timestamp": "2026-05-24T01:42:33.408073Z"}
+{"component": "main", "error": "[Errno -3] Temporary failure in name resolution", "event": "database_init_failed", "logger": "__main__", "level": "error", "correlation_id": "521e554c", "timestamp": "2026-05-24T01:42:33.418044Z"}
+{"component": "redis_client", "url": "redis://redis:6379/0", "event": "redis_client_created", "logger": "persistence.redis_client", "level": "info", "correlation_id": "521e554c", "timestamp": "2026-05-24T01:42:33.418876Z"}
+{"component": "main", "event": "redis_initialized", "logger": "__main__", "level": "info", "correlation_id": "521e554c", "timestamp": "2026-05-24T01:42:33.419150Z"}
+{"component": "main", "environment": "paper", "initial_capital": 100.0, "version": "1.0.0", "event": "selfevolve_starting", "logger": "__main__", "level": "info", "correlation_id": "0f1c10d7", "timestamp": "2026-05-24T01:42:43.894729Z"}
+{"component": "database", "url": "postgres:5432/selfevolve", "event": "database_engine_created", "logger": "persistence.database", "level": "info", "correlation_id": "3d3747a4", "timestamp": "2026-05-24T01:42:43.921965Z"}
+{"component": "main", "error": "[Errno -3] Temporary failure in name resolution", "event": "database_init_failed", "logger": "__main__", "level": "error", "correlation_id": "3d3747a4", "timestamp": "2026-05-24T01:42:43.935617Z"}
+{"component": "redis_client", "url": "redis://redis:6379/0", "event": "redis_client_created", "logger": "persistence.redis_client", "level": "info", "correlation_id": "3d3747a4", "timestamp": "2026-05-24T01:42:43.936141Z"}
+{"component": "main", "event": "redis_initialized", "logger": "__main__", "level": "info", "correlation_id": "3d3747a4", "timestamp": "2026-05-24T01:42:43.936292Z"}
+{"component": "main", "environment": "paper", "initial_capital": 100.0, "version": "1.0.0", "event": "selfevolve_starting", "logger": "__main__", "level": "info", "correlation_id": "6f4d7d83", "timestamp": "2026-05-24T01:42:54.419666Z"}
+{"component": "database", "url": "postgres:5432/selfevolve", "event": "database_engine_created", "logger": "persistence.database", "level": "info", "correlation_id": "3dd7b44f", "timestamp": "2026-05-24T01:42:54.444847Z"}
+{"component": "main", "error": "[Errno -3] Temporary failure in name resolution", "event": "database_init_failed", "logger": "__main__", "level": "error", "correlation_id": "3dd7b44f", "timestamp": "2026-05-24T01:42:54.454749Z"}
+{"component": "redis_client", "url": "redis://redis:6379/0", "event": "redis_client_created", "logger": "persistence.redis_client", "level": "info", "correlation_id": "3dd7b44f", "timestamp": "2026-05-24T01:42:54.455266Z"}
+{"component": "main", "event": "redis_initialized", "logger": "__main__", "level": "info", "correlation_id": "3dd7b44f", "timestamp": "2026-05-24T01:42:54.455370Z"}
+{"component": "main", "environment": "paper", "initial_capital": 100.0, "version": "1.0.0", "event": "selfevolve_starting", "logger": "__main__", "level": "info", "correlation_id": "26f66fbe", "timestamp": "2026-05-24T01:43:05.129048Z"}
+{"component": "database", "url": "postgres:5432/selfevolve", "event": "database_engine_created", "logger": "persistence.database", "level": "info", "correlation_id": "c1df4736", "timestamp": "2026-05-24T01:43:05.157475Z"}
+{"component": "main", "error": "[Errno -3] Temporary failure in name resolution", "event": "database_init_failed", "logger": "__main__", "level": "error", "correlation_id": "c1df4736", "timestamp": "2026-05-24T01:43:05.166835Z"}
+{"component": "redis_client", "url": "redis://redis:6379/0", "event": "redis_client_created", "logger": "persistence.redis_client", "level": "info", "correlation_id": "c1df4736", "timestamp": "2026-05-24T01:43:05.167272Z"}
+{"component": "main", "event": "redis_initialized", "logger": "__main__", "level": "info", "correlation_id": "c1df4736", "timestamp": "2026-05-24T01:43:05.167380Z"}
+{"component": "main", "environment": "paper", "initial_capital": 100.0, "version": "1.0.0", "event": "selfevolve_starting", "logger": "__main__", "level": "info", "correlation_id": "316f3f03", "timestamp": "2026-05-24T01:43:15.632283Z"}
+{"component": "database", "url": "postgres:5432/selfevolve", "event": "database_engine_created", "logger": "persistence.database", "level": "info", "correlation_id": "09c7bb44", "timestamp": "2026-05-24T01:43:15.659165Z"}
+{"component": "main", "error": "[Errno -3] Temporary failure in name resolution", "event": "database_init_failed", "logger": "__main__", "level": "error", "correlation_id": "09c7bb44", "timestamp": "2026-05-24T01:43:15.673162Z"}
+{"component": "redis_client", "url": "redis://redis:6379/0", "event": "redis_client_created", "logger": "persistence.redis_client", "level": "info", "correlation_id": "09c7bb44", "timestamp": "2026-05-24T01:43:15.673560Z"}
+{"component": "main", "event": "redis_initialized", "logger": "__main__", "level": "info", "correlation_id": "09c7bb44", "timestamp": "2026-05-24T01:43:15.673676Z"}
+{"component": "main", "environment": "paper", "initial_capital": 100.0, "version": "1.0.0", "event": "selfevolve_starting", "logger": "__main__", "level": "info", "correlation_id": "004fc2af", "timestamp": "2026-05-24T01:43:26.093452Z"}
+{"component": "database", "url": "postgres:5432/selfevolve", "event": "database_engine_created", "logger": "persistence.database", "level": "info", "correlation_id": "cb7f579d", "timestamp": "2026-05-24T01:43:26.116786Z"}
+{"component": "main", "error": "[Errno -3] Temporary failure in name resolution", "event": "database_init_failed", "logger": "__main__", "level": "error", "correlation_id": "cb7f579d", "timestamp": "2026-05-24T01:43:26.125075Z"}
+{"component": "redis_client", "url": "redis://redis:6379/0", "event": "redis_client_created", "logger": "persistence.redis_client", "level": "info", "correlation_id": "cb7f579d", "timestamp": "2026-05-24T01:43:26.125430Z"}
+{"component": "main", "event": "redis_initialized", "logger": "__main__", "level": "info", "correlation_id": "cb7f579d", "timestamp": "2026-05-24T01:43:26.125521Z"}
+{"component": "main", "environment": "paper", "initial_capital": 100.0, "version": "1.0.0", "event": "selfevolve_starting", "logger": "__main__", "level": "info", "correlation_id": "1581c750", "timestamp": "2026-05-24T01:43:36.649052Z"}
+{"component": "database", "url": "postgres:5432/selfevolve", "event": "database_engine_created", "logger": "persistence.database", "level": "info", "correlation_id": "d32a5750", "timestamp": "2026-05-24T01:43:36.677365Z"}
+{"component": "main", "error": "[Errno -3] Temporary failure in name resolution", "event": "database_init_failed", "logger": "__main__", "level": "error", "correlation_id": "d32a5750", "timestamp": "2026-05-24T01:43:36.686607Z"}
+{"component": "redis_client", "url": "redis://redis:6379/0", "event": "redis_client_created", "logger": "persistence.redis_client", "level": "info", "correlation_id": "d32a5750", "timestamp": "2026-05-24T01:43:36.687073Z"}
+{"component": "main", "event": "redis_initialized", "logger": "__main__", "level": "info", "correlation_id": "d32a5750", "timestamp": "2026-05-24T01:43:36.687225Z"}
+{"component": "main", "environment": "paper", "initial_capital": 100.0, "version": "1.0.0", "event": "selfevolve_starting", "logger": "__main__", "level": "info", "correlation_id": "cb5a3352", "timestamp": "2026-05-24T01:43:47.391620Z"}
+{"component": "database", "url": "localhost:5432/selfevolve", "event": "database_engine_created", "logger": "persistence.database", "level": "info", "correlation_id": "89d235fb", "timestamp": "2026-05-24T01:43:47.423675Z"}
+{"component": "main", "error": "[Errno 111] Connect call failed ('127.0.0.1', 5432)", "event": "database_init_failed", "logger": "__main__", "level": "error", "correlation_id": "89d235fb", "timestamp": "2026-05-24T01:43:47.426478Z"}
+{"component": "redis_client", "url": "redis://localhost:6379/0", "event": "redis_client_created", "logger": "persistence.redis_client", "level": "info", "correlation_id": "89d235fb", "timestamp": "2026-05-24T01:43:47.426851Z"}
+{"component": "main", "event": "redis_initialized", "logger": "__main__", "level": "info", "correlation_id": "89d235fb", "timestamp": "2026-05-24T01:43:47.426965Z"}
+{"component": "main", "environment": "paper", "initial_capital": 100.0, "version": "1.0.0", "event": "selfevolve_starting", "logger": "__main__", "level": "info", "correlation_id": "64517fef", "timestamp": "2026-05-24T01:43:57.812985Z"}
+{"component": "database", "url": "localhost:5432/selfevolve", "event": "database_engine_created", "logger": "persistence.database", "level": "info", "correlation_id": "fd2d56a9", "timestamp": "2026-05-24T01:43:57.838221Z"}
+{"component": "main", "error": "[Errno 111] Connect call failed ('127.0.0.1', 5432)", "event": "database_init_failed", "logger": "__main__", "level": "error", "correlation_id": "fd2d56a9", "timestamp": "2026-05-24T01:43:57.841575Z"}
+{"component": "redis_client", "url": "redis://localhost:6379/0", "event": "redis_client_created", "logger": "persistence.redis_client", "level": "info", "correlation_id": "fd2d56a9", "timestamp": "2026-05-24T01:43:57.841949Z"}
+{"component": "main", "event": "redis_initialized", "logger": "__main__", "level": "info", "correlation_id": "fd2d56a9", "timestamp": "2026-05-24T01:43:57.842045Z"}
+{"component": "main", "environment": "paper", "initial_capital": 100.0, "version": "1.0.0", "event": "selfevolve_starting", "logger": "__main__", "level": "info", "correlation_id": "353e6709", "timestamp": "2026-05-24T01:44:08.382477Z"}
+{"component": "database", "url": "localhost:5432/selfevolve", "event": "database_engine_created", "logger": "persistence.database", "level": "info", "correlation_id": "2eb37819", "timestamp": "2026-05-24T01:44:08.410768Z"}
+{"component": "main", "error": "[Errno 111] Connect call failed ('127.0.0.1', 5432)", "event": "database_init_failed", "logger": "__main__", "level": "error", "correlation_id": "2eb37819", "timestamp": "2026-05-24T01:44:08.413887Z"}
+{"component": "redis_client", "url": "redis://localhost:6379/0", "event": "redis_client_created", "logger": "persistence.redis_client", "level": "info", "correlation_id": "2eb37819", "timestamp": "2026-05-24T01:44:08.414287Z"}
+{"component": "main", "event": "redis_initialized", "logger": "__main__", "level": "info", "correlation_id": "2eb37819", "timestamp": "2026-05-24T01:44:08.414407Z"}
+{"component": "main", "environment": "paper", "initial_capital": 100.0, "version": "1.0.0", "event": "selfevolve_starting", "logger": "__main__", "level": "info", "correlation_id": "4cc4d23a", "timestamp": "2026-05-24T01:44:18.896847Z"}
+{"component": "database", "url": "localhost:5432/selfevolve", "event": "database_engine_created", "logger": "persistence.database", "level": "info", "correlation_id": "0cf8b3b2", "timestamp": "2026-05-24T01:44:18.926154Z"}
+{"component": "main", "error": "[Errno 111] Connect call failed ('127.0.0.1', 5432)", "event": "database_init_failed", "logger": "__main__", "level": "error", "correlation_id": "0cf8b3b2", "timestamp": "2026-05-24T01:44:18.930064Z"}
+{"component": "redis_client", "url": "redis://localhost:6379/0", "event": "redis_client_created", "logger": "persistence.redis_client", "level": "info", "correlation_id": "0cf8b3b2", "timestamp": "2026-05-24T01:44:18.930456Z"}
+{"component": "main", "event": "redis_initialized", "logger": "__main__", "level": "info", "correlation_id": "0cf8b3b2", "timestamp": "2026-05-24T01:44:18.930631Z"}
+{"component": "main", "environment": "paper", "initial_capital": 100.0, "version": "1.0.0", "event": "selfevolve_starting", "logger": "__main__", "level": "info", "correlation_id": "304715b1", "timestamp": "2026-05-24T01:44:29.582345Z"}
+{"component": "database", "url": "localhost:5432/selfevolve", "event": "database_engine_created", "logger": "persistence.database", "level": "info", "correlation_id": "65cff751", "timestamp": "2026-05-24T01:44:29.603466Z"}
+{"component": "main", "error": "[Errno 111] Connect call failed ('127.0.0.1', 5432)", "event": "database_init_failed", "logger": "__main__", "level": "error", "correlation_id": "65cff751", "timestamp": "2026-05-24T01:44:29.606207Z"}
+{"component": "redis_client", "url": "redis://localhost:6379/0", "event": "redis_client_created", "logger": "persistence.redis_client", "level": "info", "correlation_id": "65cff751", "timestamp": "2026-05-24T01:44:29.606481Z"}
+{"component": "main", "error": "Error 111 connecting to localhost:6379. Connect call failed ('127.0.0.1', 6379).", "message": "Running in DASHBOARD-ONLY mode. Start Redis/Postgres for full trading functionality.", "event": "infra_not_available", "logger": "__main__", "level": "warning", "correlation_id": "65cff751", "timestamp": "2026-05-24T01:44:29.607156Z"}
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Added job "SelfEvolveSystem._run_pre_market" to job store "default"
+Added job "SelfEvolveSystem._run_market_open" to job store "default"
+Added job "SelfEvolveSystem._run_market_close" to job store "default"
+Added job "SelfEvolveSystem._run_post_market_evolution" to job store "default"
+Scheduler started
+{"component": "main", "event": "scheduler_started", "logger": "__main__", "level": "info", "correlation_id": "65cff751", "timestamp": "2026-05-24T01:44:29.609061Z"}
+{"component": "main", "status": "RUNNING", "event": "selfevolve_started", "logger": "__main__", "level": "info", "correlation_id": "65cff751", "timestamp": "2026-05-24T01:44:29.609164Z"}
+
+Received shutdown signal. Gracefully stopping...
+{"component": "main", "event": "selfevolve_shutting_down", "logger": "__main__", "level": "info", "correlation_id": "65cff751", "timestamp": "2026-05-24T01:45:29.610892Z"}
+Scheduler has been shut down
+{"component": "main", "event": "selfevolve_shutdown_complete", "logger": "__main__", "level": "info", "correlation_id": "65cff751", "timestamp": "2026-05-24T01:45:29.611363Z"}
+{"component": "main", "environment": "paper", "initial_capital": 100.0, "version": "1.0.0", "event": "selfevolve_starting", "logger": "__main__", "level": "info", "correlation_id": "fbdc421e", "timestamp": "2026-05-24T01:45:30.167846Z"}
+{"component": "database", "url": "localhost:5432/selfevolve", "event": "database_engine_created", "logger": "persistence.database", "level": "info", "correlation_id": "eb312822", "timestamp": "2026-05-24T01:45:30.198074Z"}
+{"component": "main", "error": "[Errno 111] Connect call failed ('127.0.0.1', 5432)", "event": "database_init_failed", "logger": "__main__", "level": "error", "correlation_id": "eb312822", "timestamp": "2026-05-24T01:45:30.201124Z"}
+{"component": "redis_client", "url": "redis://localhost:6379/0", "event": "redis_client_created", "logger": "persistence.redis_client", "level": "info", "correlation_id": "eb312822", "timestamp": "2026-05-24T01:45:30.201453Z"}
+{"component": "main", "error": "Error 111 connecting to localhost:6379. Connect call failed ('127.0.0.1', 6379).", "message": "Running in DASHBOARD-ONLY mode. Start Redis/Postgres for full trading functionality.", "event": "infra_not_available", "logger": "__main__", "level": "warning", "correlation_id": "eb312822", "timestamp": "2026-05-24T01:45:30.202343Z"}
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Added job "SelfEvolveSystem._run_pre_market" to job store "default"
+Added job "SelfEvolveSystem._run_market_open" to job store "default"
+Added job "SelfEvolveSystem._run_market_close" to job store "default"
+Added job "SelfEvolveSystem._run_post_market_evolution" to job store "default"
+Scheduler started
+{"component": "main", "event": "scheduler_started", "logger": "__main__", "level": "info", "correlation_id": "eb312822", "timestamp": "2026-05-24T01:45:30.204094Z"}
+{"component": "main", "status": "RUNNING", "event": "selfevolve_started", "logger": "__main__", "level": "info", "correlation_id": "eb312822", "timestamp": "2026-05-24T01:45:30.204187Z"}

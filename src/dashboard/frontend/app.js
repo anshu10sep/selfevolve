@@ -6,6 +6,12 @@ const API_BASE = window.location.origin;
 let ws = null;
 let currentHitlIssueId = null;
 
+// Format currency nicely
+function fmt(n) {
+  if (Math.abs(n) >= 1000) return '$' + n.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  return '$' + n.toFixed(2);
+}
+
 // ════════════════════════════════════════════════════════════════
 // NAVIGATION
 // ════════════════════════════════════════════════════════════════
@@ -60,8 +66,8 @@ async function loadOverview() {
   if (!data) return;
 
   const p = data.portfolio || {};
-  document.getElementById('kpi-equity').textContent = `$${(p.total_equity || 0).toFixed(2)}`;
-  document.getElementById('kpi-pnl').textContent = `$${(p.daily_pnl || 0).toFixed(2)}`;
+  document.getElementById('kpi-equity').textContent = fmt(p.total_equity || 0);
+  document.getElementById('kpi-pnl').textContent = fmt(p.daily_pnl || 0);
   document.getElementById('kpi-cost').textContent = `$${(p.total_api_cost_today || 0).toFixed(2)}`;
 
   const pnlDelta = document.getElementById('kpi-pnl-delta');
@@ -85,8 +91,8 @@ async function loadOverview() {
   if (openBugs > 0) document.getElementById('kpi-bugs-label').className = 'kpi-delta negative';
 
   // Portfolio stats
-  document.getElementById('stat-settled').textContent = `$${(p.settled_cash || 0).toFixed(2)}`;
-  document.getElementById('stat-unsettled').textContent = `$${(p.unsettled_cash || 0).toFixed(2)}`;
+  document.getElementById('stat-settled').textContent = fmt(p.settled_cash || 0);
+  document.getElementById('stat-unsettled').textContent = fmt(p.unsettled_cash || 0);
   document.getElementById('stat-tranches').textContent = `${p.available_tranches || 0}/10`;
   document.getElementById('stat-drawdown').textContent = `${(p.drawdown_pct || 0).toFixed(1)}%`;
   document.getElementById('stat-model').textContent = (data.model_config || {}).current_model || 'gemini-3.1-pro';
@@ -109,10 +115,12 @@ function renderTranches(portfolio) {
   const avail = portfolio.available_tranches || 10;
   const locked = portfolio.locked_tranches || 0;
   const settling = portfolio.settling_tranches || 0;
+  const trancheVal = portfolio.tranche_size || (portfolio.total_equity || 100000) / 10;
+  const trancheLabel = trancheVal >= 1000 ? '$' + (trancheVal/1000).toFixed(0) + 'k' : '$' + trancheVal.toFixed(0);
   for (let i = 0; i < 10; i++) {
     const t = document.createElement('div');
     t.className = 'tranche';
-    if (i < avail) { t.classList.add('available'); t.textContent = '$10'; }
+    if (i < avail) { t.classList.add('available'); t.textContent = trancheLabel; }
     else if (i < avail + locked) { t.classList.add('locked'); t.textContent = '🔒'; }
     else { t.classList.add('settling'); t.textContent = '⏳'; }
     grid.appendChild(t);

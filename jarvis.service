@@ -1,15 +1,14 @@
 [Unit]
 Description=SelfEvolve Jarvis - Autonomous Multi-Agent Trading System
-After=network.target docker.service
-Wants=docker.service
+After=network.target
 
 [Service]
 Type=simple
 User=agentx
 WorkingDirectory=/home/agentx/self-evolving/src
 Environment=PYTHONPATH=/home/agentx/self-evolving/src
-ExecStartPre=/usr/bin/docker compose -f /home/agentx/self-evolving/src/docker-compose.yml up -d postgres redis qdrant prometheus grafana
-ExecStart=/usr/bin/python3 /home/agentx/self-evolving/src/main.py
+Environment=PATH=/home/agentx/miniconda/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/home/agentx/miniconda/bin/python3 /home/agentx/self-evolving/src/main.py
 Restart=always
 RestartSec=10
 StandardOutput=append:/home/agentx/self-evolving/logs/jarvis.log

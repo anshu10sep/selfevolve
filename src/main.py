@@ -94,18 +94,18 @@ class SelfEvolveSystem:
             await logger.aerror("database_init_failed", error=str(e))
             # Continue anyway — some features work without DB
 
-        # ── 2. Redis ──────────────────────────────────────────────
+        # ── 2. Redis + State + Event Bus ─────────────────────────────
+        # All wrapped together — if Redis is down, Jarvis runs in
+        # dashboard-only mode until infra comes online.
         try:
             redis = await get_redis_client()
+            await redis.ping()  # Verify connection immediately
             self.state_manager = StateManager(redis)
             self.event_bus = EventBus(redis)
             self.dead_man_switch = DeadManSwitch(redis)
             await logger.ainfo("redis_initialized")
-        except Exception as e:
-            await logger.aerror("redis_init_failed", error=str(e))
 
-        # ── 3. Initialize State ───────────────────────────────────
-        if self.state_manager:
+            # ── 3. Initialize State ──────────────────────────────
             await self.state_manager.initialize_tranches()
             portfolio = await self.state_manager.get_portfolio_state()
             await logger.ainfo(
@@ -114,13 +114,19 @@ class SelfEvolveSystem:
                 tranches=portfolio.available_tranches,
             )
 
-        # ── 4. Start Event Bus ────────────────────────────────────
-        if self.event_bus:
+            # ── 4. Start Event Bus ───────────────────────────────
             self.event_bus.subscribe(
                 EventChannels.ALERT_EVENTS,
                 self._handle_alert,
             )
             await self.event_bus.start_listening()
+        except Exception as e:
+            await logger.awarning(
+                "infra_not_available",
+                error=str(e),
+                message="Running in DASHBOARD-ONLY mode. "
+                        "Start Redis/Postgres for full trading functionality.",
+            )
 
         # ── 5. Start Scheduler ────────────────────────────────────
         self._setup_schedule()

@@ -1,0 +1,1125 @@
+Traceback (most recent call last):
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 371, in connect_check_health
+    await self._connect()
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 895, in _connect
+    reader, writer = await asyncio.open_connection(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        **self._connection_arguments()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/streams.py", line 48, in open_connection
+    transport, _ = await loop.create_connection(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        lambda: protocol, host, port, **kwds)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1122, in create_connection
+    infos = await self._ensure_resolved(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        (host, port), family=family,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        type=socket.SOCK_STREAM, proto=proto, flags=flags, loop=self)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1519, in _ensure_resolved
+    return await loop.getaddrinfo(host, port, family=family, type=type,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                  proto=proto, flags=flags)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 939, in getaddrinfo
+    return await self.run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        None, getaddr_func, host, port, family, type, proto, flags)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/home/agentx/miniconda/lib/python3.13/socket.py", line 977, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno -3] Temporary failure in name resolution
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/agentx/self-evolving/src/main.py", line 350, in <module>
+    main()
+    ~~~~^^
+  File "/home/agentx/self-evolving/src/main.py", line 346, in main
+    asyncio.run(system.run())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/agentx/self-evolving/src/main.py", line 167, in run
+    await self.startup()
+  File "/home/agentx/self-evolving/src/main.py", line 109, in startup
+    await self.state_manager.initialize_tranches()
+  File "/home/agentx/self-evolving/src/core/state_manager.py", line 78, in initialize_tranches
+    await self._save_tranche(tranche)
+  File "/home/agentx/self-evolving/src/core/state_manager.py", line 247, in _save_tranche
+    await self._redis.set(
+    ...<2 lines>...
+    )
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/client.py", line 764, in execute_command
+    conn = self.connection or await pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/utils.py", line 227, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 1448, in get_connection
+    await self.ensure_connection(connection)
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 1489, in ensure_connection
+    await connection.connect()
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 340, in connect
+    await self.retry.call_with_retry(
+    ...<7 lines>...
+    )
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/retry.py", line 81, in call_with_retry
+    raise error
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/retry.py", line 69, in call_with_retry
+    return await do()
+           ^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 397, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error -3 connecting to redis:6379. Temporary failure in name resolution.
+Traceback (most recent call last):
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 371, in connect_check_health
+    await self._connect()
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 895, in _connect
+    reader, writer = await asyncio.open_connection(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        **self._connection_arguments()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/streams.py", line 48, in open_connection
+    transport, _ = await loop.create_connection(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        lambda: protocol, host, port, **kwds)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1122, in create_connection
+    infos = await self._ensure_resolved(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        (host, port), family=family,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        type=socket.SOCK_STREAM, proto=proto, flags=flags, loop=self)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1519, in _ensure_resolved
+    return await loop.getaddrinfo(host, port, family=family, type=type,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                  proto=proto, flags=flags)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 939, in getaddrinfo
+    return await self.run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        None, getaddr_func, host, port, family, type, proto, flags)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/home/agentx/miniconda/lib/python3.13/socket.py", line 977, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno -3] Temporary failure in name resolution
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/agentx/self-evolving/src/main.py", line 350, in <module>
+    main()
+    ~~~~^^
+  File "/home/agentx/self-evolving/src/main.py", line 346, in main
+    asyncio.run(system.run())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/agentx/self-evolving/src/main.py", line 167, in run
+    await self.startup()
+  File "/home/agentx/self-evolving/src/main.py", line 109, in startup
+    await self.state_manager.initialize_tranches()
+  File "/home/agentx/self-evolving/src/core/state_manager.py", line 78, in initialize_tranches
+    await self._save_tranche(tranche)
+  File "/home/agentx/self-evolving/src/core/state_manager.py", line 247, in _save_tranche
+    await self._redis.set(
+    ...<2 lines>...
+    )
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/client.py", line 764, in execute_command
+    conn = self.connection or await pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/utils.py", line 227, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 1448, in get_connection
+    await self.ensure_connection(connection)
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 1489, in ensure_connection
+    await connection.connect()
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 340, in connect
+    await self.retry.call_with_retry(
+    ...<7 lines>...
+    )
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/retry.py", line 81, in call_with_retry
+    raise error
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/retry.py", line 69, in call_with_retry
+    return await do()
+           ^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 397, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error -3 connecting to redis:6379. Temporary failure in name resolution.
+Traceback (most recent call last):
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 371, in connect_check_health
+    await self._connect()
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 895, in _connect
+    reader, writer = await asyncio.open_connection(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        **self._connection_arguments()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/streams.py", line 48, in open_connection
+    transport, _ = await loop.create_connection(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        lambda: protocol, host, port, **kwds)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1122, in create_connection
+    infos = await self._ensure_resolved(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        (host, port), family=family,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        type=socket.SOCK_STREAM, proto=proto, flags=flags, loop=self)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1519, in _ensure_resolved
+    return await loop.getaddrinfo(host, port, family=family, type=type,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                  proto=proto, flags=flags)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 939, in getaddrinfo
+    return await self.run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        None, getaddr_func, host, port, family, type, proto, flags)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/home/agentx/miniconda/lib/python3.13/socket.py", line 977, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno -3] Temporary failure in name resolution
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/agentx/self-evolving/src/main.py", line 350, in <module>
+    main()
+    ~~~~^^
+  File "/home/agentx/self-evolving/src/main.py", line 346, in main
+    asyncio.run(system.run())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/agentx/self-evolving/src/main.py", line 167, in run
+    await self.startup()
+  File "/home/agentx/self-evolving/src/main.py", line 109, in startup
+    await self.state_manager.initialize_tranches()
+  File "/home/agentx/self-evolving/src/core/state_manager.py", line 78, in initialize_tranches
+    await self._save_tranche(tranche)
+  File "/home/agentx/self-evolving/src/core/state_manager.py", line 247, in _save_tranche
+    await self._redis.set(
+    ...<2 lines>...
+    )
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/client.py", line 764, in execute_command
+    conn = self.connection or await pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/utils.py", line 227, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 1448, in get_connection
+    await self.ensure_connection(connection)
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 1489, in ensure_connection
+    await connection.connect()
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 340, in connect
+    await self.retry.call_with_retry(
+    ...<7 lines>...
+    )
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/retry.py", line 81, in call_with_retry
+    raise error
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/retry.py", line 69, in call_with_retry
+    return await do()
+           ^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 397, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error -3 connecting to redis:6379. Temporary failure in name resolution.
+Traceback (most recent call last):
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 371, in connect_check_health
+    await self._connect()
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 895, in _connect
+    reader, writer = await asyncio.open_connection(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        **self._connection_arguments()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/streams.py", line 48, in open_connection
+    transport, _ = await loop.create_connection(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        lambda: protocol, host, port, **kwds)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1122, in create_connection
+    infos = await self._ensure_resolved(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        (host, port), family=family,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        type=socket.SOCK_STREAM, proto=proto, flags=flags, loop=self)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1519, in _ensure_resolved
+    return await loop.getaddrinfo(host, port, family=family, type=type,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                  proto=proto, flags=flags)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 939, in getaddrinfo
+    return await self.run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        None, getaddr_func, host, port, family, type, proto, flags)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/home/agentx/miniconda/lib/python3.13/socket.py", line 977, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno -3] Temporary failure in name resolution
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/agentx/self-evolving/src/main.py", line 350, in <module>
+    main()
+    ~~~~^^
+  File "/home/agentx/self-evolving/src/main.py", line 346, in main
+    asyncio.run(system.run())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/agentx/self-evolving/src/main.py", line 167, in run
+    await self.startup()
+  File "/home/agentx/self-evolving/src/main.py", line 109, in startup
+    await self.state_manager.initialize_tranches()
+  File "/home/agentx/self-evolving/src/core/state_manager.py", line 78, in initialize_tranches
+    await self._save_tranche(tranche)
+  File "/home/agentx/self-evolving/src/core/state_manager.py", line 247, in _save_tranche
+    await self._redis.set(
+    ...<2 lines>...
+    )
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/client.py", line 764, in execute_command
+    conn = self.connection or await pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/utils.py", line 227, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 1448, in get_connection
+    await self.ensure_connection(connection)
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 1489, in ensure_connection
+    await connection.connect()
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 340, in connect
+    await self.retry.call_with_retry(
+    ...<7 lines>...
+    )
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/retry.py", line 81, in call_with_retry
+    raise error
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/retry.py", line 69, in call_with_retry
+    return await do()
+           ^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 397, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error -3 connecting to redis:6379. Temporary failure in name resolution.
+Traceback (most recent call last):
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 371, in connect_check_health
+    await self._connect()
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 895, in _connect
+    reader, writer = await asyncio.open_connection(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        **self._connection_arguments()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/streams.py", line 48, in open_connection
+    transport, _ = await loop.create_connection(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        lambda: protocol, host, port, **kwds)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1122, in create_connection
+    infos = await self._ensure_resolved(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        (host, port), family=family,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        type=socket.SOCK_STREAM, proto=proto, flags=flags, loop=self)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1519, in _ensure_resolved
+    return await loop.getaddrinfo(host, port, family=family, type=type,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                  proto=proto, flags=flags)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 939, in getaddrinfo
+    return await self.run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        None, getaddr_func, host, port, family, type, proto, flags)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/home/agentx/miniconda/lib/python3.13/socket.py", line 977, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno -3] Temporary failure in name resolution
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/agentx/self-evolving/src/main.py", line 350, in <module>
+    main()
+    ~~~~^^
+  File "/home/agentx/self-evolving/src/main.py", line 346, in main
+    asyncio.run(system.run())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/agentx/self-evolving/src/main.py", line 167, in run
+    await self.startup()
+  File "/home/agentx/self-evolving/src/main.py", line 109, in startup
+    await self.state_manager.initialize_tranches()
+  File "/home/agentx/self-evolving/src/core/state_manager.py", line 78, in initialize_tranches
+    await self._save_tranche(tranche)
+  File "/home/agentx/self-evolving/src/core/state_manager.py", line 247, in _save_tranche
+    await self._redis.set(
+    ...<2 lines>...
+    )
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/client.py", line 764, in execute_command
+    conn = self.connection or await pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/utils.py", line 227, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 1448, in get_connection
+    await self.ensure_connection(connection)
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 1489, in ensure_connection
+    await connection.connect()
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 340, in connect
+    await self.retry.call_with_retry(
+    ...<7 lines>...
+    )
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/retry.py", line 81, in call_with_retry
+    raise error
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/retry.py", line 69, in call_with_retry
+    return await do()
+           ^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 397, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error -3 connecting to redis:6379. Temporary failure in name resolution.
+Traceback (most recent call last):
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 371, in connect_check_health
+    await self._connect()
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 895, in _connect
+    reader, writer = await asyncio.open_connection(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        **self._connection_arguments()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/streams.py", line 48, in open_connection
+    transport, _ = await loop.create_connection(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        lambda: protocol, host, port, **kwds)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1122, in create_connection
+    infos = await self._ensure_resolved(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        (host, port), family=family,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        type=socket.SOCK_STREAM, proto=proto, flags=flags, loop=self)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1519, in _ensure_resolved
+    return await loop.getaddrinfo(host, port, family=family, type=type,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                  proto=proto, flags=flags)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 939, in getaddrinfo
+    return await self.run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        None, getaddr_func, host, port, family, type, proto, flags)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/home/agentx/miniconda/lib/python3.13/socket.py", line 977, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno -3] Temporary failure in name resolution
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/agentx/self-evolving/src/main.py", line 350, in <module>
+    main()
+    ~~~~^^
+  File "/home/agentx/self-evolving/src/main.py", line 346, in main
+    asyncio.run(system.run())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/agentx/self-evolving/src/main.py", line 167, in run
+    await self.startup()
+  File "/home/agentx/self-evolving/src/main.py", line 109, in startup
+    await self.state_manager.initialize_tranches()
+  File "/home/agentx/self-evolving/src/core/state_manager.py", line 78, in initialize_tranches
+    await self._save_tranche(tranche)
+  File "/home/agentx/self-evolving/src/core/state_manager.py", line 247, in _save_tranche
+    await self._redis.set(
+    ...<2 lines>...
+    )
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/client.py", line 764, in execute_command
+    conn = self.connection or await pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/utils.py", line 227, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 1448, in get_connection
+    await self.ensure_connection(connection)
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 1489, in ensure_connection
+    await connection.connect()
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 340, in connect
+    await self.retry.call_with_retry(
+    ...<7 lines>...
+    )
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/retry.py", line 81, in call_with_retry
+    raise error
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/retry.py", line 69, in call_with_retry
+    return await do()
+           ^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 397, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error -3 connecting to redis:6379. Temporary failure in name resolution.
+Traceback (most recent call last):
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 371, in connect_check_health
+    await self._connect()
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 895, in _connect
+    reader, writer = await asyncio.open_connection(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        **self._connection_arguments()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/streams.py", line 48, in open_connection
+    transport, _ = await loop.create_connection(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        lambda: protocol, host, port, **kwds)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1122, in create_connection
+    infos = await self._ensure_resolved(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        (host, port), family=family,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        type=socket.SOCK_STREAM, proto=proto, flags=flags, loop=self)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1519, in _ensure_resolved
+    return await loop.getaddrinfo(host, port, family=family, type=type,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                  proto=proto, flags=flags)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 939, in getaddrinfo
+    return await self.run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        None, getaddr_func, host, port, family, type, proto, flags)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/home/agentx/miniconda/lib/python3.13/socket.py", line 977, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno -3] Temporary failure in name resolution
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/agentx/self-evolving/src/main.py", line 350, in <module>
+    main()
+    ~~~~^^
+  File "/home/agentx/self-evolving/src/main.py", line 346, in main
+    asyncio.run(system.run())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/agentx/self-evolving/src/main.py", line 167, in run
+    await self.startup()
+  File "/home/agentx/self-evolving/src/main.py", line 109, in startup
+    await self.state_manager.initialize_tranches()
+  File "/home/agentx/self-evolving/src/core/state_manager.py", line 78, in initialize_tranches
+    await self._save_tranche(tranche)
+  File "/home/agentx/self-evolving/src/core/state_manager.py", line 247, in _save_tranche
+    await self._redis.set(
+    ...<2 lines>...
+    )
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/client.py", line 764, in execute_command
+    conn = self.connection or await pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/utils.py", line 227, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 1448, in get_connection
+    await self.ensure_connection(connection)
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 1489, in ensure_connection
+    await connection.connect()
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 340, in connect
+    await self.retry.call_with_retry(
+    ...<7 lines>...
+    )
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/retry.py", line 81, in call_with_retry
+    raise error
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/retry.py", line 69, in call_with_retry
+    return await do()
+           ^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 397, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error -3 connecting to redis:6379. Temporary failure in name resolution.
+Traceback (most recent call last):
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 371, in connect_check_health
+    await self._connect()
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 895, in _connect
+    reader, writer = await asyncio.open_connection(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        **self._connection_arguments()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/streams.py", line 48, in open_connection
+    transport, _ = await loop.create_connection(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        lambda: protocol, host, port, **kwds)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1122, in create_connection
+    infos = await self._ensure_resolved(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        (host, port), family=family,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        type=socket.SOCK_STREAM, proto=proto, flags=flags, loop=self)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1519, in _ensure_resolved
+    return await loop.getaddrinfo(host, port, family=family, type=type,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                  proto=proto, flags=flags)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 939, in getaddrinfo
+    return await self.run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        None, getaddr_func, host, port, family, type, proto, flags)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/home/agentx/miniconda/lib/python3.13/socket.py", line 977, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno -3] Temporary failure in name resolution
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/agentx/self-evolving/src/main.py", line 350, in <module>
+    main()
+    ~~~~^^
+  File "/home/agentx/self-evolving/src/main.py", line 346, in main
+    asyncio.run(system.run())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/agentx/self-evolving/src/main.py", line 167, in run
+    await self.startup()
+  File "/home/agentx/self-evolving/src/main.py", line 109, in startup
+    await self.state_manager.initialize_tranches()
+  File "/home/agentx/self-evolving/src/core/state_manager.py", line 78, in initialize_tranches
+    await self._save_tranche(tranche)
+  File "/home/agentx/self-evolving/src/core/state_manager.py", line 247, in _save_tranche
+    await self._redis.set(
+    ...<2 lines>...
+    )
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/client.py", line 764, in execute_command
+    conn = self.connection or await pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/utils.py", line 227, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 1448, in get_connection
+    await self.ensure_connection(connection)
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 1489, in ensure_connection
+    await connection.connect()
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 340, in connect
+    await self.retry.call_with_retry(
+    ...<7 lines>...
+    )
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/retry.py", line 81, in call_with_retry
+    raise error
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/retry.py", line 69, in call_with_retry
+    return await do()
+           ^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 397, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error -3 connecting to redis:6379. Temporary failure in name resolution.
+Traceback (most recent call last):
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 371, in connect_check_health
+    await self._connect()
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 895, in _connect
+    reader, writer = await asyncio.open_connection(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        **self._connection_arguments()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/streams.py", line 48, in open_connection
+    transport, _ = await loop.create_connection(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        lambda: protocol, host, port, **kwds)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1122, in create_connection
+    infos = await self._ensure_resolved(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        (host, port), family=family,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        type=socket.SOCK_STREAM, proto=proto, flags=flags, loop=self)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1519, in _ensure_resolved
+    return await loop.getaddrinfo(host, port, family=family, type=type,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                  proto=proto, flags=flags)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 939, in getaddrinfo
+    return await self.run_in_executor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        None, getaddr_func, host, port, family, type, proto, flags)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/home/agentx/miniconda/lib/python3.13/socket.py", line 977, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno -3] Temporary failure in name resolution
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/agentx/self-evolving/src/main.py", line 350, in <module>
+    main()
+    ~~~~^^
+  File "/home/agentx/self-evolving/src/main.py", line 346, in main
+    asyncio.run(system.run())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/agentx/self-evolving/src/main.py", line 167, in run
+    await self.startup()
+  File "/home/agentx/self-evolving/src/main.py", line 109, in startup
+    await self.state_manager.initialize_tranches()
+  File "/home/agentx/self-evolving/src/core/state_manager.py", line 78, in initialize_tranches
+    await self._save_tranche(tranche)
+  File "/home/agentx/self-evolving/src/core/state_manager.py", line 247, in _save_tranche
+    await self._redis.set(
+    ...<2 lines>...
+    )
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/client.py", line 764, in execute_command
+    conn = self.connection or await pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/utils.py", line 227, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 1448, in get_connection
+    await self.ensure_connection(connection)
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 1489, in ensure_connection
+    await connection.connect()
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 340, in connect
+    await self.retry.call_with_retry(
+    ...<7 lines>...
+    )
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/retry.py", line 81, in call_with_retry
+    raise error
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/retry.py", line 69, in call_with_retry
+    return await do()
+           ^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 397, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error -3 connecting to redis:6379. Temporary failure in name resolution.
+Traceback (most recent call last):
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 371, in connect_check_health
+    await self._connect()
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 895, in _connect
+    reader, writer = await asyncio.open_connection(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        **self._connection_arguments()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/streams.py", line 48, in open_connection
+    transport, _ = await loop.create_connection(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        lambda: protocol, host, port, **kwds)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1171, in create_connection
+    raise exceptions[0]
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1146, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+        exceptions, addrinfo, laddr_infos)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1045, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/selector_events.py", line 645, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/selector_events.py", line 685, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 111] Connect call failed ('127.0.0.1', 6379)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/agentx/self-evolving/src/main.py", line 350, in <module>
+    main()
+    ~~~~^^
+  File "/home/agentx/self-evolving/src/main.py", line 346, in main
+    asyncio.run(system.run())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/agentx/self-evolving/src/main.py", line 167, in run
+    await self.startup()
+  File "/home/agentx/self-evolving/src/main.py", line 109, in startup
+    await self.state_manager.initialize_tranches()
+  File "/home/agentx/self-evolving/src/core/state_manager.py", line 78, in initialize_tranches
+    await self._save_tranche(tranche)
+  File "/home/agentx/self-evolving/src/core/state_manager.py", line 247, in _save_tranche
+    await self._redis.set(
+    ...<2 lines>...
+    )
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/client.py", line 764, in execute_command
+    conn = self.connection or await pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/utils.py", line 227, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 1448, in get_connection
+    await self.ensure_connection(connection)
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 1489, in ensure_connection
+    await connection.connect()
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 340, in connect
+    await self.retry.call_with_retry(
+    ...<7 lines>...
+    )
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/retry.py", line 81, in call_with_retry
+    raise error
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/retry.py", line 69, in call_with_retry
+    return await do()
+           ^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 397, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connect call failed ('127.0.0.1', 6379).
+Traceback (most recent call last):
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 371, in connect_check_health
+    await self._connect()
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 895, in _connect
+    reader, writer = await asyncio.open_connection(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        **self._connection_arguments()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/streams.py", line 48, in open_connection
+    transport, _ = await loop.create_connection(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        lambda: protocol, host, port, **kwds)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1171, in create_connection
+    raise exceptions[0]
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1146, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+        exceptions, addrinfo, laddr_infos)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1045, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/selector_events.py", line 645, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/selector_events.py", line 685, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 111] Connect call failed ('127.0.0.1', 6379)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/agentx/self-evolving/src/main.py", line 350, in <module>
+    main()
+    ~~~~^^
+  File "/home/agentx/self-evolving/src/main.py", line 346, in main
+    asyncio.run(system.run())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/agentx/self-evolving/src/main.py", line 167, in run
+    await self.startup()
+  File "/home/agentx/self-evolving/src/main.py", line 109, in startup
+    await self.state_manager.initialize_tranches()
+  File "/home/agentx/self-evolving/src/core/state_manager.py", line 78, in initialize_tranches
+    await self._save_tranche(tranche)
+  File "/home/agentx/self-evolving/src/core/state_manager.py", line 247, in _save_tranche
+    await self._redis.set(
+    ...<2 lines>...
+    )
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/client.py", line 764, in execute_command
+    conn = self.connection or await pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/utils.py", line 227, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 1448, in get_connection
+    await self.ensure_connection(connection)
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 1489, in ensure_connection
+    await connection.connect()
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 340, in connect
+    await self.retry.call_with_retry(
+    ...<7 lines>...
+    )
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/retry.py", line 81, in call_with_retry
+    raise error
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/retry.py", line 69, in call_with_retry
+    return await do()
+           ^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 397, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connect call failed ('127.0.0.1', 6379).
+Traceback (most recent call last):
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 371, in connect_check_health
+    await self._connect()
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 895, in _connect
+    reader, writer = await asyncio.open_connection(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        **self._connection_arguments()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/streams.py", line 48, in open_connection
+    transport, _ = await loop.create_connection(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        lambda: protocol, host, port, **kwds)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1171, in create_connection
+    raise exceptions[0]
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1146, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+        exceptions, addrinfo, laddr_infos)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1045, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/selector_events.py", line 645, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/selector_events.py", line 685, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 111] Connect call failed ('127.0.0.1', 6379)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/agentx/self-evolving/src/main.py", line 350, in <module>
+    main()
+    ~~~~^^
+  File "/home/agentx/self-evolving/src/main.py", line 346, in main
+    asyncio.run(system.run())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/agentx/self-evolving/src/main.py", line 167, in run
+    await self.startup()
+  File "/home/agentx/self-evolving/src/main.py", line 109, in startup
+    await self.state_manager.initialize_tranches()
+  File "/home/agentx/self-evolving/src/core/state_manager.py", line 78, in initialize_tranches
+    await self._save_tranche(tranche)
+  File "/home/agentx/self-evolving/src/core/state_manager.py", line 247, in _save_tranche
+    await self._redis.set(
+    ...<2 lines>...
+    )
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/client.py", line 764, in execute_command
+    conn = self.connection or await pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/utils.py", line 227, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 1448, in get_connection
+    await self.ensure_connection(connection)
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 1489, in ensure_connection
+    await connection.connect()
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 340, in connect
+    await self.retry.call_with_retry(
+    ...<7 lines>...
+    )
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/retry.py", line 81, in call_with_retry
+    raise error
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/retry.py", line 69, in call_with_retry
+    return await do()
+           ^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 397, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connect call failed ('127.0.0.1', 6379).
+Traceback (most recent call last):
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 371, in connect_check_health
+    await self._connect()
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 895, in _connect
+    reader, writer = await asyncio.open_connection(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        **self._connection_arguments()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/streams.py", line 48, in open_connection
+    transport, _ = await loop.create_connection(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        lambda: protocol, host, port, **kwds)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1171, in create_connection
+    raise exceptions[0]
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1146, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+        exceptions, addrinfo, laddr_infos)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 1045, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/selector_events.py", line 645, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/selector_events.py", line 685, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+ConnectionRefusedError: [Errno 111] Connect call failed ('127.0.0.1', 6379)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/agentx/self-evolving/src/main.py", line 350, in <module>
+    main()
+    ~~~~^^
+  File "/home/agentx/self-evolving/src/main.py", line 346, in main
+    asyncio.run(system.run())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/asyncio/base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/agentx/self-evolving/src/main.py", line 167, in run
+    await self.startup()
+  File "/home/agentx/self-evolving/src/main.py", line 109, in startup
+    await self.state_manager.initialize_tranches()
+  File "/home/agentx/self-evolving/src/core/state_manager.py", line 78, in initialize_tranches
+    await self._save_tranche(tranche)
+  File "/home/agentx/self-evolving/src/core/state_manager.py", line 247, in _save_tranche
+    await self._redis.set(
+    ...<2 lines>...
+    )
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/client.py", line 764, in execute_command
+    conn = self.connection or await pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/utils.py", line 227, in async_wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 1448, in get_connection
+    await self.ensure_connection(connection)
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 1489, in ensure_connection
+    await connection.connect()
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 340, in connect
+    await self.retry.call_with_retry(
+    ...<7 lines>...
+    )
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/retry.py", line 81, in call_with_retry
+    raise error
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/retry.py", line 69, in call_with_retry
+    return await do()
+           ^^^^^^^^^^
+  File "/home/agentx/miniconda/lib/python3.13/site-packages/redis/asyncio/connection.py", line 397, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connect call failed ('127.0.0.1', 6379).
