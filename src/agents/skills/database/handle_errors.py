@@ -1,63 +1,71 @@
 import logging
+from typing import Any, Callable, Coroutine, TypeVar, Dict
 from functools import wraps
-
-try:
-    import psycopg2
-except ImportError:
-    raise ImportError("psycopg2 is required for database connections. Please install it using 'pip install psycopg2-binary'")
 
 logger = logging.getLogger(__name__)
 
-def with_error_handling(func):
+T = TypeVar('T')
+
+def handle_connection_errors(func: Callable[..., Coroutine[Any, Any, T]]) -> Callable[..., Coroutine[Any, Any, T]]:
     """
-    Decorator to handle database errors gracefully.
-    Catches specific psycopg2 exceptions and logs them with context before re-raising.
+    A decorator to catch and handle connection-related OSErrors in async functions.
+    
+    Args:
+        func: The async function to wrap.
+        
+    Returns:
+        The wrapped function.
     """
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    async def wrapper(*args: Any, **kwargs: Any) -> T:
         try:
-            return func(*args, **kwargs)
-        except psycopg2.OperationalError as e:
-            logger.error(f"OperationalError in {func.__name__}: {e}. This may indicate a connection issue or database server downtime.")
-            raise
-        except psycopg2.ProgrammingError as e:
-            logger.error(f"ProgrammingError in {func.__name__}: {e}. Check your SQL syntax and table structures.")
-            raise
-        except psycopg2.IntegrityError as e:
-            logger.error(f"IntegrityError in {func.__name__}: {e}. This is usually caused by a constraint violation (e.g., duplicate key).")
-            raise
-        except psycopg2.DataError as e:
-            logger.error(f"DataError in {func.__name__}: {e}. Invalid data type or value passed to the database.")
+            return await func(*args, **kwargs)
+        except OSError as e:
+            error_msg = str(e)
+            if "Connect call failed" in error_msg or getattr(e, 'errno', None) in (111, 104, 110): 
+                # Connection refused, reset, timeout
+                logger.error(f"Network/Connection error in {func.__name__}: {error_msg}")
+                raise ConnectionError(f"Failed to execute {func.__name__} due to connection issue: {error_msg}") from e
+            logger.error(f"OSError in {func.__name__}: {error_msg}")
             raise
         except Exception as e:
-            logger.error(f"Unexpected database error in {func.__name__}: {e}")
+            logger.error(f"Unexpected error in {func.__name__}: {str(e)}")
             raise
+            
     return wrapper
 
-class DatabaseErrorHandler:
+def analyze_connection_error(error: Exception) -> Dict[str, Any]:
     """
-    Utility class for handling and categorizing database errors.
+    Analyze a connection error to determine its root cause and suggest actions.
+    
+    Args:
+        error: The exception to analyze.
+        
+    Returns:
+        A dictionary containing the analysis results.
     """
-    @staticmethod
-    def log_and_raise(error, context=""):
-        """
-        Log the error with context and re-raise.
+    analysis = {
+        "error_type": type(error).__name__,
+        "message": str(error),
+        "suggested_action": "Investigate logs",
+        "severity": "high"
+    }
+    
+    if isinstance(error, OSError):
+        error_msg = str(error)
+        errno = getattr(error, 'errno', None)
         
-        :param error: The exception object
-        :param context: Additional context about where/why the error occurred
-        """
-        logger.error(f"Database error [{context}]: {error}")
-        raise error
-        
-    @staticmethod
-    def is_connection_error(error):
-        """
-        Determine if the error is related to a connection failure.
-        
-        :param error: The exception object
-        :return: True if it's a connection error, False otherwise
-        """
-        if isinstance(error, psycopg2.OperationalError):
-            error_msg = str(error).lower()
-            return "connection refused" in error_msg or "could not connect to server" in error_msg
-        return False
+        if "Connect call failed" in error_msg:
+            analysis["suggested_action"] = "Check if the target service is running and accessible. Verify network configuration and firewall rules."
+            analysis["severity"] = "critical"
+        elif errno == 111: # ECONNREFUSED
+            analysis["suggested_action"] = "Connection refused. Target service is likely down or not listening on the specified port."
+            analysis["severity"] = "critical"
+        elif errno == 110: # ETIMEDOUT
+            analysis["suggested_action"] = "Connection timed out. Check network latency, routing, or if the target service is overloaded."
+            analysis["severity"] = "high"
+        elif errno == 104: # ECONNRESET
+            analysis["suggested_action"] = "Connection reset by peer. The remote server closed the connection unexpectedly."
+            analysis["severity"] = "high"
+            
+    return analysis

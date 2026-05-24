@@ -1,64 +1,76 @@
 import logging
-from typing import List, Dict, Any, Optional, Union, Tuple
-from .manage_connections import DatabaseConnectionManager
-from .handle_errors import with_error_handling
+import json
+from typing import Any, Optional
+from .manage_connections import get_redis_client
+from .handle_errors import handle_redis_errors
 
 logger = logging.getLogger(__name__)
 
-class DatabaseQueryExecutor:
+class RedisManager:
     """
-    Executes SQL queries against the database using a managed connection.
+    A class to manage Redis queries and operations with built-in error handling
+    and connection retries.
     """
-    def __init__(self, connection_manager: Optional[DatabaseConnectionManager] = None):
-        self.connection_manager = connection_manager or DatabaseConnectionManager()
+    def __init__(self, host: str = None, port: int = None, db: int = 0):
+        """
+        Initialize the RedisManager.
+        
+        Args:
+            host (str, optional): Redis host.
+            port (int, optional): Redis port.
+            db (int, optional): Redis database number.
+        """
+        self.client = get_redis_client(host=host, port=port, db=db)
 
-    @with_error_handling
-    def execute_query(self, query: str, params: Optional[Union[Tuple, Dict[str, Any]]] = None, fetch: bool = False) -> Optional[List[Tuple]]:
+    @handle_redis_errors(default_return=False)
+    def set_value(self, key: str, value: Any, expire: int = None) -> bool:
         """
-        Execute a single SQL query.
+        Set a value in Redis. Automatically serializes dicts and lists to JSON.
         
-        :param query: SQL query string
-        :param params: Tuple or dict of parameters for the query
-        :param fetch: Boolean indicating if results should be fetched (for SELECT queries)
-        :return: Fetched results if fetch=True, else None
-        """
-        conn = self.connection_manager.get_connection()
-        with conn.cursor() as cursor:
-            logger.debug(f"Executing query: {query}")
-            cursor.execute(query, params)
+        Args:
+            key (str): The key to set.
+            value (Any): The value to store.
+            expire (int, optional): Expiration time in seconds.
             
-            if fetch:
-                results = cursor.fetchall()
-                return results
-            else:
-                conn.commit()
-                return None
+        Returns:
+            bool: True if successful, False otherwise.
+        """
+        if isinstance(value, (dict, list)):
+            value = json.dumps(value)
+            
+        if expire:
+            return bool(self.client.setex(key, expire, value))
+        return bool(self.client.set(key, value))
 
-    @with_error_handling
-    def execute_many(self, query: str, params_list: List[Union[Tuple, Dict[str, Any]]]) -> None:
+    @handle_redis_errors(default_return=None)
+    def get_value(self, key: str) -> Optional[Any]:
         """
-        Execute a SQL query multiple times with different parameters (e.g., for bulk inserts).
+        Get a value from Redis. Automatically deserializes JSON strings.
         
-        :param query: SQL query string
-        :param params_list: List of tuples or dicts of parameters
-        """
-        conn = self.connection_manager.get_connection()
-        with conn.cursor() as cursor:
-            logger.debug(f"Executing executemany query: {query} with {len(params_list)} parameter sets")
-            cursor.executemany(query, params_list)
-            conn.commit()
+        Args:
+            key (str): The key to retrieve.
             
-    @with_error_handling
-    def fetch_one(self, query: str, params: Optional[Union[Tuple, Dict[str, Any]]] = None) -> Optional[Tuple]:
+        Returns:
+            Optional[Any]: The retrieved value, or None if not found or error occurs.
         """
-        Execute a query and fetch a single row.
+        value = self.client.get(key)
+        if not value:
+            return None
+            
+        try:
+            return json.loads(value)
+        except (json.JSONDecodeError, TypeError):
+            return value
+
+    @handle_redis_errors(default_return=False)
+    def delete_value(self, key: str) -> bool:
+        """
+        Delete a value from Redis.
         
-        :param query: SQL query string
-        :param params: Tuple or dict of parameters for the query
-        :return: A single row as a tuple, or None if no results
+        Args:
+            key (str): The key to delete.
+            
+        Returns:
+            bool: True if successful, False otherwise.
         """
-        conn = self.connection_manager.get_connection()
-        with conn.cursor() as cursor:
-            logger.debug(f"Executing fetch_one query: {query}")
-            cursor.execute(query, params)
-            return cursor.fetchone()
+        return bool(self.client.delete(key))

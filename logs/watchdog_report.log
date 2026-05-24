@@ -1,0 +1,19 @@
+[2026-05-24T20:31:43.222695+00:00] ============================================================
+[2026-05-24T20:31:43.222833+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-24T20:31:43.222859+00:00] ============================================================
+[2026-05-24T20:31:43.230941+00:00]   Service: ✅ active (PID 708056)
+[2026-05-24T20:31:43.231065+00:00]   Logging: ✅ Log updated 21s ago
+[2026-05-24T20:31:43.231997+00:00]   Errors (last 35min): ⚠️ 10
+[2026-05-24T20:31:43.232038+00:00]     - [pr_reviewer.pr_tools] review_post_failed: ?
+[2026-05-24T20:31:43.232052+00:00]     - [pr_reviewer.pr_tools] review_post_failed: ?
+[2026-05-24T20:31:43.232062+00:00]     - [pr_reviewer.pr_tools] review_post_failed: ?
+[2026-05-24T20:31:43.232072+00:00]     - [pr_reviewer.pr_tools] review_post_failed: ?
+[2026-05-24T20:31:43.232081+00:00]     - [pr_reviewer.pr_tools] review_post_failed: ?
+[2026-05-24T20:31:43.232590+00:00]   Bugs: Open=29 InProgress=0 Resolved=17 RecentlyResolved=0 Stuck=29
+[2026-05-24T20:31:43.568585+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-24T20:31:43.569958+00:00]   Evolution: Last check=None Merges=0
+[2026-05-24T20:31:43.569983+00:00] 
+[2026-05-24T20:31:43.569997+00:00] ⚠️  ISSUES FOUND: 2
+[2026-05-24T20:31:43.570013+00:00]   1. 29 bugs stuck > 1 hour
+[2026-05-24T20:31:43.570026+00:00]   2. Evolution engine has never checked PRs
+[2026-05-24T20:31:43.570039+00:00] 

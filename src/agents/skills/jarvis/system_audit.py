@@ -1,68 +1,58 @@
-import logging
-import traceback
 import os
-from typing import List, Dict, Any
+import platform
+import psutil
+from typing import Dict, Any
 
-logger = logging.getLogger(__name__)
-
-def perform_system_audit(directory: str = ".") -> Dict[str, Any]:
+def perform_system_audit() -> Dict[str, Any]:
     """
-    Perform a system audit on the given directory.
-    Catches exceptions to avoid plain text errors in logs.
-    
-    Args:
-        directory (str): The root directory to audit.
-        
-    Returns:
-        dict: Audit results including status and scanned file count.
+    Perform a basic system audit to check resources and environment.
+    Useful for diagnosing environment-related errors.
     """
     audit_results = {
-        "status": "success",
-        "scanned_files": 0,
-        "errors": []
+        "os": platform.system(),
+        "os_release": platform.release(),
+        "python_version": platform.python_version(),
+        "cpu_count": psutil.cpu_count(logical=True),
+        "memory_total_gb": round(psutil.virtual_memory().total / (1024**3), 2),
+        "memory_available_gb": round(psutil.virtual_memory().available / (1024**3), 2),
+        "disk_total_gb": round(psutil.disk_usage('/').total / (1024**3), 2),
+        "disk_free_gb": round(psutil.disk_usage('/').free / (1024**3), 2),
+        "status": "healthy"
     }
     
-    try:
-        for root, _, files in os.walk(directory):
-            for file in files:
-                if file.endswith(".py"):
-                    audit_results["scanned_files"] += 1
-                    # Simulated audit logic per file
-                    
-    except Exception as e:
-        logger.error(f"System audit failed: {str(e)}")
-        logger.debug(traceback.format_exc())
-        audit_results["status"] = "failed"
-        audit_results["errors"].append(str(e))
+    if audit_results["memory_available_gb"] < 1.0:
+        audit_results["status"] = "warning"
+        audit_results["warning_reason"] = "Low memory available"
+        
+    if audit_results["disk_free_gb"] < 5.0:
+        audit_results["status"] = "warning"
+        audit_results["warning_reason"] = "Low disk space"
         
     return audit_results
 
-def parse_error_logs(log_file_path: str) -> List[str]:
+def check_log_directory_health(log_dir: str) -> Dict[str, Any]:
     """
-    Parse error logs to identify tracebacks and plain text errors.
+    Check the health and size of the log directory to ensure logs 
+    are not growing uncontrollably due to spamming errors.
+    """
+    if not os.path.exists(log_dir):
+        return {"status": "error", "message": f"Log directory {log_dir} does not exist"}
+        
+    total_size = 0
+    file_count = 0
     
-    Args:
-        log_file_path (str): Path to the log file.
-        
-    Returns:
-        list: A list of extracted error traces.
-    """
-    errors = []
-    try:
-        if not os.path.exists(log_file_path):
-            logger.warning(f"Log file not found: {log_file_path}")
-            return errors
-            
-        with open(log_file_path, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
-            
-        for i, line in enumerate(lines):
-            if "Traceback (most recent call last):" in line:
-                error_trace = "".join(lines[i:i+15]) # Capture traceback context
-                errors.append(error_trace)
+    for root, _, files in os.walk(log_dir):
+        for file in files:
+            if file.endswith(".log"):
+                file_count += 1
+                file_path = os.path.join(root, file)
+                total_size += os.path.getsize(file_path)
                 
-    except Exception as e:
-        logger.error(f"Error parsing log file {log_file_path}: {str(e)}")
-        logger.debug(traceback.format_exc())
-        
-    return errors
+    size_mb = round(total_size / (1024 * 1024), 2)
+    
+    return {
+        "status": "healthy" if size_mb < 500 else "warning",
+        "log_directory": log_dir,
+        "file_count": file_count,
+        "total_size_mb": size_mb
+    }
