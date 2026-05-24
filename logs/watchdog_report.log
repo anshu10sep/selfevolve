@@ -17,3 +17,22 @@
 [2026-05-24T20:31:43.570013+00:00]   1. 29 bugs stuck > 1 hour
 [2026-05-24T20:31:43.570026+00:00]   2. Evolution engine has never checked PRs
 [2026-05-24T20:31:43.570039+00:00] 
+[2026-05-24T20:35:01.491975+00:00] ============================================================
+[2026-05-24T20:35:01.492060+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-24T20:35:01.492081+00:00] ============================================================
+[2026-05-24T20:35:01.500217+00:00]   Service: ✅ active (PID 1293730)
+[2026-05-24T20:35:01.500358+00:00]   Logging: ✅ Log updated 2s ago
+[2026-05-24T20:35:01.501306+00:00]   Errors (last 35min): ⚠️ 11
+[2026-05-24T20:35:01.501334+00:00]     - [pr_reviewer.pr_tools] review_post_failed: ?
+[2026-05-24T20:35:01.501351+00:00]     - [pr_reviewer.pr_tools] review_post_failed: ?
+[2026-05-24T20:35:01.501365+00:00]     - [pr_reviewer.pr_tools] review_post_failed: ?
+[2026-05-24T20:35:01.501379+00:00]     - [pr_reviewer.pr_tools] review_post_failed: ?
+[2026-05-24T20:35:01.501392+00:00]     - [main] database_init_failed: [Errno 111] Connect call failed ('127.0.0.1', 5432)
+[2026-05-24T20:35:01.501848+00:00]   Bugs: Open=28 InProgress=1 Resolved=17 RecentlyResolved=0 Stuck=28
+[2026-05-24T20:35:01.844869+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-24T20:35:01.846246+00:00]   Evolution: Last check=None Merges=0
+[2026-05-24T20:35:01.846269+00:00] 
+[2026-05-24T20:35:01.846283+00:00] ⚠️  ISSUES FOUND: 2
+[2026-05-24T20:35:01.846298+00:00]   1. 28 bugs stuck > 1 hour
+[2026-05-24T20:35:01.846309+00:00]   2. Evolution engine has never checked PRs
+[2026-05-24T20:35:01.846322+00:00] 
