@@ -467,6 +467,38 @@ async def cmd_scan(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 @_owner_only
+async def cmd_work(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """/work — Trigger bug worker NOW (don't wait for 30min cycle)."""
+    from dashboard.api.main import system_state
+    bugs = system_state.get("bugs", [])
+    open_bugs = [b for b in bugs if b.get("status") == "OPEN"]
+
+    if not open_bugs:
+        await update.message.reply_text("✅ No open bugs to work on!")
+        return
+
+    await update.message.reply_text(
+        f"🔨 Starting work on {len(open_bugs)} open bug(s)...\n"
+        f"Next: [{open_bugs[0].get('severity','?')}] `{open_bugs[0].get('title','?')[:50]}`",
+        parse_mode=ParseMode.MARKDOWN,
+    )
+
+    from evolution.bug_worker import bug_worker
+    result = await bug_worker.process_next_bug()
+
+    if result and result.get("status") == "RESOLVED":
+        pr_url = result.get("pr", {}).get("url", "no PR") if result.get("pr") else "no PR"
+        await update.message.reply_text(
+            f"✅ *Bug Resolved!*\n\nPR: {pr_url}",
+            parse_mode=ParseMode.MARKDOWN,
+        )
+    elif result:
+        await update.message.reply_text(f"⚠️ Worker result: {result.get('status', '?')} — {result.get('error', '')[:100]}")
+    else:
+        await update.message.reply_text("⚠️ Worker returned no result")
+
+
+@_owner_only
 async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "🤖 *Jarvis Command Center*\n\n"
@@ -482,10 +514,12 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "/roadmap — Evolution roadmap\n"
         "/bugs — Bug tracker\n"
         "/fr <text> — Feature request (instant)\n"
+        "/work — Process next bug NOW\n"
         "/audit — System audit\n\n"
         "_Or just type any question!_",
         parse_mode=ParseMode.MARKDOWN,
     )
+
 
 
 
@@ -523,6 +557,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return await cmd_portfolio(update, context)
     if lower.startswith("/agents"):
         return await cmd_agents(update, context)
+    if lower.startswith("/work"):
+        return await cmd_work(update, context)
     if lower.startswith("/help"):
         return await cmd_help(update, context)
     if lower.startswith("/"):
@@ -694,6 +730,7 @@ async def start_bot() -> Optional[Application]:
         _app.add_handler(CommandHandler("fr", cmd_fr))
         _app.add_handler(CommandHandler("crypto", cmd_crypto))
         _app.add_handler(CommandHandler("scan", cmd_scan))
+        _app.add_handler(CommandHandler("work", cmd_work))
         _app.add_handler(CommandHandler("help", cmd_help))
         _app.add_handler(MessageHandler(filters.TEXT, handle_message))
 
@@ -705,6 +742,7 @@ async def start_bot() -> Optional[Application]:
             BotCommand("crypto", "Run crypto scan NOW"),
             BotCommand("agents", "All agents with trust scores"),
             BotCommand("fr", "Submit feature request (instant)"),
+            BotCommand("work", "Process next bug NOW"),
             BotCommand("roadmap", "Evolution roadmap"),
             BotCommand("bugs", "Bug tracker"),
             BotCommand("audit", "System audit"),

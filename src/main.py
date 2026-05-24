@@ -206,6 +206,15 @@ class SelfEvolveSystem:
             if logger:
                 await logger.awarning("hot_reloader_init_failed", error=str(e))
 
+        # Start Bug Worker (picks up bugs, generates code, creates PRs)
+        try:
+            from evolution.bug_worker import bug_worker
+            bug_worker_task = asyncio.create_task(bug_worker.run_loop(interval_minutes=30))
+        except Exception as e:
+            bug_worker_task = None
+            if logger:
+                await logger.awarning("bug_worker_init_failed", error=str(e))
+
         try:
             while self._running:
                 try:
@@ -242,6 +251,8 @@ class SelfEvolveSystem:
             settlement_task.cancel()
             if hot_reload_task:
                 hot_reload_task.cancel()
+            if bug_worker_task:
+                bug_worker_task.cancel()
             await self.shutdown()
 
     def _setup_schedule(self) -> None:
