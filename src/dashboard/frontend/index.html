@@ -3,272 +3,288 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SelfEvolve — Autonomous Trading Command Center</title>
-    <meta name="description" content="Owner dashboard for the SelfEvolve autonomous self-evolving multi-agent trading system">
+    <title>Jarvis Command Center — SelfEvolve</title>
+    <meta name="description" content="Autonomous multi-agent trading system command center">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="index.css">
 </head>
 <body>
-    <!-- ═══════════════════════════════════════════════════════════ -->
-    <!-- SIDEBAR NAVIGATION -->
-    <!-- ═══════════════════════════════════════════════════════════ -->
-    <nav id="sidebar" class="sidebar">
-        <div class="sidebar-header">
+    <!-- ═══════════════════ TOP NAV BAR ═══════════════════ -->
+    <header id="topbar">
+        <div class="topbar-left">
             <div class="logo">
-                <span class="logo-icon">◆</span>
-                <span class="logo-text">SelfEvolve</span>
-            </div>
-            <span class="badge badge-live" id="system-status-badge">PAPER</span>
-        </div>
-        <ul class="nav-links">
-            <li><a href="#" class="nav-link active" data-section="overview" id="nav-overview">
-                <span class="nav-icon">📊</span> Overview</a></li>
-            <li><a href="#" class="nav-link" data-section="agents" id="nav-agents">
-                <span class="nav-icon">🤖</span> Agent Registry</a></li>
-            <li><a href="#" class="nav-link" data-section="trades" id="nav-trades">
-                <span class="nav-icon">📈</span> Trade Ledger</a></li>
-            <li><a href="#" class="nav-link" data-section="evolution" id="nav-evolution">
-                <span class="nav-icon">🧬</span> Evolution</a></li>
-            <li><a href="#" class="nav-link" data-section="bugs" id="nav-bugs">
-                <span class="nav-icon">🐛</span> Bug Tracker</a></li>
-            <li><a href="#" class="nav-link" data-section="audit" id="nav-audit">
-                <span class="nav-icon">📋</span> Audit Trail</a></li>
-            <li><a href="#" class="nav-link" data-section="costs" id="nav-costs">
-                <span class="nav-icon">💰</span> Cost Center</a></li>
-            <li><a href="#" class="nav-link" data-section="chat" id="nav-chat">
-                <span class="nav-icon">💬</span> Owner Chat</a></li>
-        </ul>
-        <div class="sidebar-footer">
-            <div class="system-health" id="system-health">
-                <span class="health-dot healthy"></span>
-                <span>All Systems Operational</span>
+                <div class="logo-icon">J</div>
+                <div class="logo-text">
+                    <span class="logo-name">JARVIS</span>
+                    <span class="logo-sub">Command Center</span>
+                </div>
             </div>
         </div>
-    </nav>
-
-    <!-- ═══════════════════════════════════════════════════════════ -->
-    <!-- MAIN CONTENT -->
-    <!-- ═══════════════════════════════════════════════════════════ -->
-    <main id="main-content" class="main-content">
-        <!-- HEADER BAR -->
-        <header class="header-bar">
-            <h1 id="page-title">Command Center</h1>
-            <div class="header-controls">
-                <button class="btn btn-outline" id="btn-refresh" title="Refresh Data">↻ Refresh</button>
-                <button class="btn btn-warning" id="btn-pause" title="Pause Trading">⏸ Pause</button>
-                <button class="btn btn-danger" id="btn-hcf" title="Emergency Halt">🚨 HCF</button>
+        <div class="topbar-center">
+            <nav class="main-nav">
+                <button class="nav-btn active" data-section="overview" id="nav-overview">Overview</button>
+                <button class="nav-btn" data-section="agents" id="nav-agents">Agents</button>
+                <button class="nav-btn" data-section="roadmap" id="nav-roadmap">Roadmap</button>
+                <button class="nav-btn" data-section="bugs" id="nav-bugs">Bugs</button>
+                <button class="nav-btn" data-section="hitl" id="nav-hitl">HITL</button>
+                <button class="nav-btn" data-section="audit" id="nav-audit">Audit</button>
+            </nav>
+        </div>
+        <div class="topbar-right">
+            <div class="status-pill" id="system-status">
+                <span class="status-dot"></span>
+                <span class="status-text">RUNNING</span>
             </div>
-        </header>
+            <div class="phase-badge" id="phase-badge">IDLE</div>
+            <button class="control-btn pause-btn" id="btn-pause" title="Pause Trading">⏸</button>
+            <button class="control-btn resume-btn" id="btn-resume" title="Resume Trading" style="display:none;">▶</button>
+        </div>
+    </header>
 
-        <!-- ═══════════════════════════════════════════════════════ -->
-        <!-- OVERVIEW SECTION -->
-        <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- ═══════════════════ MAIN CONTENT ═══════════════════ -->
+    <main id="main-content">
+
+        <!-- ─── OVERVIEW SECTION ─── -->
         <section id="section-overview" class="section active">
-            <!-- KPI Cards -->
-            <div class="kpi-grid">
-                <div class="kpi-card" id="kpi-equity">
+            <!-- KPI Row -->
+            <div class="kpi-row">
+                <div class="kpi-card">
                     <div class="kpi-label">Total Equity</div>
-                    <div class="kpi-value" id="equity-value">$100.00</div>
-                    <div class="kpi-change positive" id="equity-change">+0.00%</div>
+                    <div class="kpi-value" id="kpi-equity">$100.00</div>
+                    <div class="kpi-delta neutral" id="kpi-equity-delta">—</div>
                 </div>
-                <div class="kpi-card" id="kpi-pnl">
-                    <div class="kpi-label">Net P&L Today</div>
-                    <div class="kpi-value" id="pnl-value">$0.00</div>
-                    <div class="kpi-change neutral" id="pnl-change">Trading − API Costs</div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Daily P&L</div>
+                    <div class="kpi-value" id="kpi-pnl">$0.00</div>
+                    <div class="kpi-delta neutral" id="kpi-pnl-delta">—</div>
                 </div>
-                <div class="kpi-card" id="kpi-agents">
-                    <div class="kpi-label">Active Agents</div>
-                    <div class="kpi-value" id="agents-count">0</div>
-                    <div class="kpi-change neutral" id="agents-status">Initializing...</div>
-                </div>
-                <div class="kpi-card" id="kpi-trades">
-                    <div class="kpi-label">Trades Today</div>
-                    <div class="kpi-value" id="trades-count">0</div>
-                    <div class="kpi-change neutral" id="trades-winrate">Win Rate: --</div>
-                </div>
-                <div class="kpi-card" id="kpi-api-cost">
+                <div class="kpi-card">
                     <div class="kpi-label">API Cost Today</div>
-                    <div class="kpi-value" id="api-cost-value">$0.00</div>
-                    <div class="kpi-change neutral" id="api-budget">Budget: $1.00</div>
-                </div>
-                <div class="kpi-card" id="kpi-drawdown">
-                    <div class="kpi-label">Drawdown</div>
-                    <div class="kpi-value" id="drawdown-value">0.00%</div>
-                    <div class="kpi-change neutral" id="drawdown-limit">Max: 5.00%</div>
-                </div>
-            </div>
-
-            <!-- System Status Panel -->
-            <div class="panel-grid">
-                <div class="panel" id="panel-circuit-breaker">
-                    <h3 class="panel-title">⚡ Circuit Breaker</h3>
-                    <div class="status-indicator" id="cb-status">
-                        <span class="status-dot healthy"></span>
-                        <span>ARMED — No trips</span>
-                    </div>
-                    <div class="panel-detail" id="cb-detail">
-                        <p>Exceptions: 0 / 3 in 60s window</p>
-                        <p>Dead Man's Switch: ✓ Active</p>
-                    </div>
-                </div>
-                <div class="panel" id="panel-settlement">
-                    <h3 class="panel-title">🏦 Settlement</h3>
-                    <div class="panel-detail">
-                        <p>Settled Cash: <strong id="settled-cash">$100.00</strong></p>
-                        <p>Unsettled: <strong id="unsettled-cash">$0.00</strong></p>
-                        <p>GFV Strikes: <strong id="gfv-strikes">0 / 2</strong></p>
-                    </div>
-                </div>
-                <div class="panel" id="panel-tranches">
-                    <h3 class="panel-title">📦 Tranches</h3>
-                    <div class="tranche-grid" id="tranche-grid">
-                        <!-- Populated by JS -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Activity -->
-            <div class="panel full-width" id="panel-activity">
-                <h3 class="panel-title">📝 Recent Activity</h3>
-                <div class="activity-feed" id="activity-feed">
-                    <div class="activity-item">
-                        <span class="activity-time">Now</span>
-                        <span class="activity-text">System initializing — awaiting API key configuration</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ═══════════════════════════════════════════════════════ -->
-        <!-- AGENTS SECTION -->
-        <!-- ═══════════════════════════════════════════════════════ -->
-        <section id="section-agents" class="section">
-            <div class="agents-grid" id="agents-grid">
-                <div class="agent-card empty-state">
-                    <p>Agents will appear here once the system is started.</p>
-                    <p>The Master Agent spawns the full hierarchy automatically.</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- ═══════════════════════════════════════════════════════ -->
-        <!-- TRADES SECTION -->
-        <!-- ═══════════════════════════════════════════════════════ -->
-        <section id="section-trades" class="section">
-            <div class="panel full-width">
-                <h3 class="panel-title">Trade Ledger</h3>
-                <table class="data-table" id="trades-table">
-                    <thead>
-                        <tr>
-                            <th>Time</th>
-                            <th>Ticker</th>
-                            <th>Side</th>
-                            <th>Notional</th>
-                            <th>Conviction</th>
-                            <th>P&L</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="trades-tbody">
-                        <tr><td colspan="7" class="empty-state">No trades yet — system initializing</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- ═══════════════════════════════════════════════════════ -->
-        <!-- EVOLUTION SECTION -->
-        <!-- ═══════════════════════════════════════════════════════ -->
-        <section id="section-evolution" class="section">
-            <div class="panel full-width">
-                <h3 class="panel-title">🧬 Evolution Timeline</h3>
-                <div class="evolution-timeline" id="evolution-timeline">
-                    <div class="empty-state">
-                        <p>Evolution events will appear after the first post-market cycle.</p>
-                        <p>The system runs Reflexion + A/B testing daily at 16:30 EST.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ═══════════════════════════════════════════════════════ -->
-        <!-- BUGS SECTION -->
-        <!-- ═══════════════════════════════════════════════════════ -->
-        <section id="section-bugs" class="section">
-            <div class="panel full-width">
-                <h3 class="panel-title">🐛 Bug Tracker</h3>
-                <table class="data-table" id="bugs-table">
-                    <thead>
-                        <tr>
-                            <th>Severity</th>
-                            <th>Title</th>
-                            <th>Category</th>
-                            <th>Status</th>
-                            <th>Filed</th>
-                        </tr>
-                    </thead>
-                    <tbody id="bugs-tbody">
-                        <tr><td colspan="5" class="empty-state">No bugs reported — system healthy</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- ═══════════════════════════════════════════════════════ -->
-        <!-- AUDIT SECTION -->
-        <!-- ═══════════════════════════════════════════════════════ -->
-        <section id="section-audit" class="section">
-            <div class="panel full-width">
-                <h3 class="panel-title">📋 Audit Trail</h3>
-                <div class="empty-state">Immutable audit records appear after first trade execution.</div>
-            </div>
-        </section>
-
-        <!-- ═══════════════════════════════════════════════════════ -->
-        <!-- COSTS SECTION -->
-        <!-- ═══════════════════════════════════════════════════════ -->
-        <section id="section-costs" class="section">
-            <div class="kpi-grid small">
-                <div class="kpi-card">
-                    <div class="kpi-label">Total API Spend</div>
-                    <div class="kpi-value" id="total-api-spend">$0.00</div>
+                    <div class="kpi-value" id="kpi-cost">$0.00</div>
+                    <div class="kpi-delta neutral">budget: $1.00</div>
                 </div>
                 <div class="kpi-card">
-                    <div class="kpi-label">Budget Remaining</div>
-                    <div class="kpi-value" id="budget-remaining">$1.00</div>
+                    <div class="kpi-label">Readiness</div>
+                    <div class="kpi-value" id="kpi-readiness">81%</div>
+                    <div class="kpi-progress"><div class="kpi-progress-bar" id="readiness-bar" style="width:81%"></div></div>
                 </div>
                 <div class="kpi-card">
-                    <div class="kpi-label">Cost per Trade</div>
-                    <div class="kpi-value" id="cost-per-trade">$0.00</div>
+                    <div class="kpi-label">Active Agents</div>
+                    <div class="kpi-value" id="kpi-agents">17/17</div>
+                    <div class="kpi-delta positive">All healthy</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Open Bugs</div>
+                    <div class="kpi-value" id="kpi-bugs">0</div>
+                    <div class="kpi-delta neutral" id="kpi-bugs-label">None</div>
                 </div>
             </div>
-        </section>
 
-        <!-- ═══════════════════════════════════════════════════════ -->
-        <!-- CHAT SECTION -->
-        <!-- ═══════════════════════════════════════════════════════ -->
-        <section id="section-chat" class="section">
-            <div class="chat-container" id="chat-container">
-                <div class="chat-messages" id="chat-messages">
-                    <div class="chat-message system">
-                        <div class="chat-bubble">
-                            Welcome, Owner. I am the Master Agent of the SelfEvolve trading system.
-                            You are in full control. Ask me anything about the system status,
-                            portfolio performance, agent health, or strategic direction.
+            <!-- Two-column layout -->
+            <div class="grid-2col">
+                <!-- Left: System Activity Feed -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Activity Feed</h2>
+                        <span class="badge" id="feed-count">0 events</span>
+                    </div>
+                    <div class="card-body" id="activity-feed">
+                        <div class="feed-item">
+                            <span class="feed-icon">🤖</span>
+                            <div class="feed-content">
+                                <div class="feed-title">Jarvis initialized</div>
+                                <div class="feed-meta">System audit: 81% readiness — 88 files, 8975 lines</div>
+                            </div>
+                            <span class="feed-time">now</span>
+                        </div>
+                        <div class="feed-item">
+                            <span class="feed-icon">📦</span>
+                            <div class="feed-content">
+                                <div class="feed-title">8 agents auto-generated by Jarvis</div>
+                                <div class="feed-meta">CTO, CSO, QA, Developer, Product, Meta-Review, Journaling, Auditor</div>
+                            </div>
+                            <span class="feed-time">recent</span>
+                        </div>
+                        <div class="feed-item">
+                            <span class="feed-icon">🧠</span>
+                            <div class="feed-content">
+                                <div class="feed-title">Model locked: Gemini 3.1 Pro</div>
+                                <div class="feed-meta">All 17 agents using gemini-3.1-pro across all tiers</div>
+                            </div>
+                            <span class="feed-time">recent</span>
                         </div>
                     </div>
                 </div>
-                <div class="chat-input-container">
-                    <input type="text" id="chat-input" class="chat-input"
-                           placeholder="Ask the Master Agent anything..."
-                           autocomplete="off">
-                    <button id="chat-send" class="btn btn-primary">Send</button>
+
+                <!-- Right: Tranches + Portfolio -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Portfolio & Tranches</h2>
+                        <span class="badge">$100.00 capital</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="tranche-grid" id="tranche-grid">
+                            <!-- Generated by JS -->
+                        </div>
+                        <div class="portfolio-stats">
+                            <div class="stat-row"><span>Settled Cash</span><span id="stat-settled">$100.00</span></div>
+                            <div class="stat-row"><span>Unsettled Cash</span><span id="stat-unsettled">$0.00</span></div>
+                            <div class="stat-row"><span>Available Tranches</span><span id="stat-tranches">10/10</span></div>
+                            <div class="stat-row"><span>Drawdown</span><span id="stat-drawdown">0.0%</span></div>
+                            <div class="stat-row"><span>Model</span><span id="stat-model">gemini-3.1-pro</span></div>
+                            <div class="stat-row"><span>Uptime</span><span id="stat-uptime">0h</span></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
+
+        <!-- ─── AGENTS SECTION ─── -->
+        <section id="section-agents" class="section">
+            <div class="section-header">
+                <h1>Agent Ecosystem</h1>
+                <div class="section-actions">
+                    <button class="action-btn" onclick="forceAudit()">🔍 Run Audit</button>
+                </div>
+            </div>
+            <div class="agent-grid" id="agent-grid">
+                <!-- Generated by JS -->
+            </div>
+        </section>
+
+        <!-- ─── ROADMAP SECTION ─── -->
+        <section id="section-roadmap" class="section">
+            <div class="section-header">
+                <h1>Evolution Roadmap</h1>
+                <div class="section-actions">
+                    <button class="action-btn" onclick="forceEvolution()">⚡ Force Evolution</button>
+                </div>
+            </div>
+            <div id="roadmap-content">
+                <div class="empty-state">Loading roadmap from Jarvis planning engine...</div>
+            </div>
+        </section>
+
+        <!-- ─── BUGS SECTION ─── -->
+        <section id="section-bugs" class="section">
+            <div class="section-header">
+                <h1>Bug Tracker</h1>
+                <div class="section-actions">
+                    <button class="action-btn" onclick="openCreateIssue()">+ New Issue</button>
+                </div>
+            </div>
+            <div class="bug-stats" id="bug-stats">
+                <!-- Generated by JS -->
+            </div>
+            <div class="bug-list" id="bug-list">
+                <div class="empty-state">No bugs found — system healthy 🎉</div>
+            </div>
+        </section>
+
+        <!-- ─── HITL SECTION ─── -->
+        <section id="section-hitl" class="section">
+            <div class="section-header">
+                <h1>Human-in-the-Loop Controls</h1>
+                <span class="badge warning" id="hitl-pending">0 pending</span>
+            </div>
+            <p class="section-desc">Review and process issues that require human intervention. Use the action buttons to approve, reject, escalate, force-fix, or defer issues.</p>
+            <div class="hitl-queue" id="hitl-queue">
+                <div class="empty-state">No items pending human review</div>
+            </div>
+            <div class="hitl-controls">
+                <h3>Quick Actions</h3>
+                <div class="quick-actions">
+                    <button class="action-btn danger" onclick="triggerHCFReset()">🔴 Reset HCF</button>
+                    <button class="action-btn warning" onclick="pauseTrading()">⏸ Pause Trading</button>
+                    <button class="action-btn success" onclick="resumeTrading()">▶ Resume Trading</button>
+                    <button class="action-btn" onclick="forceEvolution()">⚡ Force Evolution</button>
+                    <button class="action-btn" onclick="forceAudit()">🔍 Force Audit</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─── AUDIT SECTION ─── -->
+        <section id="section-audit" class="section">
+            <div class="section-header">
+                <h1>System Audit</h1>
+                <div class="section-actions">
+                    <button class="action-btn" onclick="runFullAudit()">🔍 Run Full Audit</button>
+                </div>
+            </div>
+            <div id="audit-content">
+                <div class="empty-state">Click "Run Full Audit" to analyze the system</div>
+            </div>
+        </section>
     </main>
+
+    <!-- ─── CREATE ISSUE MODAL ─── -->
+    <div class="modal-overlay" id="create-issue-modal" style="display:none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Create Issue</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" id="issue-title" placeholder="Issue title">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="issue-desc" rows="4" placeholder="Describe the issue..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Severity</label>
+                    <select id="issue-severity">
+                        <option value="LOW">Low</option>
+                        <option value="MEDIUM" selected>Medium</option>
+                        <option value="HIGH">High</option>
+                        <option value="CRITICAL">Critical</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="action-btn" onclick="closeModal()">Cancel</button>
+                <button class="action-btn success" onclick="submitIssue()">Create Issue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── HITL ACTION MODAL ─── -->
+    <div class="modal-overlay" id="hitl-modal" style="display:none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Process Issue</h2>
+                <button class="modal-close" onclick="closeHitlModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="hitl-issue-detail"></div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea id="hitl-notes" rows="3" placeholder="Optional notes..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Override Priority</label>
+                    <select id="hitl-priority">
+                        <option value="">Keep current</option>
+                        <option value="CRITICAL">Critical</option>
+                        <option value="HIGH">High</option>
+                        <option value="MEDIUM">Medium</option>
+                        <option value="LOW">Low</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer hitl-actions">
+                <button class="action-btn success" onclick="submitHitlAction('APPROVE')">✅ Approve</button>
+                <button class="action-btn danger" onclick="submitHitlAction('REJECT')">❌ Reject</button>
+                <button class="action-btn warning" onclick="submitHitlAction('ESCALATE')">⬆ Escalate</button>
+                <button class="action-btn" onclick="submitHitlAction('FORCE_FIX')">🔧 Force Fix</button>
+                <button class="action-btn" onclick="submitHitlAction('DEFER')">⏳ Defer</button>
+            </div>
+        </div>
+    </div>
 
     <script src="app.js"></script>
 </body>

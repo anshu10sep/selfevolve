@@ -1,0 +1,26 @@
+[Unit]
+Description=SelfEvolve Jarvis - Autonomous Multi-Agent Trading System
+After=network.target docker.service
+Wants=docker.service
+
+[Service]
+Type=simple
+User=agentx
+WorkingDirectory=/home/agentx/self-evolving/src
+Environment=PYTHONPATH=/home/agentx/self-evolving/src
+ExecStartPre=/usr/bin/docker compose -f /home/agentx/self-evolving/src/docker-compose.yml up -d postgres redis qdrant prometheus grafana
+ExecStart=/usr/bin/python3 /home/agentx/self-evolving/src/main.py
+Restart=always
+RestartSec=10
+StandardOutput=append:/home/agentx/self-evolving/logs/jarvis.log
+StandardError=append:/home/agentx/self-evolving/logs/jarvis-error.log
+
+# Keep Jarvis alive forever — auto-restart on crash
+StartLimitIntervalSec=300
+StartLimitBurst=10
+
+# Graceful shutdown timeout
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

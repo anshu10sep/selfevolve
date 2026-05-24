@@ -1,355 +1,465 @@
-/**
- * SelfEvolve Dashboard — Interactive Application Logic
- *
- * Handles navigation, data fetching, WebSocket real-time updates,
- * owner chat, and system controls.
- */
+/* ═══════════════════════════════════════════════════════════════
+   JARVIS COMMAND CENTER — Application Logic
+   ═══════════════════════════════════════════════════════════════ */
 
 const API_BASE = window.location.origin;
-const WS_URL = `ws://${window.location.host}/ws`;
+let ws = null;
+let currentHitlIssueId = null;
 
-// ════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════
 // NAVIGATION
-// ════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════
 
-document.querySelectorAll('.nav-link').forEach(link => {
-    link.addEventListener('click', (e) => {
-        e.preventDefault();
-        const section = link.dataset.section;
-
-        // Update active nav
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-        link.classList.add('active');
-
-        // Show section
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        const target = document.getElementById(`section-${section}`);
-        if (target) target.classList.add('active');
-
-        // Update page title
-        const titles = {
-            overview: 'Command Center',
-            agents: 'Agent Registry',
-            trades: 'Trade Ledger',
-            evolution: 'Evolution Timeline',
-            bugs: 'Bug Tracker',
-            audit: 'Audit Trail',
-            costs: 'Cost Center',
-            chat: 'Owner Chat'
-        };
-        document.getElementById('page-title').textContent = titles[section] || 'Dashboard';
-    });
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const section = btn.dataset.section;
+    // Update nav
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    // Update sections
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById(`section-${section}`).classList.add('active');
+    // Load data for the section
+    loadSectionData(section);
+  });
 });
 
-// ════════════════════════════════════════════════════════════════════
+function loadSectionData(section) {
+  switch(section) {
+    case 'overview': loadOverview(); break;
+    case 'agents': loadAgents(); break;
+    case 'roadmap': loadRoadmap(); break;
+    case 'bugs': loadBugs(); break;
+    case 'hitl': loadHitlQueue(); break;
+    case 'audit': break; // loaded on demand
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
 // DATA FETCHING
-// ════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════
 
-async function fetchData(endpoint) {
-    try {
-        const response = await fetch(`${API_BASE}${endpoint}`);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return await response.json();
-    } catch (error) {
-        console.warn(`Failed to fetch ${endpoint}:`, error.message);
-        return null;
-    }
+async function api(path, method = 'GET', body = null) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  try {
+    const r = await fetch(`${API_BASE}${path}`, opts);
+    return await r.json();
+  } catch(e) {
+    console.error(`API error: ${path}`, e);
+    return null;
+  }
 }
 
-async function refreshDashboard() {
-    const [status, portfolio, agents, trades, bugs, costs] = await Promise.all([
-        fetchData('/api/status'),
-        fetchData('/api/portfolio'),
-        fetchData('/api/agents'),
-        fetchData('/api/trades'),
-        fetchData('/api/bugs/summary'),
-        fetchData('/api/costs'),
-    ]);
+// ════════════════════════════════════════════════════════════════
+// OVERVIEW
+// ════════════════════════════════════════════════════════════════
 
-    if (portfolio) updatePortfolioUI(portfolio);
-    if (agents) updateAgentsUI(agents);
-    if (trades) updateTradesUI(trades);
-    if (bugs) updateBugsUI(bugs);
-    if (costs) updateCostsUI(costs);
-    if (status) updateSystemStatus(status);
+async function loadOverview() {
+  const data = await api('/api/status');
+  if (!data) return;
 
-    renderTranches();
+  const p = data.portfolio || {};
+  document.getElementById('kpi-equity').textContent = `$${(p.total_equity || 0).toFixed(2)}`;
+  document.getElementById('kpi-pnl').textContent = `$${(p.daily_pnl || 0).toFixed(2)}`;
+  document.getElementById('kpi-cost').textContent = `$${(p.total_api_cost_today || 0).toFixed(2)}`;
+
+  const pnlDelta = document.getElementById('kpi-pnl-delta');
+  if (p.daily_pnl > 0) { pnlDelta.textContent = '▲ positive'; pnlDelta.className = 'kpi-delta positive'; }
+  else if (p.daily_pnl < 0) { pnlDelta.textContent = '▼ negative'; pnlDelta.className = 'kpi-delta negative'; }
+  else { pnlDelta.textContent = '—'; pnlDelta.className = 'kpi-delta neutral'; }
+
+  const audit = data.system_audit || {};
+  const readiness = Math.round((audit.readiness_score || 0) * 100);
+  document.getElementById('kpi-readiness').textContent = `${readiness}%`;
+  document.getElementById('readiness-bar').style.width = `${readiness}%`;
+
+  const agents = data.agents || [];
+  const activeCount = agents.filter(a => a.status === 'ACTIVE').length;
+  document.getElementById('kpi-agents').textContent = `${activeCount}/${agents.length}`;
+
+  const bugs = data.bugs || [];
+  const openBugs = bugs.filter(b => b.status === 'OPEN').length;
+  document.getElementById('kpi-bugs').textContent = openBugs;
+  document.getElementById('kpi-bugs-label').textContent = openBugs === 0 ? 'None' : `${openBugs} open`;
+  if (openBugs > 0) document.getElementById('kpi-bugs-label').className = 'kpi-delta negative';
+
+  // Portfolio stats
+  document.getElementById('stat-settled').textContent = `$${(p.settled_cash || 0).toFixed(2)}`;
+  document.getElementById('stat-unsettled').textContent = `$${(p.unsettled_cash || 0).toFixed(2)}`;
+  document.getElementById('stat-tranches').textContent = `${p.available_tranches || 0}/10`;
+  document.getElementById('stat-drawdown').textContent = `${(p.drawdown_pct || 0).toFixed(1)}%`;
+  document.getElementById('stat-model').textContent = (data.model_config || {}).current_model || 'gemini-3.1-pro';
+  document.getElementById('stat-uptime').textContent = `${(data.uptime_hours || 0).toFixed(1)}h`;
+
+  // System status
+  const statusPill = document.getElementById('system-status');
+  statusPill.className = `status-pill ${(data.status || 'RUNNING').toLowerCase()}`;
+  statusPill.querySelector('.status-text').textContent = data.status || 'RUNNING';
+
+  document.getElementById('phase-badge').textContent = data.current_phase || 'IDLE';
+
+  // Render tranches
+  renderTranches(p);
 }
 
-// ════════════════════════════════════════════════════════════════════
-// UI UPDATE FUNCTIONS
-// ════════════════════════════════════════════════════════════════════
-
-function updatePortfolioUI(data) {
-    const equity = data.total_equity || 100;
-    const pnl = data.daily_pnl || 0;
-    const apiCost = data.total_api_cost_today || 0;
-    const netPnl = pnl - apiCost;
-    const drawdown = data.drawdown_pct || 0;
-
-    document.getElementById('equity-value').textContent = `$${equity.toFixed(2)}`;
-    document.getElementById('pnl-value').textContent = `$${netPnl.toFixed(2)}`;
-    document.getElementById('api-cost-value').textContent = `$${apiCost.toFixed(4)}`;
-    document.getElementById('drawdown-value').textContent = `${drawdown.toFixed(2)}%`;
-    document.getElementById('settled-cash').textContent = `$${(data.settled_cash || 100).toFixed(2)}`;
-    document.getElementById('unsettled-cash').textContent = `$${(data.unsettled_cash || 0).toFixed(2)}`;
-
-    // Color the P&L value
-    const pnlEl = document.getElementById('pnl-value');
-    const changeEl = document.getElementById('pnl-change');
-    if (netPnl > 0) {
-        pnlEl.style.color = 'var(--accent-green)';
-        changeEl.className = 'kpi-change positive';
-    } else if (netPnl < 0) {
-        pnlEl.style.color = 'var(--accent-red)';
-        changeEl.className = 'kpi-change negative';
-    }
+function renderTranches(portfolio) {
+  const grid = document.getElementById('tranche-grid');
+  grid.innerHTML = '';
+  const avail = portfolio.available_tranches || 10;
+  const locked = portfolio.locked_tranches || 0;
+  const settling = portfolio.settling_tranches || 0;
+  for (let i = 0; i < 10; i++) {
+    const t = document.createElement('div');
+    t.className = 'tranche';
+    if (i < avail) { t.classList.add('available'); t.textContent = '$10'; }
+    else if (i < avail + locked) { t.classList.add('locked'); t.textContent = '🔒'; }
+    else { t.classList.add('settling'); t.textContent = '⏳'; }
+    grid.appendChild(t);
+  }
 }
 
-function updateAgentsUI(data) {
-    const agents = data.agents || [];
-    document.getElementById('agents-count').textContent = agents.length;
-    const activeCount = agents.filter(a => a.status === 'ACTIVE').length;
-    document.getElementById('agents-status').textContent = `${activeCount} active`;
+// ════════════════════════════════════════════════════════════════
+// AGENTS
+// ════════════════════════════════════════════════════════════════
 
-    if (agents.length === 0) return;
+async function loadAgents() {
+  const data = await api('/api/agents');
+  if (!data) return;
 
-    const grid = document.getElementById('agents-grid');
-    grid.innerHTML = agents.map(agent => `
-        <div class="agent-card">
-            <div class="agent-header">
-                <div>
-                    <div class="agent-name">${agent.agent_name || agent.name || 'Unknown'}</div>
-                    <div class="agent-role">${agent.agent_role || agent.role || ''}</div>
-                </div>
-                <span class="badge ${agent.status === 'ACTIVE' ? 'badge-live' : 'badge-paper'}">${agent.status || 'IDLE'}</span>
-            </div>
-            <div class="agent-metrics">
-                <div class="agent-metric">
-                    <div class="metric-label">Trust</div>
-                    <div class="metric-value">${(agent.trust_weight || 1.0).toFixed(2)}</div>
-                </div>
-                <div class="agent-metric">
-                    <div class="metric-label">Brier</div>
-                    <div class="metric-value">${(agent.brier_score || 0.5).toFixed(3)}</div>
-                </div>
-                <div class="agent-metric">
-                    <div class="metric-label">Cost</div>
-                    <div class="metric-value">$${(agent.total_cost || 0).toFixed(4)}</div>
-                </div>
-                <div class="agent-metric">
-                    <div class="metric-label">Version</div>
-                    <div class="metric-value">v${agent.version || 1}</div>
-                </div>
-            </div>
+  const grid = document.getElementById('agent-grid');
+  grid.innerHTML = '';
+
+  (data.agents || []).forEach(agent => {
+    const typeClass = (agent.type || '').toLowerCase();
+    const trust = agent.trust_weight || 1.0;
+    const trustPct = (trust * 100).toFixed(0);
+    let trustColor = 'var(--accent-green)';
+    if (trust < 0.5) trustColor = 'var(--accent-red)';
+    else if (trust < 0.8) trustColor = 'var(--accent-amber)';
+
+    const card = document.createElement('div');
+    card.className = 'agent-card';
+    card.innerHTML = `
+      <div class="agent-card-top">
+        <span class="agent-name">${agent.name}</span>
+        <span class="agent-role-badge ${typeClass}">${agent.type}</span>
+      </div>
+      <div class="agent-stats">
+        <div class="agent-stat">
+          <div class="agent-stat-label">Trust</div>
+          <div class="agent-stat-value">${trustPct}%</div>
         </div>
-    `).join('');
+        <div class="agent-stat">
+          <div class="agent-stat-label">Brier</div>
+          <div class="agent-stat-value">${agent.brier_score !== null ? agent.brier_score.toFixed(2) : '—'}</div>
+        </div>
+        <div class="agent-stat">
+          <div class="agent-stat-label">Tasks</div>
+          <div class="agent-stat-value">${agent.tasks_today || 0}</div>
+        </div>
+        <div class="agent-stat">
+          <div class="agent-stat-label">Cost</div>
+          <div class="agent-stat-value">$${(agent.cost_today || 0).toFixed(3)}</div>
+        </div>
+      </div>
+      <div class="trust-bar-wrap">
+        <div class="trust-bar" style="width:${trustPct}%; background:${trustColor}"></div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
 }
 
-function updateTradesUI(data) {
-    const trades = data.trades || [];
-    document.getElementById('trades-count').textContent = trades.length;
+// ════════════════════════════════════════════════════════════════
+// ROADMAP
+// ════════════════════════════════════════════════════════════════
 
-    if (trades.length > 0) {
-        const wins = trades.filter(t => (t.realized_pnl || 0) > 0).length;
-        const winRate = ((wins / trades.length) * 100).toFixed(0);
-        document.getElementById('trades-winrate').textContent = `Win Rate: ${winRate}%`;
+async function loadRoadmap() {
+  const data = await api('/api/roadmap');
+  const container = document.getElementById('roadmap-content');
+  if (!data || !data.tasks || data.tasks.length === 0) {
+    container.innerHTML = '<div class="empty-state">No roadmap tasks. System is fully caught up! 🎉</div>';
+    return;
+  }
 
-        const tbody = document.getElementById('trades-tbody');
-        tbody.innerHTML = trades.map(t => `
-            <tr>
-                <td>${new Date(t.entry_time || t.created_at).toLocaleTimeString()}</td>
-                <td><strong>${t.ticker}</strong></td>
-                <td>${t.side}</td>
-                <td>$${(t.notional || 0).toFixed(2)}</td>
-                <td>${(t.conviction_score || 0).toFixed(1)}</td>
-                <td style="color: ${(t.realized_pnl || 0) >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}">
-                    $${(t.realized_pnl || 0).toFixed(2)}
-                </td>
-                <td>${t.status}</td>
-            </tr>
-        `).join('');
-    }
+  // Group by priority
+  const groups = {};
+  const labels = { 1: '🔴 Critical', 2: '🟠 High', 3: '🟡 Medium', 4: '🔵 Normal', 5: '⚪ Low' };
+  data.tasks.forEach(t => {
+    const p = t.priority || 5;
+    if (!groups[p]) groups[p] = [];
+    groups[p].push(t);
+  });
+
+  let html = `<div style="margin-bottom:16px;font-size:13px;color:var(--text-secondary)">
+    ${data.tasks.length} tasks • ${(data.total_estimated_hours || 0).toFixed(1)} hours estimated
+  </div>`;
+
+  for (const [priority, tasks] of Object.entries(groups)) {
+    html += `<div class="roadmap-group">
+      <div class="roadmap-group-title">${labels[priority] || `Priority ${priority}`} (${tasks.length})</div>`;
+    tasks.forEach(t => {
+      html += `<div class="roadmap-item">
+        <div class="roadmap-priority p${priority}"></div>
+        <div class="roadmap-title">${t.title}</div>
+        <span class="roadmap-category">${t.category}</span>
+        <span class="roadmap-meta">${t.estimated_hours}h</span>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  container.innerHTML = html;
 }
 
-function updateBugsUI(data) {
-    // Update bugs KPI if visible
+// ════════════════════════════════════════════════════════════════
+// BUGS
+// ════════════════════════════════════════════════════════════════
+
+async function loadBugs() {
+  const data = await api('/api/bugs');
+  const summary = await api('/api/bugs/summary');
+  const bugList = document.getElementById('bug-list');
+  const bugStats = document.getElementById('bug-stats');
+
+  // Stats
+  if (summary) {
+    bugStats.innerHTML = `
+      <div class="bug-stat-card"><div class="bug-stat-value">${summary.total || 0}</div><div class="bug-stat-label">Total</div></div>
+      <div class="bug-stat-card"><div class="bug-stat-value" style="color:var(--accent-red)">${summary.open || 0}</div><div class="bug-stat-label">Open</div></div>
+      <div class="bug-stat-card"><div class="bug-stat-value" style="color:var(--accent-amber)">${summary.in_progress || 0}</div><div class="bug-stat-label">In Progress</div></div>
+      <div class="bug-stat-card"><div class="bug-stat-value" style="color:var(--accent-green)">${summary.resolved || 0}</div><div class="bug-stat-label">Resolved</div></div>
+    `;
+  }
+
+  // List
+  const bugs = (data && data.bugs) || [];
+  if (bugs.length === 0) {
+    bugList.innerHTML = '<div class="empty-state">No bugs found — system healthy 🎉</div>';
+    return;
+  }
+
+  bugList.innerHTML = bugs.map(b => `
+    <div class="bug-item" onclick="openHitlModal('${b.id}', '${(b.title||'').replace(/'/g,"\\'")}', '${(b.description||'').replace(/'/g,"\\'")}', '${b.severity}')">
+      <div class="bug-severity ${(b.severity || '').toLowerCase()}"></div>
+      <div class="bug-title">${b.title || 'Untitled'}</div>
+      <span class="bug-status ${(b.status || '').toLowerCase().replace('_','-')}">${b.status || 'OPEN'}</span>
+    </div>
+  `).join('');
 }
 
-function updateCostsUI(data) {
-    if (data) {
-        document.getElementById('total-api-spend').textContent = `$${(data.total_cost_today || 0).toFixed(4)}`;
-        document.getElementById('budget-remaining').textContent = `$${(1.0 - (data.total_cost_today || 0)).toFixed(4)}`;
-    }
+// ════════════════════════════════════════════════════════════════
+// HITL
+// ════════════════════════════════════════════════════════════════
+
+async function loadHitlQueue() {
+  const data = await api('/api/hitl/queue');
+  const bugs = await api('/api/bugs');
+  const container = document.getElementById('hitl-queue');
+
+  // Combine HITL queue items and open bugs
+  let items = [];
+  if (data && data.queue) items.push(...data.queue);
+  if (bugs && bugs.bugs) items.push(...bugs.bugs.filter(b => b.status === 'OPEN'));
+
+  if (items.length === 0) {
+    container.innerHTML = '<div class="empty-state">No items pending human review</div>';
+    document.getElementById('hitl-pending').textContent = '0 pending';
+    return;
+  }
+
+  document.getElementById('hitl-pending').textContent = `${items.length} pending`;
+
+  container.innerHTML = items.map(item => `
+    <div class="hitl-item">
+      <div class="bug-severity ${(item.severity || 'medium').toLowerCase()}"></div>
+      <div class="hitl-item-content">
+        <div class="hitl-item-title">${item.title || 'Issue'}</div>
+        <div class="hitl-item-desc">${item.description || ''}</div>
+      </div>
+      <div class="hitl-item-actions">
+        <button class="action-btn success" onclick="quickHitl('${item.id}','APPROVE')" title="Approve">✅</button>
+        <button class="action-btn danger" onclick="quickHitl('${item.id}','REJECT')" title="Reject">❌</button>
+        <button class="action-btn warning" onclick="quickHitl('${item.id}','ESCALATE')" title="Escalate">⬆</button>
+        <button class="action-btn" onclick="openHitlModal('${item.id}','${(item.title||'').replace(/'/g,"\\'")}','${(item.description||'').replace(/'/g,"\\'")}','${item.severity}')" title="Details">⚙️</button>
+      </div>
+    </div>
+  `).join('');
 }
 
-function updateSystemStatus(data) {
-    const statusBadge = document.getElementById('system-status-badge');
-    if (data.status === 'RUNNING') {
-        statusBadge.textContent = 'RUNNING';
-        statusBadge.className = 'badge badge-live';
-    } else if (data.status === 'PAUSED') {
-        statusBadge.textContent = 'PAUSED';
-        statusBadge.className = 'badge badge-paper';
-    } else if (data.hcf_active) {
-        statusBadge.textContent = 'HCF';
-        statusBadge.className = 'badge badge-danger';
-    }
+async function quickHitl(issueId, action) {
+  await api('/api/hitl/action', 'POST', { issue_id: issueId, action });
+  loadHitlQueue();
+  loadBugs();
+  loadOverview();
 }
 
-function renderTranches() {
-    const grid = document.getElementById('tranche-grid');
-    grid.innerHTML = '';
-    for (let i = 0; i < 10; i++) {
-        const cell = document.createElement('div');
-        cell.className = 'tranche-cell available';
-        cell.textContent = `$10`;
-        cell.title = `Tranche ${i + 1}: Available`;
-        grid.appendChild(cell);
-    }
+// ════════════════════════════════════════════════════════════════
+// MODALS
+// ════════════════════════════════════════════════════════════════
+
+function openCreateIssue() {
+  document.getElementById('create-issue-modal').style.display = 'flex';
+}
+function closeModal() {
+  document.getElementById('create-issue-modal').style.display = 'none';
 }
 
-// ════════════════════════════════════════════════════════════════════
-// WEBSOCKET REAL-TIME
-// ════════════════════════════════════════════════════════════════════
+async function submitIssue() {
+  const title = document.getElementById('issue-title').value;
+  const desc = document.getElementById('issue-desc').value;
+  const severity = document.getElementById('issue-severity').value;
+  if (!title) return;
+  await api('/api/hitl/create', 'POST', { title, description: desc, severity });
+  closeModal();
+  document.getElementById('issue-title').value = '';
+  document.getElementById('issue-desc').value = '';
+  loadBugs();
+  loadHitlQueue();
+  loadOverview();
+}
 
-let ws = null;
+function openHitlModal(issueId, title, desc, severity) {
+  currentHitlIssueId = issueId;
+  document.getElementById('hitl-issue-detail').innerHTML = `
+    <div style="margin-bottom:12px">
+      <div class="bug-severity ${(severity||'').toLowerCase()}" style="display:inline-block;vertical-align:middle;margin-right:8px"></div>
+      <strong>${title}</strong>
+    </div>
+    <p style="color:var(--text-secondary);font-size:13px">${desc || 'No description'}</p>
+  `;
+  document.getElementById('hitl-modal').style.display = 'flex';
+}
+function closeHitlModal() {
+  document.getElementById('hitl-modal').style.display = 'none';
+  currentHitlIssueId = null;
+}
+
+async function submitHitlAction(action) {
+  if (!currentHitlIssueId) return;
+  const notes = document.getElementById('hitl-notes').value;
+  const priority = document.getElementById('hitl-priority').value || undefined;
+  await api('/api/hitl/action', 'POST', {
+    issue_id: currentHitlIssueId,
+    action,
+    notes: notes || undefined,
+    priority,
+  });
+  closeHitlModal();
+  document.getElementById('hitl-notes').value = '';
+  loadHitlQueue();
+  loadBugs();
+  loadOverview();
+}
+
+// ════════════════════════════════════════════════════════════════
+// CONTROL ACTIONS
+// ════════════════════════════════════════════════════════════════
+
+async function pauseTrading() {
+  await api('/api/control/pause', 'POST');
+  loadOverview();
+}
+async function resumeTrading() {
+  await api('/api/control/resume', 'POST');
+  loadOverview();
+}
+async function triggerHCFReset() {
+  if (confirm('Reset the Halt-and-Catch-Fire protocol?')) {
+    await api('/api/control/hcf-reset', 'POST');
+    loadOverview();
+  }
+}
+async function forceEvolution() {
+  await api('/api/control/force-evolution', 'POST');
+  loadOverview();
+}
+async function forceAudit() {
+  await api('/api/control/force-audit', 'POST');
+  loadOverview();
+  runFullAudit();
+}
+
+async function runFullAudit() {
+  const container = document.getElementById('audit-content');
+  container.innerHTML = '<div class="empty-state">Running audit...</div>';
+  const data = await api('/api/audit');
+  if (!data) { container.innerHTML = '<div class="empty-state">Audit failed</div>'; return; }
+
+  let html = `
+    <div class="kpi-row" style="margin-bottom:20px">
+      <div class="kpi-card"><div class="kpi-label">Readiness</div><div class="kpi-value">${Math.round((data.readiness_score||0)*100)}%</div></div>
+      <div class="kpi-card"><div class="kpi-label">Files</div><div class="kpi-value">${data.total_files || 0}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Lines</div><div class="kpi-value">${(data.total_lines||0).toLocaleString()}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Agents w/ Skills</div><div class="kpi-value">${data.agents_with_skills || 0}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Agents w/ Goals</div><div class="kpi-value">${data.agents_with_goals || 0}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Test Files</div><div class="kpi-value">${data.test_count || 0}</div></div>
+    </div>
+  `;
+
+  const findings = data.findings || [];
+  if (findings.length > 0) {
+    html += '<h3 style="margin-bottom:12px;font-size:14px">Findings</h3>';
+    const sevColors = { CRITICAL: 'danger', HIGH: 'warning', MEDIUM: '', LOW: '' };
+    findings.forEach(f => {
+      html += `<div class="audit-finding">
+        <span class="audit-finding-severity badge ${sevColors[f.severity] || ''}">${f.severity}</span>
+        <div>
+          <span style="font-weight:600;font-size:12px">[${f.category}]</span>
+          <code style="font-size:11px;color:var(--text-muted);margin:0 6px">${f.location}</code>
+          <span style="font-size:12px">${f.description}</span>
+        </div>
+      </div>`;
+    });
+  } else {
+    html += '<div class="empty-state">No findings — system is clean! 🎉</div>';
+  }
+
+  container.innerHTML = html;
+}
+
+// ════════════════════════════════════════════════════════════════
+// WEBSOCKET
+// ════════════════════════════════════════════════════════════════
 
 function connectWebSocket() {
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
+  ws.onmessage = (e) => {
     try {
-        ws = new WebSocket(WS_URL);
-
-        ws.onopen = () => {
-            console.log('WebSocket connected');
-            addActivity('Connected to real-time feed');
-        };
-
-        ws.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                if (data.type === 'status_update' && data.data) {
-                    if (data.data.portfolio) updatePortfolioUI(data.data.portfolio);
-                }
-            } catch (e) {
-                console.warn('WebSocket parse error:', e);
-            }
-        };
-
-        ws.onclose = () => {
-            console.log('WebSocket disconnected, reconnecting in 5s...');
-            setTimeout(connectWebSocket, 5000);
-        };
-
-        ws.onerror = () => {
-            ws.close();
-        };
-    } catch (e) {
-        setTimeout(connectWebSocket, 5000);
-    }
+      const msg = JSON.parse(e.data);
+      if (msg.type === 'status_update') {
+        const d = msg.data;
+        document.getElementById('system-status').className = `status-pill ${(d.status||'running').toLowerCase()}`;
+        document.getElementById('system-status').querySelector('.status-text').textContent = d.status || 'RUNNING';
+        document.getElementById('phase-badge').textContent = d.phase || 'IDLE';
+      }
+    } catch(err) {}
+  };
+  ws.onclose = () => setTimeout(connectWebSocket, 3000);
+  ws.onerror = () => ws.close();
 }
 
-// ════════════════════════════════════════════════════════════════════
-// CHAT
-// ════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════════
 
-const chatInput = document.getElementById('chat-input');
-const chatSend = document.getElementById('chat-send');
-const chatMessages = document.getElementById('chat-messages');
-
-async function sendChatMessage() {
-    const message = chatInput.value.trim();
-    if (!message) return;
-
-    // Add user message
-    appendChatMessage('user', message);
-    chatInput.value = '';
-
-    // Send to API
-    try {
-        const response = await fetch(`${API_BASE}/api/chat`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message }),
-        });
-        const data = await response.json();
-        appendChatMessage('system', data.response || 'No response received.');
-    } catch (error) {
-        appendChatMessage('system', `Error: ${error.message}`);
-    }
-}
-
-function appendChatMessage(type, text) {
-    const div = document.createElement('div');
-    div.className = `chat-message ${type}`;
-    div.innerHTML = `<div class="chat-bubble">${escapeHtml(text)}</div>`;
-    chatMessages.appendChild(div);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-chatSend.addEventListener('click', sendChatMessage);
-chatInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') sendChatMessage();
+document.addEventListener('DOMContentLoaded', () => {
+  loadOverview();
+  connectWebSocket();
+  // Auto-refresh every 30s
+  setInterval(loadOverview, 30000);
 });
 
-// ════════════════════════════════════════════════════════════════════
-// CONTROLS
-// ════════════════════════════════════════════════════════════════════
-
-document.getElementById('btn-refresh').addEventListener('click', refreshDashboard);
-
+// Pause/Resume buttons
 document.getElementById('btn-pause').addEventListener('click', async () => {
-    const btn = document.getElementById('btn-pause');
-    if (btn.textContent.includes('Pause')) {
-        await fetch(`${API_BASE}/api/control/pause`, { method: 'POST' });
-        btn.innerHTML = '▶ Resume';
-        btn.className = 'btn btn-primary';
-        addActivity('Trading PAUSED by owner');
-    } else {
-        await fetch(`${API_BASE}/api/control/resume`, { method: 'POST' });
-        btn.innerHTML = '⏸ Pause';
-        btn.className = 'btn btn-warning';
-        addActivity('Trading RESUMED by owner');
-    }
+  await pauseTrading();
+  document.getElementById('btn-pause').style.display = 'none';
+  document.getElementById('btn-resume').style.display = 'flex';
 });
-
-document.getElementById('btn-hcf').addEventListener('click', async () => {
-    if (confirm('⚠️ ACTIVATE HALT-AND-CATCH-FIRE PROTOCOL?\n\nThis will:\n1. Cancel ALL open orders\n2. Set tight trailing stops\n3. Freeze all new order submission\n\nRequires manual reset.')) {
-        await fetch(`${API_BASE}/api/control/hcf-reset`, { method: 'POST' });
-        addActivity('🚨 HCF PROTOCOL ACTIVATED by owner');
-    }
+document.getElementById('btn-resume').addEventListener('click', async () => {
+  await resumeTrading();
+  document.getElementById('btn-resume').style.display = 'none';
+  document.getElementById('btn-pause').style.display = 'flex';
 });
-
-// ════════════════════════════════════════════════════════════════════
-// UTILITIES
-// ════════════════════════════════════════════════════════════════════
-
-function addActivity(text) {
-    const feed = document.getElementById('activity-feed');
-    const item = document.createElement('div');
-    item.className = 'activity-item';
-    item.innerHTML = `
-        <span class="activity-time">${new Date().toLocaleTimeString()}</span>
-        <span class="activity-text">${escapeHtml(text)}</span>
-    `;
-    feed.prepend(item);
-    if (feed.children.length > 50) feed.lastChild.remove();
-}
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-// ════════════════════════════════════════════════════════════════════
-// INITIALIZATION
-// ════════════════════════════════════════════════════════════════════
-
-renderTranches();
-refreshDashboard();
-connectWebSocket();
-
-// Auto-refresh every 30 seconds
-setInterval(refreshDashboard, 30000);
-
-addActivity('Dashboard loaded — connecting to SelfEvolve core...');
