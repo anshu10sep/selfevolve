@@ -1,70 +1,58 @@
-import socket
-import logging
-import time
-import requests
-from typing import Dict, Any, List
-from functools import wraps
+import os
+import platform
+import psutil
+from typing import Dict, Any
 
-logger = logging.getLogger(__name__)
-
-def retry_network_check(max_retries=3, backoff_factor=2):
+def perform_system_audit() -> Dict[str, Any]:
     """
-    Decorator to retry system audit network checks on temporary DNS/network failures.
+    Perform a basic system audit to check resources and environment.
+    Useful for diagnosing environment-related errors.
     """
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            retries = 0
-            while retries < max_retries:
-                try:
-                    return func(*args, **kwargs)
-                except (socket.gaierror, requests.exceptions.RequestException) as e:
-                    retries += 1
-                    if retries >= max_retries:
-                        logger.error(f"System audit network check failed after {max_retries} retries: {e}")
-                        return {"status": "error", "message": str(e)}
-                    sleep_time = backoff_factor ** retries
-                    logger.warning(f"Audit network error: {e}. Retrying in {sleep_time}s... ({retries}/{max_retries})")
-                    time.sleep(sleep_time)
-        return wrapper
-    return decorator
-
-class SystemAuditor:
-    """
-    Skill for Jarvis to perform system audits, including checking external connectivity
-    robustly against DNS and network failures.
-    """
+    audit_results = {
+        "os": platform.system(),
+        "os_release": platform.release(),
+        "python_version": platform.python_version(),
+        "cpu_count": psutil.cpu_count(logical=True),
+        "memory_total_gb": round(psutil.virtual_memory().total / (1024**3), 2),
+        "memory_available_gb": round(psutil.virtual_memory().available / (1024**3), 2),
+        "disk_total_gb": round(psutil.disk_usage('/').total / (1024**3), 2),
+        "disk_free_gb": round(psutil.disk_usage('/').free / (1024**3), 2),
+        "status": "healthy"
+    }
     
-    @retry_network_check(max_retries=3, backoff_factor=2)
-    def check_external_service(self, url: str) -> Dict[str, Any]:
-        """Check if an external service is reachable."""
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()
-        return {"status": "ok", "url": url, "status_code": response.status_code}
+    if audit_results["memory_available_gb"] < 1.0:
+        audit_results["status"] = "warning"
+        audit_results["warning_reason"] = "Low memory available"
+        
+    if audit_results["disk_free_gb"] < 5.0:
+        audit_results["status"] = "warning"
+        audit_results["warning_reason"] = "Low disk space"
+        
+    return audit_results
 
-    def audit_dns_resolution(self, hostname: str) -> Dict[str, Any]:
-        """Audit DNS resolution for a specific hostname."""
-        try:
-            ip_address = socket.gethostbyname(hostname)
-            return {"status": "ok", "hostname": hostname, "ip": ip_address}
-        except socket.gaierror as e:
-            logger.error(f"DNS resolution failed for {hostname}: {e}")
-            return {"status": "error", "hostname": hostname, "message": str(e)}
-
-    def run_full_audit(self, services_to_check: List[str]) -> Dict[str, Any]:
-        """Run a full system audit including network checks."""
-        results = {}
-        for service in services_to_check:
-            results[service] = self.check_external_service(service)
-        return results
-
-def run_system_audit(services: List[str] = None) -> Dict[str, Any]:
-    """Helper function to run a system audit."""
-    if services is None:
-        services = [
-            "https://api.github.com", 
-            "https://api.openai.com",
-            "https://1.1.1.1"
-        ]
-    auditor = SystemAuditor()
-    return auditor.run_full_audit(services)
+def check_log_directory_health(log_dir: str) -> Dict[str, Any]:
+    """
+    Check the health and size of the log directory to ensure logs 
+    are not growing uncontrollably due to spamming errors.
+    """
+    if not os.path.exists(log_dir):
+        return {"status": "error", "message": f"Log directory {log_dir} does not exist"}
+        
+    total_size = 0
+    file_count = 0
+    
+    for root, _, files in os.walk(log_dir):
+        for file in files:
+            if file.endswith(".log"):
+                file_count += 1
+                file_path = os.path.join(root, file)
+                total_size += os.path.getsize(file_path)
+                
+    size_mb = round(total_size / (1024 * 1024), 2)
+    
+    return {
+        "status": "healthy" if size_mb < 500 else "warning",
+        "log_directory": log_dir,
+        "file_count": file_count,
+        "total_size_mb": size_mb
+    }

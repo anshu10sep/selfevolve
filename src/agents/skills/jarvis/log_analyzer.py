@@ -1,69 +1,131 @@
 import os
 import re
-import logging
+import json
 from typing import List, Dict, Any
 
-logger = logging.getLogger(__name__)
-
-def analyze_error_log(log_file_path: str) -> List[Dict[str, Any]]:
+def parse_log_file(file_path: str) -> List[Dict[str, Any]]:
     """
-    Analyzes an error log file to identify plain text errors and extract surrounding context.
-    
-    Args:
-        log_file_path (str): Path to the log file.
-        
-    Returns:
-        List[Dict[str, Any]]: A list of extracted error events with context.
+    Parse a log file and extract structured information.
+    Gracefully handles both structured JSON logs and plain text tracebacks.
     """
-    if not os.path.exists(log_file_path):
-        logger.error(f"Log file not found: {log_file_path}")
+    if not os.path.exists(file_path):
         return []
-        
-    errors = []
-    # Match common error indicators
-    error_pattern = re.compile(r'(?i)(error|exception|traceback|fail|fatal)')
-    
-    try:
-        with open(log_file_path, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
-            
-        for i, line in enumerate(lines):
-            if error_pattern.search(line):
-                # Extract surrounding context (2 lines before, 2 lines after)
-                start_idx = max(0, i - 2)
-                end_idx = min(len(lines), i + 3)
-                context = "".join(lines[start_idx:end_idx])
-                
-                # Flag specifically for the plain_text_error bug
-                error_type = "plain_text_error" if "raise error" in line.lower() else "standard_error"
-                
-                errors.append({
-                    "line_number": i + 1,
-                    "message": line.strip(),
-                    "context": context,
-                    "type": error_type
-                })
-                
-    except Exception as e:
-        logger.error(f"Error reading log file {log_file_path}: {str(e)}")
-        
-    return errors
 
-def generate_bug_report(error_data: Dict[str, Any]) -> str:
+    parsed_logs = []
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+    except Exception as e:
+        return [{"type": "error", "message": f"Failed to read log file: {str(e)}", "source": file_path}]
+
+    current_traceback = []
+    in_traceback = False
+
+    for line in lines:
+        clean_line = line.strip()
+        if not clean_line:
+            continue
+
+        # Detect the start of a Python traceback
+        if "Traceback (most recent call last):" in clean_line:
+            if in_traceback and current_traceback:
+                # Save previous traceback if we somehow started a new one unexpectedly
+                parsed_logs.append({
+                    "type": "plain_text_error",
+                    "message": "\n".join(current_traceback),
+                    "source": file_path
+                })
+            in_traceback = True
+            current_traceback = [clean_line]
+            continue
+
+        if in_traceback:
+            # Check if the line looks like part of a traceback
+            is_traceback_line = (
+                clean_line.startswith("File ") or 
+                clean_line.startswith("line ") or 
+                clean_line.startswith("^") or 
+                clean_line.startswith("~") or 
+                "Error:" in clean_line or 
+                "Exception:" in clean_line or 
+                line.startswith("  ")
+            )
+            
+            if is_traceback_line:
+                current_traceback.append(clean_line)
+                # If it's the actual error message line (e.g., ValueError: ...), it's usually the end
+                if re.match(r'^[A-Za-z0-9_.]+(?:Error|Exception):', clean_line):
+                    parsed_logs.append({
+                        "type": "plain_text_error",
+                        "message": "\n".join(current_traceback),
+                        "source": file_path
+                    })
+                    in_traceback = False
+                    current_traceback = []
+            else:
+                # Traceback ended unexpectedly, save what we have
+                parsed_logs.append({
+                    "type": "plain_text_error",
+                    "message": "\n".join(current_traceback),
+                    "source": file_path
+                })
+                in_traceback = False
+                current_traceback = []
+                
+        if not in_traceback:
+            try:
+                # Attempt to parse as structured JSON log
+                log_entry = json.loads(clean_line)
+                parsed_logs.append(log_entry)
+            except json.JSONDecodeError:
+                # Plain text log that is not a traceback
+                parsed_logs.append({
+                    "type": "info",
+                    "message": clean_line,
+                    "source": file_path
+                })
+
+    # Catch any trailing traceback at the end of the file
+    if in_traceback and current_traceback:
+        parsed_logs.append({
+            "type": "plain_text_error",
+            "message": "\n".join(current_traceback),
+            "source": file_path
+        })
+
+    return parsed_logs
+
+def analyze_logs(log_directory: str) -> Dict[str, Any]:
     """
-    Generates a formatted bug report from parsed error data.
-    
-    Args:
-        error_data (Dict[str, Any]): The parsed error data dictionary.
-        
-    Returns:
-        str: A formatted bug report string ready for logging or ticketing.
+    Analyze all logs in a directory and summarize errors and tracebacks.
     """
-    report = f"BUG REPORT\n"
-    report += f"==========\n"
-    report += f"Type: {error_data.get('type', 'Unknown')}\n"
-    report += f"Message: {error_data.get('message', 'No message provided')}\n"
-    report += f"Line Number: {error_data.get('line_number', 'N/A')}\n"
-    report += f"\nContext:\n{error_data.get('context', 'No context available')}\n"
+    summary = {
+        "total_errors": 0,
+        "error_types": {},
+        "tracebacks": [],
+        "files_scanned": 0
+    }
     
-    return report
+    if not os.path.exists(log_directory):
+        return summary
+
+    for filename in os.listdir(log_directory):
+        if filename.endswith(".log"):
+            file_path = os.path.join(log_directory, filename)
+            summary["files_scanned"] += 1
+            logs = parse_log_file(file_path)
+            
+            for log in logs:
+                if isinstance(log, dict):
+                    log_type = log.get("type", "unknown")
+                    if log_type in ["error", "plain_text_error"] or log.get("level", "").lower() == "error":
+                        summary["total_errors"] += 1
+                        summary["error_types"][log_type] = summary["error_types"].get(log_type, 0) + 1
+                        
+                        if log_type == "plain_text_error":
+                            summary["tracebacks"].append({
+                                "source": log.get("source", file_path),
+                                "message": log.get("message", "")
+                            })
+                            
+    return summary

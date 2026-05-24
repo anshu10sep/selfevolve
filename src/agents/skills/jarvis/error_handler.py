@@ -1,71 +1,81 @@
 import logging
 import traceback
-from typing import Dict, Any, Optional
+import sys
+from typing import Any, Callable, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
-def analyze_error(error: Exception, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def setup_global_error_handler():
     """
-    Analyzes an exception and provides structured information about it,
-    specifically identifying common infrastructure issues like Redis connection failures.
-    
-    Args:
-        error (Exception): The exception to analyze.
-        context (Dict, optional): Additional context about where the error occurred.
-        
-    Returns:
-        Dict[str, Any]: Structured error analysis.
+    Set up a global exception handler to catch unhandled exceptions
+    and log them in a structured format instead of plain text.
+    This prevents 'plain_text_error' bugs in the log scanner.
     """
-    error_type = type(error).__name__
-    error_msg = str(error)
-    
-    analysis = {
-        "error_type": error_type,
-        "message": error_msg,
-        "traceback": traceback.format_exc(),
-        "context": context or {},
-        "severity": "high",
-        "suggested_action": "investigate",
-        "category": "general"
-    }
-    
-    # Specific handling for Redis Connection Errors
-    if "redis" in error_type.lower() or "redis" in error_msg.lower():
-        if "Temporary failure in name resolution" in error_msg:
-            analysis["severity"] = "critical"
-            analysis["suggested_action"] = "Check DNS settings and ensure Redis container/service is running and accessible."
-            analysis["category"] = "network_dns"
-        elif "Connection refused" in error_msg:
-            analysis["severity"] = "critical"
-            analysis["suggested_action"] = "Ensure Redis server is started and listening on the correct port."
-            analysis["category"] = "service_down"
-        else:
-            analysis["severity"] = "high"
-            analysis["suggested_action"] = "Check Redis connection parameters and network connectivity."
-            analysis["category"] = "database_connection"
-            
-    return analysis
+    def handle_exception(exc_type, exc_value, exc_traceback):
+        if issubclass(exc_type, KeyboardInterrupt):
+            sys.__excepthook__(exc_type, exc_value, exc_traceback)
+            return
 
-def handle_system_error(error: Exception, component: str) -> Dict[str, Any]:
+        tb_str = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+        logger.error("Unhandled exception", extra={
+            "error_type": exc_type.__name__,
+            "error_message": str(exc_value),
+            "traceback": tb_str,
+            "event": "unhandled_exception",
+            "type": "error"
+        })
+
+    sys.excepthook = handle_exception
+
+def handle_error(error: Exception, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """
-    Main entry point for handling system errors. Logs the error appropriately
-    based on its severity and returns the analysis.
-    
-    Args:
-        error (Exception): The exception that occurred.
-        component (str): The component where the error occurred.
-        
-    Returns:
-        Dict[str, Any]: The error analysis result.
+    Handle an error by logging it and returning a structured error response.
     """
-    analysis = analyze_error(error, {"component": component})
+    error_message = str(error)
+    tb = traceback.format_exc()
     
-    log_msg = f"[{analysis['severity'].upper()}] Error in {component}: {analysis['error_type']} - {analysis['message']}"
+    logger.error(f"Error occurred: {error_message}", extra={
+        "error_type": type(error).__name__,
+        "traceback": tb,
+        "context": context or {},
+        "event": "handled_error",
+        "type": "error"
+    })
     
-    if analysis["severity"] == "critical":
-        logger.critical(log_msg)
-        logger.critical(f"Suggested Action: {analysis['suggested_action']}")
-    else:
-        logger.error(log_msg)
-        
-    return analysis
+    return {
+        "status": "error",
+        "error_type": type(error).__name__,
+        "message": error_message,
+        "traceback": tb,
+        "context": context or {}
+    }
+
+def safe_execute(func: Callable, *args, **kwargs) -> Any:
+    """
+    Safely execute a function and handle any exceptions structurally.
+    """
+    try:
+        return func(*args, **kwargs)
+    except Exception as e:
+        return handle_error(e, context={"function": func.__name__, "args": args, "kwargs": kwargs})
+
+def parse_plain_text_error(error_text: str) -> Dict[str, str]:
+    """
+    Parse a plain text error (like a traceback) into a structured format.
+    """
+    lines = error_text.strip().split('\n')
+    error_type = "UnknownError"
+    error_message = "An unknown error occurred"
+    
+    if lines:
+        last_line = lines[-1]
+        if ":" in last_line:
+            parts = last_line.split(":", 1)
+            error_type = parts[0].strip()
+            error_message = parts[1].strip()
+            
+    return {
+        "type": error_type,
+        "message": error_message,
+        "full_traceback": error_text
+    }
