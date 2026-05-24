@@ -128,7 +128,18 @@ class SelfEvolveSystem:
                         "Start Redis/Postgres for full trading functionality.",
             )
 
-        # ── 5. Start Scheduler ────────────────────────────────────
+        # ── 5. Start Telegram Bot ──────────────────────────────────
+        try:
+            from integrations.telegram_bot import start_bot
+            self._telegram_app = await start_bot()
+            if self._telegram_app:
+                await logger.ainfo("telegram_bot_started")
+        except Exception as e:
+            self._telegram_app = None
+            if logger:
+                await logger.awarning("telegram_bot_failed", error=str(e))
+
+        # ── 6. Start Scheduler ────────────────────────────────────
         self._setup_schedule()
         self.scheduler.start()
         await logger.ainfo("scheduler_started")
@@ -143,6 +154,11 @@ class SelfEvolveSystem:
             await logger.ainfo("selfevolve_shutting_down")
 
         self._running = False
+
+        # Stop Telegram bot
+        if hasattr(self, '_telegram_app') and self._telegram_app:
+            from integrations.telegram_bot import stop_bot
+            await stop_bot()
 
         # Stop event bus
         if self.event_bus:
@@ -236,37 +252,210 @@ class SelfEvolveSystem:
         )
 
     async def _run_pre_market(self) -> None:
-        """Execute morning briefing DAG."""
+        """Pre-market: Screen stocks, gather research, build briefing."""
         global logger
         if logger: await logger.ainfo("phase_started", phase="PRE_MARKET")
-        from orchestration.morning_briefing import compile_morning_briefing
-        # dag = compile_morning_briefing()
-        # await dag.ainvoke({"step": "init"})
+
+        try:
+            from integrations.telegram_bot import send_alert
+            from integrations.market_data import MarketDataClient
+            from research.screener import StockScreener
+
+            # Update dashboard phase
+            from dashboard.api.main import system_state
+            system_state["current_phase"] = "PRE_MARKET"
+
+            await send_alert("☀️ *Pre-Market Phase Started*\nScanning for opportunities...")
+
+            # Screen for candidates
+            mdc = MarketDataClient()
+            screener = StockScreener(mdc)
+            candidates = await screener.screen_candidates(max_results=5)
+            await mdc.close()
+
+            # Store candidates for trading phase
+            system_state["today_candidates"] = candidates
+
+            if candidates:
+                ticker_list = "\n".join(
+                    f"  • `{c['ticker']}` — score: {c.get('momentum_score', 0):.2f} ({c.get('reason', '')})"
+                    for c in candidates[:5]
+                )
+                await send_alert(
+                    f"📋 *Pre-Market Briefing*\n\n"
+                    f"Top {len(candidates)} candidates:\n{ticker_list}"
+                )
+            else:
+                await send_alert("📋 *Pre-Market*: No strong candidates found today.")
+
+            if logger: await logger.ainfo("pre_market_complete", candidates=len(candidates))
+
+        except Exception as e:
+            if logger: await logger.aerror("pre_market_failed", error=str(e))
+            try:
+                from integrations.telegram_bot import send_alert
+                await send_alert(f"⚠️ Pre-market failed: `{str(e)[:100]}`")
+            except Exception:
+                pass
 
     async def _run_market_open(self) -> None:
-        """Activate trading DAG."""
+        """Market open: Run trading DAG on pre-screened candidates."""
         global logger
         if logger: await logger.ainfo("phase_started", phase="MARKET_OPEN")
-        # Trading DAG continuous execution logic
+
+        try:
+            from integrations.telegram_bot import send_alert
+            from dashboard.api.main import system_state
+            system_state["current_phase"] = "MARKET_OPEN"
+
+            await send_alert("🔔 *Market Open*\nTrading engine active.")
+
+            # Check if market is actually open
+            from integrations.market_data import MarketDataClient
+            mdc = MarketDataClient()
+            is_open = await mdc.is_market_open()
+            await mdc.close()
+
+            if not is_open:
+                await send_alert("⏸ Market is closed today. Skipping trading.")
+                return
+
+            # Get today's candidates from pre-market
+            candidates = system_state.get("today_candidates", [])
+            if not candidates:
+                await send_alert("📭 No candidates to trade today.")
+                return
+
+            # Run trading analysis via Gemini for each candidate
+            from core.llm_factory import get_premium_llm
+            llm = get_premium_llm()
+
+            for candidate in candidates[:3]:  # Max 3 trades per day
+                ticker = candidate["ticker"]
+                try:
+                    # Get LLM analysis
+                    prompt = (
+                        f"You are a professional stock analyst. Analyze {ticker} for a day trade.\n"
+                        f"Current data: price=${candidate.get('price', 0):.2f}, "
+                        f"momentum_score={candidate.get('momentum_score', 0):.2f}, "
+                        f"volume={candidate.get('volume', 0):,}\n\n"
+                        f"Should we BUY, HOLD, or PASS? Respond with:\n"
+                        f"ACTION: BUY/HOLD/PASS\n"
+                        f"CONFIDENCE: 1-10\n"
+                        f"REASONING: one sentence\n"
+                        f"STOP_LOSS_PCT: suggested stop loss percentage (e.g. 2.0)\n"
+                        f"TAKE_PROFIT_PCT: suggested take profit percentage (e.g. 5.0)"
+                    )
+                    response = await llm.ainvoke(prompt)
+                    analysis = response.content
+
+                    # Log the analysis
+                    if logger:
+                        await logger.ainfo(
+                            "trade_analysis",
+                            ticker=ticker,
+                            analysis=analysis[:200],
+                        )
+
+                    # Parse action (DRY RUN — log but don't execute)
+                    if "ACTION: BUY" in analysis.upper():
+                        await send_alert(
+                            f"🎯 *Trade Signal: {ticker}*\n"
+                            f"Action: BUY (DRY RUN)\n"
+                            f"```\n{analysis[:300]}\n```\n\n"
+                            f"_Dry run mode — no order submitted_"
+                        )
+                    else:
+                        await send_alert(
+                            f"⏭ *Skip: {ticker}*\n"
+                            f"```\n{analysis[:200]}\n```"
+                        )
+
+                except Exception as e:
+                    if logger: await logger.aerror("trade_analysis_failed", ticker=ticker, error=str(e))
+
+            if logger: await logger.ainfo("market_open_complete")
+
+        except Exception as e:
+            if logger: await logger.aerror("market_open_failed", error=str(e))
 
     async def _run_market_close(self) -> None:
-        """Halt trading DAG."""
+        """Market close: Journal results, update portfolio."""
         global logger
         if logger: await logger.ainfo("phase_started", phase="MARKET_CLOSE")
-        # Cancel active orders, halt new entries
+
+        try:
+            from integrations.telegram_bot import send_alert
+            from dashboard.api.main import system_state, sync_alpaca_portfolio
+            system_state["current_phase"] = "MARKET_CLOSE"
+
+            # Sync latest portfolio from Alpaca
+            await sync_alpaca_portfolio()
+            p = system_state.get("portfolio", {})
+
+            equity = p.get("total_equity", 0)
+            pnl = p.get("daily_pnl", 0)
+            positions = p.get("positions", {})
+
+            pnl_emoji = "🟢" if pnl >= 0 else "🔴"
+            await send_alert(
+                f"🔔 *Market Close*\n\n"
+                f"💰 Equity: *${equity:,.2f}*\n"
+                f"{pnl_emoji} Daily P&L: *${pnl:,.2f}*\n"
+                f"📦 Open positions: *{len(positions)}*"
+            )
+
+            if logger: await logger.ainfo("market_close_complete", equity=equity, pnl=pnl)
+
+        except Exception as e:
+            if logger: await logger.aerror("market_close_failed", error=str(e))
 
     async def _run_post_market_evolution(self) -> None:
-        """Execute evolution DAG and Jarvis PR cycles."""
+        """Post-market: Run reflexion, update agent trust, generate reports."""
         global logger
         if logger: await logger.ainfo("phase_started", phase="POST_MARKET_EVOLUTION")
-        from orchestration.evolution_dag import compile_evolution_dag
-        # dag = compile_evolution_dag()
-        # await dag.ainvoke({"step": "init"})
-        
-        # Jarvis autonomous code evolution cycle
-        from agents.master_agent import Jarvis
-        # jarvis = Jarvis(llm=...)
-        # await jarvis.run_evolution_cycle()
+
+        try:
+            from integrations.telegram_bot import send_alert
+            from dashboard.api.main import system_state
+            system_state["current_phase"] = "EVOLUTION"
+
+            await send_alert("🧬 *Post-Market Evolution*\nRunning reflexion and analysis...")
+
+            # Run system audit
+            from agents.skills.jarvis.system_audit import SystemAuditor
+            auditor = SystemAuditor()
+            audit = auditor.run_audit()
+            readiness = audit.get("readiness_score", 0) * 100
+
+            # Run evolution analysis via Gemini
+            from core.llm_factory import get_efficient_llm
+            llm = get_efficient_llm()
+
+            p = system_state.get("portfolio", {})
+            response = await llm.ainvoke(
+                f"You are Jarvis, an autonomous trading system. Today's results:\n"
+                f"- Equity: ${p.get('total_equity', 0):,.2f}\n"
+                f"- Daily P&L: ${p.get('daily_pnl', 0):,.2f}\n"
+                f"- Positions: {len(p.get('positions', {}))}\n"
+                f"- System readiness: {readiness:.0f}%\n\n"
+                f"Write a brief end-of-day report (3-4 sentences). "
+                f"Include what went well, what to improve, and tomorrow's focus."
+            )
+
+            report = response.content
+            await send_alert(
+                f"📊 *End-of-Day Report*\n\n"
+                f"Readiness: `{readiness:.0f}%`\n\n"
+                f"{report}\n\n"
+                f"_Next phase: Overnight research_"
+            )
+
+            system_state["current_phase"] = "IDLE"
+            if logger: await logger.ainfo("evolution_complete")
+
+        except Exception as e:
+            if logger: await logger.aerror("evolution_failed", error=str(e))
 
     async def _overwatch_loop(self) -> None:
         """
@@ -334,6 +523,12 @@ class SelfEvolveSystem:
             )
 
         # In production: send Telegram notification for HIGH/CRITICAL alerts
+        if severity in ("HIGH", "CRITICAL"):
+            try:
+                from integrations.telegram_bot import send_alert
+                await send_alert(f"🚨 *Alert [{severity}]*\n{message}")
+            except Exception:
+                pass
 
 
 def main():
