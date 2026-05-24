@@ -346,12 +346,17 @@ async def cmd_fr(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if line.upper().startswith("BUG:"):
                 bug_text = line[4:].strip()
 
-                # Parse severity
+                # Parse severity with robust regex
+                import re
                 severity = "MEDIUM"
                 for sev in ["CRITICAL", "HIGH", "MEDIUM", "LOW"]:
-                    if f"[{sev}]" in bug_text.upper() or f"[{sev.lower()}]" in bug_text.lower():
+                    pattern = re.compile(
+                        r'\[(?:severity\s*)?' + sev + r'\]',
+                        re.IGNORECASE,
+                    )
+                    if pattern.search(bug_text):
                         severity = sev
-                        bug_text = bug_text.replace(f"[{sev}]", "").replace(f"[{sev.lower()}]", "").replace(f"[severity {sev}]", "").replace(f"[severity {sev.lower()}]", "").strip()
+                        bug_text = pattern.sub('', bug_text).strip()
                         break
 
                 bug_id = str(_uuid.uuid4())
