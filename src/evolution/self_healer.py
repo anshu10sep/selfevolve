@@ -110,7 +110,8 @@ REPLACE_TEXT: replacement text (or NONE)
 """
 
             response = await llm.ainvoke(prompt)
-            analysis = response.content
+            from core.llm_utils import extract_text
+            analysis = extract_text(response.content)
 
             # Parse response
             diagnosis = {"raw": analysis, "action": "MANUAL_REVIEW"}

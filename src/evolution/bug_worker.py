@@ -193,7 +193,8 @@ class BugWorker:
                 f"Create meaningful skills with docstrings and proper structure."
             )
 
-            content = response.content
+            from core.llm_utils import extract_text
+            content = extract_text(response.content)
 
             # Parse files from response
             files_created = []

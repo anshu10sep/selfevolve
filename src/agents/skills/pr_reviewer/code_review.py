@@ -191,7 +191,8 @@ Be thorough but fair. Not everything is a bug.
         try:
             llm = self._get_llm()
             response = await llm.ainvoke(prompt)
-            return self._parse_review(response.content, list(file_contents.keys()))
+            from core.llm_utils import extract_text
+            return self._parse_review(extract_text(response.content), list(file_contents.keys()))
         except Exception as e:
             logger.error("review_failed", error=str(e))
             return CodeReviewReport(

@@ -1048,3 +1048,59 @@ AFC is enabled with max remote calls: 10.
 {"component": "dashboard_api", "equity": 99999.96, "cash": 99980.4, "positions": 2, "daily_pnl": -0.03999999999359716, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "d0677446", "timestamp": "2026-05-24T05:28:22.465522Z"}
 {"component": "dashboard_api", "equity": 99999.96, "cash": 99980.4, "positions": 2, "daily_pnl": -0.03999999999359716, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "d0677446", "timestamp": "2026-05-24T05:29:22.383417Z"}
 {"component": "dashboard_api", "equity": 99999.94, "cash": 99980.4, "positions": 2, "daily_pnl": -0.059999999997671694, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "d0677446", "timestamp": "2026-05-24T05:30:22.364436Z"}
+{"component": "dashboard_api", "equity": 99999.94, "cash": 99980.4, "positions": 2, "daily_pnl": -0.059999999997671694, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "d0677446", "timestamp": "2026-05-24T05:31:22.470080Z"}
+{"component": "main", "environment": "paper", "initial_capital": 100000.0, "version": "1.0.0", "event": "selfevolve_starting", "logger": "__main__", "level": "info", "correlation_id": "7e38708c", "timestamp": "2026-05-24T05:32:14.171877Z"}
+{"component": "database", "url": "localhost:5432/selfevolve", "event": "database_engine_created", "logger": "persistence.database", "level": "info", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:32:14.200659Z"}
+{"component": "main", "error": "[Errno 111] Connect call failed ('127.0.0.1', 5432)", "event": "database_init_failed", "logger": "__main__", "level": "error", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:32:14.203793Z"}
+{"component": "redis_client", "url": "redis://localhost:6379/0", "event": "redis_client_created", "logger": "persistence.redis_client", "level": "info", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:32:14.204183Z"}
+{"component": "main", "error": "Error 111 connecting to localhost:6379. Connect call failed ('127.0.0.1', 6379).", "message": "Running in DASHBOARD-ONLY mode. Start Redis/Postgres for full trading functionality.", "event": "infra_not_available", "logger": "__main__", "level": "warning", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:32:14.205117Z"}
+Scheduler started
+Application started
+{"component": "telegram_bot", "username": "selfevolve_trade_bot", "event": "telegram_bot_started", "logger": "integrations.telegram_bot", "level": "info", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:32:15.240363Z"}
+{"component": "telegram_bot", "length": 85, "event": "telegram_alert_sent", "logger": "integrations.telegram_bot", "level": "info", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:32:15.868243Z"}
+{"component": "main", "event": "telegram_bot_started", "logger": "__main__", "level": "info", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:32:15.868478Z"}
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Added job "SelfEvolveSystem._run_pre_market" to job store "default"
+Added job "SelfEvolveSystem._run_market_open" to job store "default"
+Added job "SelfEvolveSystem._run_intraday_scan" to job store "default"
+Added job "SelfEvolveSystem._run_intraday_scan" to job store "default"
+Added job "SelfEvolveSystem._run_intraday_scan" to job store "default"
+Added job "SelfEvolveSystem._run_market_close" to job store "default"
+Added job "SelfEvolveSystem._run_post_market_evolution" to job store "default"
+Added job "SelfEvolveSystem._run_crypto_scan" to job store "default"
+Added job "SelfEvolveSystem._run_continuous_evolution" to job store "default"
+Scheduler started
+{"component": "main", "event": "scheduler_started", "logger": "__main__", "level": "info", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:32:15.872610Z"}
+{"component": "main", "status": "RUNNING", "event": "selfevolve_started", "logger": "__main__", "level": "info", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:32:15.872946Z"}
+{"component": "main", "error": "cannot import name 'review_pipeline' from 'agents.skills.pr_reviewer.review_pipeline' (/home/agentx/self-evolving/src/agents/skills/pr_reviewer/review_pipeline.py)", "event": "pr_review_loop_init_failed", "logger": "__main__", "level": "warning", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:32:15.874854Z"}
+{"component": "database", "url": "sqlite:////home/agentx/self-evolving/src/persistence/../../data/jarvis.db", "tables": 6, "event": "database_initialized", "logger": "persistence.db", "level": "info", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:32:15.973960Z"}
+{"component": "database", "bugs": 8, "frs": 2, "trades": 0, "event": "state_synced_from_db", "logger": "persistence.db", "level": "info", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:32:15.982229Z"}
+{"component": "dashboard_api", "bugs": 8, "frs": 2, "event": "database_ready", "logger": "dashboard.api.main", "level": "info", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:32:15.982372Z"}
+{"component": "hot_reloader", "watched_dirs": 3, "files_tracked": 72, "event": "hot_reloader_started", "logger": "evolution.hot_reloader", "level": "info", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:32:16.013941Z"}
+{"component": "bug_worker", "interval": "30min", "event": "bug_worker_started", "logger": "evolution.bug_worker", "level": "info", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:32:16.014569Z"}
+{"component": "bug_worker", "bug_id": "2338376b", "title": "Create skills.py for Fundamental Analyst", "event": "bug_worker_starting", "logger": "evolution.bug_worker", "level": "info", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:32:16.016131Z"}
+{"component": "self_evolution", "interval": "10min", "event": "evolution_loop_started", "logger": "evolution.self_evolution", "level": "info", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:32:16.032130Z"}
+{"component": "dashboard_api", "equity": 99999.94, "cash": 99980.4, "positions": 2, "daily_pnl": -0.059999999997671694, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:32:16.405548Z"}
+{"component": "telegram_bot", "length": 106, "event": "telegram_alert_sent", "logger": "integrations.telegram_bot", "level": "info", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:32:16.506148Z"}
+AFC is enabled with max remote calls: 10.
+{"component": "dashboard_api", "equity": 99999.94, "cash": 99980.4, "positions": 2, "daily_pnl": -0.059999999997671694, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:32:22.454428Z"}
+{"component": "bug_worker", "bug_id": "2338376b", "error": "'list' object has no attribute 'split'", "event": "bug_fix_failed", "logger": "evolution.bug_worker", "level": "warning", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:32:47.022432Z"}
+{"component": "bug_worker", "bug_id": "2338376b", "title": "Create skills.py for Fundamental Analyst", "event": "bug_worker_starting", "logger": "evolution.bug_worker", "level": "info", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:33:12.999518Z"}
+{"component": "telegram_bot", "length": 106, "event": "telegram_alert_sent", "logger": "integrations.telegram_bot", "level": "info", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:33:13.503194Z"}
+AFC is enabled with max remote calls: 10.
+{"component": "dashboard_api", "equity": 99999.94, "cash": 99980.4, "positions": 2, "daily_pnl": -0.059999999997671694, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:33:22.381966Z"}
+{"component": "bug_worker", "bug_id": "2338376b", "error": "'list' object has no attribute 'split'", "event": "bug_fix_failed", "logger": "evolution.bug_worker", "level": "warning", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:33:57.527831Z"}
+{"component": "dashboard_api", "equity": 99999.94, "cash": 99980.4, "positions": 2, "daily_pnl": -0.059999999997671694, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:34:22.356916Z"}
+{"component": "dashboard_api", "equity": 99999.94, "cash": 99980.4, "positions": 2, "daily_pnl": -0.059999999997671694, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:35:22.370626Z"}
+{"component": "dashboard_api", "equity": 99999.94, "cash": 99980.4, "positions": 2, "daily_pnl": -0.059999999997671694, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:36:22.380717Z"}
+{"component": "hot_reloader", "module": "integrations.telegram_bot", "file": "/home/agentx/self-evolving/src/integrations/telegram_bot.py", "event": "module_reloaded", "logger": "evolution.hot_reloader", "level": "info", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:37:16.039424Z"}
+{"component": "telegram_bot", "length": 70, "event": "telegram_alert_sent", "logger": "integrations.telegram_bot", "level": "info", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:37:16.686987Z"}
+{"component": "dashboard_api", "equity": 99999.94, "cash": 99980.4, "positions": 2, "daily_pnl": -0.059999999997671694, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "3a51c66b", "timestamp": "2026-05-24T05:37:22.388656Z"}

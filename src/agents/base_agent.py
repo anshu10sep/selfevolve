@@ -111,7 +111,8 @@ class BaseAgent(ABC):
                 result = response.model_dump() if isinstance(response, BaseModel) else response
             else:
                 response = await self.llm.ainvoke(messages)
-                result = {"content": response.content}
+                from core.llm_utils import extract_text
+                result = {"content": extract_text(response.content)}
 
             # Track costs
             cost_record = self._track_cost(response, start_time)

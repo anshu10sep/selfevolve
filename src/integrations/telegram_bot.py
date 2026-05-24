@@ -24,6 +24,7 @@ from telegram.ext import (
 from telegram.constants import ParseMode
 
 from config.settings import get_settings
+from core.llm_utils import extract_text
 
 logger = structlog.get_logger(component="telegram_bot")
 
@@ -331,7 +332,7 @@ async def cmd_fr(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"(create at least 1 bug, up to 5)"
         )
 
-        analysis = response.content
+        analysis = extract_text(response.content)  # noqa: normalize list→str
 
         import uuid as _uuid
         from datetime import datetime as _dt, timezone as _tz
@@ -698,7 +699,7 @@ RULES:
             f"{system_prompt}\n\nOwner asks: {user_msg}"
         )
 
-        reply = response.content
+        reply = extract_text(response.content)  # noqa: normalize list→str
 
         # Telegram has a 4096 char limit
         if len(reply) > 4000:

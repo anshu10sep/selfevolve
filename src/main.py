@@ -41,6 +41,7 @@ from persistence.redis_client import get_redis_client, health_check as redis_hea
 from core.state_manager import StateManager
 from core.event_bus import EventBus, EventChannels
 from execution.circuit_breaker import CircuitBreaker, DeadManSwitch, HCFProtocol
+from core.llm_utils import extract_text
 
 logger: Optional[structlog.stdlib.BoundLogger] = None
 
@@ -461,7 +462,7 @@ class SelfEvolveSystem:
                         f"TAKE_PROFIT_PCT: number (e.g. 5.0)"
                     )
                     response = await llm.ainvoke(prompt)
-                    analysis = response.content
+                    analysis = extract_text(response.content)  # noqa: normalize list→str
 
                     if logger:
                         await logger.ainfo("trade_analysis", ticker=ticker, analysis=analysis[:200])
@@ -583,7 +584,7 @@ class SelfEvolveSystem:
                 f"Should we BUY or PASS? Format: ACTION: BUY/PASS, CONFIDENCE: 1-10, REASONING: one line, "
                 f"STOP_LOSS_PCT: number, TAKE_PROFIT_PCT: number"
             )
-            analysis = response.content
+            analysis = extract_text(response.content)  # noqa: normalize list→str
 
             if "ACTION: BUY" in analysis.upper():
                 from core.models.portfolio import TradeIntent, TradeSide
@@ -688,7 +689,7 @@ class SelfEvolveSystem:
                 f"Respond: ACTION: BUY or PASS, CONFIDENCE: 1-10, REASONING: one line, "
                 f"STOP_LOSS_PCT: number, TAKE_PROFIT_PCT: number"
             )
-            analysis = response.content
+            analysis = extract_text(response.content)  # noqa: normalize list→str
 
             if "ACTION: BUY" in analysis.upper():
                 import uuid
@@ -818,7 +819,7 @@ class SelfEvolveSystem:
                 f"3. Any new opportunities to explore?"
             )
 
-            report = response.content
+            report = extract_text(response.content)  # noqa: normalize list→str
 
             await send_alert(
                 f"🧬 *Evolution Report*\n\n"
@@ -898,7 +899,7 @@ class SelfEvolveSystem:
                 f"Include what went well, what to improve, and tomorrow's focus."
             )
 
-            report = response.content
+            report = extract_text(response.content)  # noqa: normalize list→str
             await send_alert(
                 f"📊 *End-of-Day Report*\n\n"
                 f"Readiness: `{readiness:.0f}%`\n\n"
