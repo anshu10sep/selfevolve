@@ -62,8 +62,8 @@ class Settings(BaseSettings):
 
     # ── Efficient Tier Model ──────────────────────────────────────
     efficient_model: str = Field(
-        default="gemini-2.5-flash",
-        description="Cost-efficient model for triage/parsing/code-gen tasks",
+        default="gemini-3.5-flash",
+        description="Cost-efficient model for triage/parsing/code-gen tasks (Gemini 3.5 Flash)",
     )
     # ── Premium Tier Model ────────────────────────────────────────
     premium_model: str = Field(
