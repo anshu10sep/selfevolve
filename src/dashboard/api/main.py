@@ -253,10 +253,70 @@ async def get_agents():
 
 @app.get("/api/agents/{agent_id}")
 async def get_agent_detail(agent_id: str):
-    for agent in system_state["agents"]:
-        if agent.get("id") == agent_id:
-            return agent
-    raise HTTPException(status_code=404, detail="Agent not found")
+    """Get detailed info for a specific agent including goals, skills, and config."""
+    agent = None
+    for a in system_state["agents"]:
+        if a.get("id") == agent_id:
+            agent = a
+            break
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+
+    # Map role to skills directory name
+    role_to_dir = {
+        "MASTER": "jarvis", "CTO": "cto", "CSO": "cso", "QA": "qa",
+        "DEVELOPER": "developer", "PRODUCT": "product",
+        "FUNDAMENTAL_ANALYST": "fundamental_analyst",
+        "TECHNICAL_ANALYST": "technical_analyst",
+        "SENTIMENT_ANALYST": "sentiment_analyst",
+        "MACRO_ANALYST": "macro_analyst",
+        "BULL": "bull", "BEAR": "bear", "JUDGE": "judge",
+        "META_REVIEW": "meta_review", "JOURNALING": "journaling",
+        "AUDITOR": "auditor", "MODEL_ORCHESTRATOR": "model_orchestrator",
+    }
+
+    role = agent.get("role", "")
+    skills_dir_name = role_to_dir.get(role, role.lower())
+    skills_path = os.path.join(os.path.dirname(__file__), "..", "..", "agents", "skills", skills_dir_name)
+
+    # Read goals.md
+    goals_text = ""
+    goals_file = os.path.join(skills_path, "goals.md")
+    try:
+        with open(goals_file, "r") as f:
+            goals_text = f.read()
+    except FileNotFoundError:
+        goals_text = "_No goals.md found for this agent._"
+
+    # List skill files
+    skill_files = []
+    try:
+        for fname in sorted(os.listdir(skills_path)):
+            if fname.endswith(".py") and fname != "__init__.py":
+                skill_files.append(fname.replace(".py", "").replace("_", " ").title())
+    except FileNotFoundError:
+        pass
+
+    # Build detailed response
+    return {
+        **agent,
+        "goals": goals_text,
+        "skills": skill_files,
+        "skills_dir": skills_dir_name,
+        "model": "gemini-3.1-pro",
+        "metrics": {
+            "trust_weight": agent.get("trust_weight", 1.0),
+            "brier_score": agent.get("brier_score"),
+            "tasks_today": agent.get("tasks_today", 0),
+            "tasks_alltime": agent.get("tasks_alltime", 0),
+            "cost_today": agent.get("cost_today", 0.0),
+            "cost_alltime": agent.get("cost_alltime", 0.0),
+            "tokens_today": agent.get("tokens_today", 0),
+            "last_activity": agent.get("last_activity"),
+            "consecutive_failures": agent.get("consecutive_failures", 0),
+            "evolution_count": agent.get("evolution_count", 0),
+        },
+    }
 
 
 @app.get("/api/agents/hierarchy")

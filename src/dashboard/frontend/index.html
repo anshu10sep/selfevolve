@@ -286,6 +286,66 @@
         </div>
     </div>
 
+    <!-- ─── AGENT DETAIL MODAL ─── -->
+    <div class="modal-overlay" id="agent-detail-modal" style="display:none;">
+        <div class="modal modal-wide">
+            <div class="modal-header">
+                <div style="display:flex;align-items:center;gap:12px">
+                    <h2 id="agent-detail-name">Agent</h2>
+                    <span class="agent-role-badge" id="agent-detail-type-badge"></span>
+                </div>
+                <button class="modal-close" onclick="closeAgentDetail()">&times;</button>
+            </div>
+            <div class="modal-body agent-detail-body">
+                <!-- Left Column: Identity + Metrics -->
+                <div class="agent-detail-left">
+                    <div class="detail-section">
+                        <h3>Identity</h3>
+                        <div class="detail-grid">
+                            <div class="detail-item"><span class="detail-label">Role</span><span class="detail-val" id="ad-role">—</span></div>
+                            <div class="detail-item"><span class="detail-label">Type</span><span class="detail-val" id="ad-type">—</span></div>
+                            <div class="detail-item"><span class="detail-label">Status</span><span class="detail-val" id="ad-status">—</span></div>
+                            <div class="detail-item"><span class="detail-label">Model</span><span class="detail-val" id="ad-model">—</span></div>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <h3>Performance Metrics</h3>
+                        <div class="detail-grid">
+                            <div class="detail-item"><span class="detail-label">Trust Weight</span><span class="detail-val" id="ad-trust">—</span></div>
+                            <div class="detail-item"><span class="detail-label">Brier Score</span><span class="detail-val" id="ad-brier">—</span></div>
+                            <div class="detail-item"><span class="detail-label">Tasks Today</span><span class="detail-val" id="ad-tasks-today">—</span></div>
+                            <div class="detail-item"><span class="detail-label">Tasks All-Time</span><span class="detail-val" id="ad-tasks-all">—</span></div>
+                            <div class="detail-item"><span class="detail-label">Cost Today</span><span class="detail-val" id="ad-cost-today">—</span></div>
+                            <div class="detail-item"><span class="detail-label">Cost All-Time</span><span class="detail-val" id="ad-cost-all">—</span></div>
+                            <div class="detail-item"><span class="detail-label">Tokens Today</span><span class="detail-val" id="ad-tokens">—</span></div>
+                            <div class="detail-item"><span class="detail-label">Failures</span><span class="detail-val" id="ad-failures">—</span></div>
+                            <div class="detail-item"><span class="detail-label">Evolutions</span><span class="detail-val" id="ad-evolutions">—</span></div>
+                            <div class="detail-item"><span class="detail-label">Last Activity</span><span class="detail-val" id="ad-last-activity">—</span></div>
+                        </div>
+                        <div class="trust-bar-wrap" style="margin-top:12px;height:6px">
+                            <div class="trust-bar" id="ad-trust-bar" style="width:100%;background:var(--accent-green)"></div>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <h3>Skills</h3>
+                        <div id="ad-skills" class="skills-list">
+                            <span class="empty-inline">No skills loaded</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Right Column: Goals -->
+                <div class="agent-detail-right">
+                    <div class="detail-section">
+                        <h3>Goals & Directives</h3>
+                        <div id="ad-goals" class="goals-content">
+                            <span class="empty-inline">No goals found</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>

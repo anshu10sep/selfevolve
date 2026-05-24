@@ -148,6 +148,7 @@ async function loadAgents() {
 
     const card = document.createElement('div');
     card.className = 'agent-card';
+    card.onclick = () => openAgentDetail(agent.id);
     card.innerHTML = `
       <div class="agent-card-top">
         <span class="agent-name">${agent.name}</span>
@@ -177,6 +178,97 @@ async function loadAgents() {
     `;
     grid.appendChild(card);
   });
+}
+
+// ════════════════════════════════════════════════════════════════
+// AGENT DETAIL
+// ════════════════════════════════════════════════════════════════
+
+async function openAgentDetail(agentId) {
+  const data = await api(`/api/agents/${agentId}`);
+  if (!data) return;
+
+  // Header
+  document.getElementById('agent-detail-name').textContent = data.name || 'Agent';
+  const badge = document.getElementById('agent-detail-type-badge');
+  badge.textContent = data.type || '';
+  badge.className = `agent-role-badge ${(data.type || '').toLowerCase()}`;
+
+  // Identity
+  document.getElementById('ad-role').textContent = data.role || '—';
+  document.getElementById('ad-type').textContent = data.type || '—';
+
+  const statusEl = document.getElementById('ad-status');
+  statusEl.textContent = data.status || '—';
+  statusEl.className = 'detail-val' + (data.status === 'ACTIVE' ? ' active' : data.status === 'EVOLVING' ? ' warning' : '');
+
+  document.getElementById('ad-model').textContent = data.model || 'gemini-3.1-pro';
+
+  // Metrics
+  const m = data.metrics || {};
+  document.getElementById('ad-trust').textContent = ((m.trust_weight || 1) * 100).toFixed(0) + '%';
+  document.getElementById('ad-brier').textContent = m.brier_score !== null && m.brier_score !== undefined ? m.brier_score.toFixed(4) : '—';
+  document.getElementById('ad-tasks-today').textContent = m.tasks_today || 0;
+  document.getElementById('ad-tasks-all').textContent = m.tasks_alltime || 0;
+  document.getElementById('ad-cost-today').textContent = '$' + (m.cost_today || 0).toFixed(4);
+  document.getElementById('ad-cost-all').textContent = '$' + (m.cost_alltime || 0).toFixed(4);
+  document.getElementById('ad-tokens').textContent = (m.tokens_today || 0).toLocaleString();
+  document.getElementById('ad-failures').textContent = m.consecutive_failures || 0;
+  document.getElementById('ad-evolutions').textContent = m.evolution_count || 0;
+  document.getElementById('ad-last-activity').textContent = m.last_activity ? new Date(m.last_activity).toLocaleString() : 'Never';
+
+  // Trust bar
+  const trustPct = ((m.trust_weight || 1) * 100);
+  const bar = document.getElementById('ad-trust-bar');
+  bar.style.width = trustPct + '%';
+  bar.style.background = trustPct < 50 ? 'var(--accent-red)' : trustPct < 80 ? 'var(--accent-amber)' : 'var(--accent-green)';
+
+  // Skills
+  const skillsEl = document.getElementById('ad-skills');
+  const skills = data.skills || [];
+  if (skills.length > 0) {
+    skillsEl.innerHTML = skills.map(s => `<span class="skill-chip">${s}</span>`).join('');
+  } else {
+    skillsEl.innerHTML = '<span class="empty-inline">No skills files found</span>';
+  }
+
+  // Goals — simple markdown to HTML
+  const goalsEl = document.getElementById('ad-goals');
+  const goalsRaw = data.goals || '_No goals defined_';
+  goalsEl.innerHTML = renderMarkdown(goalsRaw);
+
+  // Show modal
+  document.getElementById('agent-detail-modal').style.display = 'flex';
+}
+
+function closeAgentDetail() {
+  document.getElementById('agent-detail-modal').style.display = 'none';
+}
+
+function renderMarkdown(md) {
+  // Simple markdown → HTML for goals display
+  let html = md
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code>$1</code>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/^(\d+)\. (.+)$/gm, '<li>$2</li>');
+
+  // Wrap consecutive <li>s in <ul>
+  html = html.replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>');
+
+  // Paragraphs: wrap lines that aren't already in tags
+  html = html.split('\n').map(line => {
+    const trimmed = line.trim();
+    if (!trimmed) return '';
+    if (trimmed.startsWith('<')) return line;
+    return `<p>${line}</p>`;
+  }).join('\n');
+
+  return html;
 }
 
 // ════════════════════════════════════════════════════════════════

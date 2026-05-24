@@ -100,3 +100,33 @@ Added job "SelfEvolveSystem._run_post_market_evolution" to job store "default"
 Scheduler started
 {"component": "main", "event": "scheduler_started", "logger": "__main__", "level": "info", "correlation_id": "eb312822", "timestamp": "2026-05-24T01:45:30.204094Z"}
 {"component": "main", "status": "RUNNING", "event": "selfevolve_started", "logger": "__main__", "level": "info", "correlation_id": "eb312822", "timestamp": "2026-05-24T01:45:30.204187Z"}
+
+Received shutdown signal. Gracefully stopping...
+{"component": "main", "event": "selfevolve_shutting_down", "logger": "__main__", "level": "info", "correlation_id": "eb312822", "timestamp": "2026-05-24T01:56:30.216045Z"}
+Scheduler has been shut down
+{"component": "main", "event": "selfevolve_shutdown_complete", "logger": "__main__", "level": "info", "correlation_id": "eb312822", "timestamp": "2026-05-24T01:56:30.216616Z"}
+{"component": "main", "environment": "paper", "initial_capital": 100000.0, "version": "1.0.0", "event": "selfevolve_starting", "logger": "__main__", "level": "info", "correlation_id": "fd3ea0f8", "timestamp": "2026-05-24T01:56:30.688898Z"}
+{"component": "database", "url": "localhost:5432/selfevolve", "event": "database_engine_created", "logger": "persistence.database", "level": "info", "correlation_id": "612b2923", "timestamp": "2026-05-24T01:56:30.718019Z"}
+{"component": "main", "error": "[Errno 111] Connect call failed ('127.0.0.1', 5432)", "event": "database_init_failed", "logger": "__main__", "level": "error", "correlation_id": "612b2923", "timestamp": "2026-05-24T01:56:30.722199Z"}
+{"component": "redis_client", "url": "redis://localhost:6379/0", "event": "redis_client_created", "logger": "persistence.redis_client", "level": "info", "correlation_id": "612b2923", "timestamp": "2026-05-24T01:56:30.722647Z"}
+{"component": "main", "error": "Error 111 connecting to localhost:6379. Connect call failed ('127.0.0.1', 6379).", "message": "Running in DASHBOARD-ONLY mode. Start Redis/Postgres for full trading functionality.", "event": "infra_not_available", "logger": "__main__", "level": "warning", "correlation_id": "612b2923", "timestamp": "2026-05-24T01:56:30.723727Z"}
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Added job "SelfEvolveSystem._run_pre_market" to job store "default"
+Added job "SelfEvolveSystem._run_market_open" to job store "default"
+Added job "SelfEvolveSystem._run_market_close" to job store "default"
+Added job "SelfEvolveSystem._run_post_market_evolution" to job store "default"
+Scheduler started
+{"component": "main", "event": "scheduler_started", "logger": "__main__", "level": "info", "correlation_id": "612b2923", "timestamp": "2026-05-24T01:56:30.725607Z"}
+{"component": "main", "status": "RUNNING", "event": "selfevolve_started", "logger": "__main__", "level": "info", "correlation_id": "612b2923", "timestamp": "2026-05-24T01:56:30.725855Z"}
+{"component": "dashboard_api", "equity": 100000.0, "cash": 100000.0, "positions": 0, "daily_pnl": 0.0, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "612b2923", "timestamp": "2026-05-24T01:56:31.230014Z"}
+{"component": "dashboard_api", "equity": 100000.0, "cash": 100000.0, "positions": 0, "daily_pnl": 0.0, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "612b2923", "timestamp": "2026-05-24T01:56:39.160208Z"}
+{"component": "dashboard_api", "equity": 100000.0, "cash": 100000.0, "positions": 0, "daily_pnl": 0.0, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "612b2923", "timestamp": "2026-05-24T01:57:09.156488Z"}
+{"component": "dashboard_api", "equity": 100000.0, "cash": 100000.0, "positions": 0, "daily_pnl": 0.0, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "612b2923", "timestamp": "2026-05-24T01:57:39.169706Z"}
+{"component": "dashboard_api", "equity": 100000.0, "cash": 100000.0, "positions": 0, "daily_pnl": 0.0, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "612b2923", "timestamp": "2026-05-24T01:58:09.158226Z"}
+{"component": "dashboard_api", "equity": 100000.0, "cash": 100000.0, "positions": 0, "daily_pnl": 0.0, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "612b2923", "timestamp": "2026-05-24T01:58:39.151170Z"}
+{"component": "dashboard_api", "equity": 100000.0, "cash": 100000.0, "positions": 0, "daily_pnl": 0.0, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "612b2923", "timestamp": "2026-05-24T01:59:09.160266Z"}
+{"component": "dashboard_api", "equity": 100000.0, "cash": 100000.0, "positions": 0, "daily_pnl": 0.0, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "612b2923", "timestamp": "2026-05-24T01:59:39.154236Z"}
+{"component": "dashboard_api", "equity": 100000.0, "cash": 100000.0, "positions": 0, "daily_pnl": 0.0, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "612b2923", "timestamp": "2026-05-24T02:00:09.151848Z"}
