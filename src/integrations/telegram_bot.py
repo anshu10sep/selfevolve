@@ -259,14 +259,122 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await cmd_start(update, context)
 
 
-async def handle_unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle any non-command message."""
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Free-form conversation with Jarvis via Gemini.
+    
+    Ask anything: strategies, agent roles, roadmap, trade analysis,
+    company direction, debugging help, etc.
+    """
     settings = get_settings()
     if str(update.effective_chat.id) != str(settings.telegram_chat_id):
         return
-    await update.message.reply_text(
-        "🤖 I'm Jarvis. Use /help to see available commands."
-    )
+
+    user_msg = update.message.text.strip()
+    if not user_msg:
+        return
+
+    await update.message.reply_text("🤔 Thinking...")
+
+    try:
+        # Gather live system context for Jarvis
+        status_data = await _api("/api/status") or {}
+        portfolio_data = await _api("/api/portfolio") or {}
+        agents_data = await _api("/api/agents") or {}
+
+        p = portfolio_data
+        equity = p.get("total_equity", 0)
+        cash = p.get("settled_cash", 0)
+        pnl = p.get("daily_pnl", 0)
+        positions = p.get("positions", {})
+
+        agents_list = agents_data.get("agents", [])
+        agent_summary = "\n".join(
+            f"  - {a['name']} ({a.get('type','?')}): trust={a.get('trust_weight',1)*100:.0f}%, "
+            f"brier={a.get('brier_score', 'N/A')}"
+            for a in agents_list[:10]
+        )
+
+        pos_summary = "None" if not positions else "\n".join(
+            f"  - {t}: {pos.get('quantity',0)} shares @ ${pos.get('avg_entry_price',0):.2f} "
+            f"(P&L: ${pos.get('unrealized_pnl',0):.2f})"
+            for t, pos in positions.items()
+        )
+
+        system_prompt = f"""You are Jarvis, the CEO and master AI of the SelfEvolve autonomous trading company.
+You manage a team of 17 AI agents that analyze markets and trade stocks via Alpaca.
+
+CURRENT SYSTEM STATE:
+- Status: {status_data.get('status', 'RUNNING')}
+- Phase: {status_data.get('current_phase', 'IDLE')}
+- Uptime: {status_data.get('uptime_hours', 0):.1f}h
+
+PORTFOLIO (Alpaca Paper Trading):
+- Equity: ${equity:,.2f}
+- Cash: ${cash:,.2f}
+- Daily P&L: ${pnl:,.2f}
+- Positions: {pos_summary}
+
+AGENT TEAM:
+{agent_summary}
+
+TRADING SCHEDULE:
+- 08:00 ET: Pre-market screening (momentum + volume)
+- 09:30 ET: Market open — Gemini analysis + order submission ($10K tranches)
+- 10:30 ET: Mid-morning intraday scan
+- 12:30 ET: Midday intraday scan  
+- 14:30 ET: Afternoon intraday scan
+- 16:00 ET: Market close — P&L report
+- 16:30 ET: Post-market evolution — audit + reflexion
+
+TRADING STRATEGY:
+- Screen top 20 liquid stocks for momentum + volume signals
+- Gemini analyzes each candidate with price data, momentum score, recent bars
+- $10K tranches per trade, max 5 concurrent positions
+- Bracket orders with stop-loss and take-profit
+- Max 3 new positions at open, 1 per intraday scan
+
+COMPANY VISION:
+- Self-evolving system that improves its own algorithms
+- Agents have trust scores (Brier scores) that determine influence
+- Underperforming agents get evolved, new strategies get A/B tested
+- Goal: consistent alpha through autonomous research and adaptation
+
+RULES:
+1. Be concise but thorough (max 500 words)
+2. Use emojis sparingly for readability
+3. If asked about a specific agent, describe their role, goals, and current performance
+4. If asked about strategy, explain the current approach and planned improvements
+5. If asked to do something (change settings, pause trading), tell them the appropriate /command
+6. Be honest about limitations — say what's built vs what's planned
+"""
+
+        from langchain_google_genai import ChatGoogleGenerativeAI
+        llm = ChatGoogleGenerativeAI(
+            model="gemini-2.5-flash",
+            google_api_key=settings.gemini_api_key,
+            temperature=0.7,
+        )
+        response = await llm.ainvoke(
+            f"{system_prompt}\n\nOwner asks: {user_msg}"
+        )
+
+        reply = response.content
+
+        # Telegram has a 4096 char limit
+        if len(reply) > 4000:
+            reply = reply[:3997] + "..."
+
+        await update.message.reply_text(reply, parse_mode=None)
+        logger.info("jarvis_chat", question=user_msg[:50], reply_len=len(reply))
+
+    except Exception as e:
+        logger.error("jarvis_chat_failed", error=str(e))
+        await update.message.reply_text(
+            f"❌ Sorry, I hit an error: `{str(e)[:100]}`\n\n"
+            f"Try a /command instead, or ask again.",
+            parse_mode=ParseMode.MARKDOWN,
+        )
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -329,7 +437,7 @@ async def start_bot() -> Optional[Application]:
         _app.add_handler(CommandHandler("pause", cmd_pause))
         _app.add_handler(CommandHandler("resume", cmd_resume))
         _app.add_handler(CommandHandler("help", cmd_help))
-        _app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_unknown))
+        _app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
         # Set bot commands menu
         await _app.bot.set_my_commands([

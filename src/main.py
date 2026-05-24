@@ -197,6 +197,15 @@ class SelfEvolveSystem:
         # Start Settlement Checker
         settlement_task = asyncio.create_task(self._settlement_check_loop())
 
+        # Start Hot Reloader (watches for code changes)
+        try:
+            from evolution.hot_reloader import hot_reloader
+            hot_reload_task = asyncio.create_task(hot_reloader.watch_loop())
+        except Exception as e:
+            hot_reload_task = None
+            if logger:
+                await logger.awarning("hot_reloader_init_failed", error=str(e))
+
         try:
             while self._running:
                 try:
@@ -217,6 +226,12 @@ class SelfEvolveSystem:
                             error=str(e),
                             exc_info=True,
                         )
+                    # Self-healer: diagnose and attempt auto-fix
+                    try:
+                        from evolution.self_healer import healer
+                        await healer.handle_exception(e, context="main_loop")
+                    except Exception:
+                        pass
                     await asyncio.sleep(5)
 
         except asyncio.CancelledError:
@@ -225,29 +240,56 @@ class SelfEvolveSystem:
             api_task.cancel()
             overwatch_task.cancel()
             settlement_task.cancel()
+            if hot_reload_task:
+                hot_reload_task.cancel()
             await self.shutdown()
 
     def _setup_schedule(self) -> None:
-        """Setup APScheduler with market hours logic."""
-        # Note: ET times converted to UTC for scheduler (assuming ET = UTC-5 standard, simplified)
+        """Setup APScheduler with market hours logic.
+        
+        Trading Schedule (ET → UTC, ET = UTC-4 during EDT):
+          08:00 ET (12:00 UTC) — Pre-Market: Screen stocks, build briefing
+          09:30 ET (13:30 UTC) — Market Open: First trading scan
+          10:30 ET (14:30 UTC) — Mid-Morning: Second scan (volatility settled)
+          12:30 ET (16:30 UTC) — Midday: Midday opportunities
+          14:30 ET (18:30 UTC) — Afternoon: Afternoon momentum scan
+          16:00 ET (20:00 UTC) — Market Close: Journal, P&L report
+          16:30 ET (20:30 UTC) — Post-Market: Evolution, reflection
+        """
         self.scheduler.add_job(
             self._run_pre_market,
-            CronTrigger(day_of_week='mon-fri', hour=13, minute=0),
+            CronTrigger(day_of_week='mon-fri', hour=12, minute=0),
             id='pre_market',
         )
         self.scheduler.add_job(
             self._run_market_open,
-            CronTrigger(day_of_week='mon-fri', hour=14, minute=30),
+            CronTrigger(day_of_week='mon-fri', hour=13, minute=30),
             id='market_open',
+        )
+        # Intraday scans — 3 additional trading windows
+        self.scheduler.add_job(
+            self._run_intraday_scan,
+            CronTrigger(day_of_week='mon-fri', hour=14, minute=30),
+            id='mid_morning_scan',
+        )
+        self.scheduler.add_job(
+            self._run_intraday_scan,
+            CronTrigger(day_of_week='mon-fri', hour=16, minute=30),
+            id='midday_scan',
+        )
+        self.scheduler.add_job(
+            self._run_intraday_scan,
+            CronTrigger(day_of_week='mon-fri', hour=18, minute=30),
+            id='afternoon_scan',
         )
         self.scheduler.add_job(
             self._run_market_close,
-            CronTrigger(day_of_week='mon-fri', hour=21, minute=0),
+            CronTrigger(day_of_week='mon-fri', hour=20, minute=0),
             id='market_close',
         )
         self.scheduler.add_job(
             self._run_post_market_evolution,
-            CronTrigger(day_of_week='mon-fri', hour=21, minute=30),
+            CronTrigger(day_of_week='mon-fri', hour=20, minute=30),
             id='post_market',
         )
 
@@ -328,42 +370,87 @@ class SelfEvolveSystem:
 
             # Run trading analysis via Gemini for each candidate
             from core.llm_factory import get_premium_llm
+            from broker.alpaca_client import AlpacaClient
             llm = get_premium_llm()
+            alpaca = AlpacaClient()
 
             for candidate in candidates[:3]:  # Max 3 trades per day
                 ticker = candidate["ticker"]
                 try:
-                    # Get LLM analysis
+                    # Get fresh quote
+                    from integrations.market_data import MarketDataClient as MDC2
+                    mdc2 = MDC2()
+                    quote = await mdc2.get_latest_quote(ticker)
+                    current_price = quote.get("ask", candidate.get("price", 0))
+                    bars = await mdc2.get_bars(ticker, timeframe="1Day", limit=10)
+                    await mdc2.close()
+
+                    # Build context for LLM
+                    bars_summary = ""
+                    if bars:
+                        recent = bars[-5:] if len(bars) >= 5 else bars
+                        bars_summary = "Recent closes: " + ", ".join(f"${b['close']:.2f}" for b in recent)
+
                     prompt = (
-                        f"You are a professional stock analyst. Analyze {ticker} for a day trade.\n"
-                        f"Current data: price=${candidate.get('price', 0):.2f}, "
-                        f"momentum_score={candidate.get('momentum_score', 0):.2f}, "
-                        f"volume={candidate.get('volume', 0):,}\n\n"
-                        f"Should we BUY, HOLD, or PASS? Respond with:\n"
-                        f"ACTION: BUY/HOLD/PASS\n"
+                        f"You are a professional stock analyst for an autonomous trading system.\n"
+                        f"Analyze {ticker} for a swing trade (hold 1-5 days).\n\n"
+                        f"Data:\n"
+                        f"- Current price: ${current_price:.2f}\n"
+                        f"- Momentum score: {candidate.get('momentum_score', 0):.2f} (-1 to 1)\n"
+                        f"- Today's change: {candidate.get('change_pct', 0):.1f}%\n"
+                        f"- Volume: {candidate.get('volume', 0):,}\n"
+                        f"- {bars_summary}\n\n"
+                        f"Respond EXACTLY in this format:\n"
+                        f"ACTION: BUY or PASS\n"
                         f"CONFIDENCE: 1-10\n"
                         f"REASONING: one sentence\n"
-                        f"STOP_LOSS_PCT: suggested stop loss percentage (e.g. 2.0)\n"
-                        f"TAKE_PROFIT_PCT: suggested take profit percentage (e.g. 5.0)"
+                        f"STOP_LOSS_PCT: number (e.g. 2.0)\n"
+                        f"TAKE_PROFIT_PCT: number (e.g. 5.0)"
                     )
                     response = await llm.ainvoke(prompt)
                     analysis = response.content
 
-                    # Log the analysis
                     if logger:
-                        await logger.ainfo(
-                            "trade_analysis",
+                        await logger.ainfo("trade_analysis", ticker=ticker, analysis=analysis[:200])
+
+                    # Parse and execute
+                    if "ACTION: BUY" in analysis.upper():
+                        # Parse stop loss and take profit
+                        sl_pct = 2.0
+                        tp_pct = 5.0
+                        for line in analysis.split("\n"):
+                            if "STOP_LOSS_PCT" in line.upper():
+                                try: sl_pct = float(line.split(":")[-1].strip().replace("%", ""))
+                                except: pass
+                            if "TAKE_PROFIT_PCT" in line.upper():
+                                try: tp_pct = float(line.split(":")[-1].strip().replace("%", ""))
+                                except: pass
+
+                        # Submit real order — $10K tranche (paper account)
+                        from core.models.portfolio import TradeIntent, TradeSide
+                        import uuid
+                        tranche_size = 10000.0  # $10K per tranche
+
+                        intent = TradeIntent(
                             ticker=ticker,
-                            analysis=analysis[:200],
+                            side=TradeSide.BUY,
+                            notional=tranche_size,
+                            stop_loss_price=round(current_price * (1 - sl_pct / 100), 2),
+                            take_profit_price=round(current_price * (1 + tp_pct / 100), 2),
+                            client_order_id=str(uuid.uuid4()),
                         )
 
-                    # Parse action (DRY RUN — log but don't execute)
-                    if "ACTION: BUY" in analysis.upper():
+                        order = await alpaca.submit_bracket_order(intent)
+                        order_id = order.get("id", "?")
+
                         await send_alert(
-                            f"🎯 *Trade Signal: {ticker}*\n"
-                            f"Action: BUY (DRY RUN)\n"
-                            f"```\n{analysis[:300]}\n```\n\n"
-                            f"_Dry run mode — no order submitted_"
+                            f"🎯 *ORDER SUBMITTED: {ticker}*\n\n"
+                            f"💰 Amount: *$10,000*\n"
+                            f"📈 Price: *${current_price:.2f}*\n"
+                            f"🛡 Stop Loss: *${intent.stop_loss_price:.2f}* (-{sl_pct}%)\n"
+                            f"🎯 Take Profit: *${intent.take_profit_price:.2f}* (+{tp_pct}%)\n"
+                            f"🔖 Order ID: `{order_id[:8]}`\n\n"
+                            f"```\n{analysis[:250]}\n```"
                         )
                     else:
                         await send_alert(
@@ -373,11 +460,114 @@ class SelfEvolveSystem:
 
                 except Exception as e:
                     if logger: await logger.aerror("trade_analysis_failed", ticker=ticker, error=str(e))
+                    await send_alert(f"⚠️ Analysis failed for `{ticker}`: `{str(e)[:80]}`")
 
+            await alpaca.close()
             if logger: await logger.ainfo("market_open_complete")
 
         except Exception as e:
             if logger: await logger.aerror("market_open_failed", error=str(e))
+
+    async def _run_intraday_scan(self) -> None:
+        """Intraday scan: Re-screen for new opportunities mid-day."""
+        global logger
+        if logger: await logger.ainfo("phase_started", phase="INTRADAY_SCAN")
+
+        try:
+            from integrations.telegram_bot import send_alert
+            from integrations.market_data import MarketDataClient
+            from research.screener import StockScreener
+            from dashboard.api.main import system_state
+
+            # Check market is open
+            mdc = MarketDataClient()
+            if not await mdc.is_market_open():
+                await mdc.close()
+                return
+
+            # Fresh screen
+            screener = StockScreener(mdc)
+            candidates = await screener.screen_candidates(max_results=3)
+            await mdc.close()
+
+            if not candidates:
+                if logger: await logger.ainfo("intraday_scan_no_candidates")
+                return
+
+            # Check how many positions we already have
+            from dashboard.api.main import sync_alpaca_portfolio
+            await sync_alpaca_portfolio()
+            p = system_state.get("portfolio", {})
+            open_positions = len(p.get("positions", {}))
+
+            if open_positions >= 5:
+                await send_alert("📊 *Intraday Scan*: 5+ positions open, skipping new entries.")
+                return
+
+            # Analyze top candidate only (1 per scan for discipline)
+            candidate = candidates[0]
+            ticker = candidate["ticker"]
+
+            # Skip if we already hold this
+            if ticker in p.get("positions", {}):
+                if logger: await logger.ainfo("intraday_skip_existing", ticker=ticker)
+                return
+
+            from core.llm_factory import get_premium_llm
+            from broker.alpaca_client import AlpacaClient
+            llm = get_premium_llm()
+            alpaca = AlpacaClient()
+
+            mdc2 = MarketDataClient()
+            quote = await mdc2.get_latest_quote(ticker)
+            current_price = quote.get("ask", candidate.get("price", 0))
+            await mdc2.close()
+
+            response = await llm.ainvoke(
+                f"Intraday opportunity scan. Analyze {ticker} at ${current_price:.2f}. "
+                f"Momentum: {candidate.get('momentum_score', 0):.2f}, "
+                f"Change: {candidate.get('change_pct', 0):.1f}%. "
+                f"Should we BUY or PASS? Format: ACTION: BUY/PASS, CONFIDENCE: 1-10, REASONING: one line, "
+                f"STOP_LOSS_PCT: number, TAKE_PROFIT_PCT: number"
+            )
+            analysis = response.content
+
+            if "ACTION: BUY" in analysis.upper():
+                from core.models.portfolio import TradeIntent, TradeSide
+                import uuid
+
+                sl_pct, tp_pct = 2.0, 5.0
+                for line in analysis.split("\n"):
+                    if "STOP_LOSS_PCT" in line.upper():
+                        try: sl_pct = float(line.split(":")[-1].strip().replace("%", ""))
+                        except: pass
+                    if "TAKE_PROFIT_PCT" in line.upper():
+                        try: tp_pct = float(line.split(":")[-1].strip().replace("%", ""))
+                        except: pass
+
+                intent = TradeIntent(
+                    ticker=ticker,
+                    side=TradeSide.BUY,
+                    notional=10000.0,
+                    stop_loss_price=round(current_price * (1 - sl_pct / 100), 2),
+                    take_profit_price=round(current_price * (1 + tp_pct / 100), 2),
+                    client_order_id=str(uuid.uuid4()),
+                )
+                order = await alpaca.submit_bracket_order(intent)
+
+                await send_alert(
+                    f"📊 *INTRADAY ORDER: {ticker}*\n\n"
+                    f"💰 $10,000 @ ${current_price:.2f}\n"
+                    f"🛡 SL: ${intent.stop_loss_price:.2f} | TP: ${intent.take_profit_price:.2f}\n"
+                    f"```\n{analysis[:200]}\n```"
+                )
+            else:
+                if logger: await logger.ainfo("intraday_pass", ticker=ticker)
+
+            await alpaca.close()
+
+        except Exception as e:
+            if logger: await logger.aerror("intraday_scan_failed", error=str(e))
 
     async def _run_market_close(self) -> None:
         """Market close: Journal results, update portfolio."""
