@@ -1,82 +1,76 @@
 import logging
-from typing import List, Dict, Any, Optional, Tuple
-import psycopg2
-from psycopg2.extras import RealDictCursor
-from agents.skills.database.manage_connections import DatabaseConnectionManager
-from agents.skills.database.handle_errors import handle_db_errors
+import json
+from typing import Any, Optional
+from .manage_connections import get_redis_client
+from .handle_errors import handle_redis_errors
 
 logger = logging.getLogger(__name__)
 
-@handle_db_errors
-def execute_query(
-    query: str, 
-    params: Optional[Tuple] = None, 
-    fetch: bool = True, 
-    **db_kwargs
-) -> Optional[List[Dict[str, Any]]]:
+class RedisManager:
     """
-    Execute a SQL query and return the results.
-    
-    Args:
-        query (str): The SQL query to execute.
-        params (tuple, optional): Parameters to substitute into the query.
-        fetch (bool): Whether to fetch results (True for SELECT, False for INSERT/UPDATE/DELETE).
-        **db_kwargs: Additional arguments for DatabaseConnectionManager.
+    A class to manage Redis queries and operations with built-in error handling
+    and connection retries.
+    """
+    def __init__(self, host: str = None, port: int = None, db: int = 0):
+        """
+        Initialize the RedisManager.
         
-    Returns:
-        Optional[List[Dict[str, Any]]]: The query results as a list of dictionaries, or None if fetch=False.
-    """
-    with DatabaseConnectionManager(**db_kwargs) as conn:
-        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-            logger.debug(f"Executing query: {query}")
-            cursor.execute(query, params)
+        Args:
+            host (str, optional): Redis host.
+            port (int, optional): Redis port.
+            db (int, optional): Redis database number.
+        """
+        self.client = get_redis_client(host=host, port=port, db=db)
+
+    @handle_redis_errors(default_return=False)
+    def set_value(self, key: str, value: Any, expire: int = None) -> bool:
+        """
+        Set a value in Redis. Automatically serializes dicts and lists to JSON.
+        
+        Args:
+            key (str): The key to set.
+            value (Any): The value to store.
+            expire (int, optional): Expiration time in seconds.
             
-            if fetch:
-                results = cursor.fetchall()
-                # Convert RealDictRow to standard dict
-                return [dict(row) for row in results]
-            else:
-                conn.commit()
-                return None
+        Returns:
+            bool: True if successful, False otherwise.
+        """
+        if isinstance(value, (dict, list)):
+            value = json.dumps(value)
+            
+        if expire:
+            return bool(self.client.setex(key, expire, value))
+        return bool(self.client.set(key, value))
 
-@handle_db_errors
-def execute_many(
-    query: str, 
-    params_list: List[Tuple], 
-    **db_kwargs
-) -> None:
-    """
-    Execute a SQL query multiple times with different parameters.
-    
-    Args:
-        query (str): The SQL query to execute.
-        params_list (List[tuple]): A list of parameter tuples.
-        **db_kwargs: Additional arguments for DatabaseConnectionManager.
-    """
-    with DatabaseConnectionManager(**db_kwargs) as conn:
-        with conn.cursor() as cursor:
-            logger.debug(f"Executing query {len(params_list)} times: {query}")
-            cursor.executemany(query, params_list)
-            conn.commit()
-
-@handle_db_errors
-def check_database_health(**db_kwargs) -> bool:
-    """
-    Check if the database is accessible and responding.
-    Useful for readiness probes.
-    
-    Args:
-        **db_kwargs: Additional arguments for DatabaseConnectionManager.
+    @handle_redis_errors(default_return=None)
+    def get_value(self, key: str) -> Optional[Any]:
+        """
+        Get a value from Redis. Automatically deserializes JSON strings.
         
-    Returns:
-        bool: True if the database is healthy, False otherwise.
-    """
-    try:
-        result = execute_query("SELECT 1 as health_check", fetch=True, **db_kwargs)
-        if result and result[0].get('health_check') == 1:
-            logger.info("Database health check passed.")
-            return True
-        return False
-    except Exception as e:
-        logger.error(f"Database health check failed: {e}")
-        return False
+        Args:
+            key (str): The key to retrieve.
+            
+        Returns:
+            Optional[Any]: The retrieved value, or None if not found or error occurs.
+        """
+        value = self.client.get(key)
+        if not value:
+            return None
+            
+        try:
+            return json.loads(value)
+        except (json.JSONDecodeError, TypeError):
+            return value
+
+    @handle_redis_errors(default_return=False)
+    def delete_value(self, key: str) -> bool:
+        """
+        Delete a value from Redis.
+        
+        Args:
+            key (str): The key to delete.
+            
+        Returns:
+            bool: True if successful, False otherwise.
+        """
+        return bool(self.client.delete(key))

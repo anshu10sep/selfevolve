@@ -1,53 +1,71 @@
 import logging
+import traceback
 from typing import Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
 
-def handle_plain_text_error(error_message: str, source: str, timestamp: Optional[str] = None) -> Dict[str, Any]:
+def analyze_error(error: Exception, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """
-    Handles plain text errors detected in logs, such as generic 'raise error' statements.
+    Analyzes an exception and provides structured information about it,
+    specifically identifying common infrastructure issues like Redis connection failures.
     
     Args:
-        error_message (str): The error message extracted from the log.
-        source (str): The source file or log where the error was detected.
-        timestamp (str, optional): The timestamp of the error event.
+        error (Exception): The exception to analyze.
+        context (Dict, optional): Additional context about where the error occurred.
         
     Returns:
-        Dict[str, Any]: A dictionary containing the parsed error details and recommended actions.
+        Dict[str, Any]: Structured error analysis.
     """
-    logger.info(f"Handling plain text error from {source}: {error_message}")
+    error_type = type(error).__name__
+    error_msg = str(error)
     
-    # Determine severity based on keywords
-    severity = "high" if any(keyword in error_message.lower() for keyword in ["critical", "fatal"]) else "medium"
-    
-    # Determine recommended action
-    action = "investigate"
-    if "raise error" in error_message.lower():
-        action = "scan_and_replace_generic_exceptions"
-        
-    return {
-        "status": "processed",
-        "source": source,
-        "original_message": error_message,
-        "timestamp": timestamp,
-        "severity": severity,
-        "recommended_action": action,
-        "requires_human_intervention": severity == "high"
+    analysis = {
+        "error_type": error_type,
+        "message": error_msg,
+        "traceback": traceback.format_exc(),
+        "context": context or {},
+        "severity": "high",
+        "suggested_action": "investigate",
+        "category": "general"
     }
+    
+    # Specific handling for Redis Connection Errors
+    if "redis" in error_type.lower() or "redis" in error_msg.lower():
+        if "Temporary failure in name resolution" in error_msg:
+            analysis["severity"] = "critical"
+            analysis["suggested_action"] = "Check DNS settings and ensure Redis container/service is running and accessible."
+            analysis["category"] = "network_dns"
+        elif "Connection refused" in error_msg:
+            analysis["severity"] = "critical"
+            analysis["suggested_action"] = "Ensure Redis server is started and listening on the correct port."
+            analysis["category"] = "service_down"
+        else:
+            analysis["severity"] = "high"
+            analysis["suggested_action"] = "Check Redis connection parameters and network connectivity."
+            analysis["category"] = "database_connection"
+            
+    return analysis
 
-def format_error_response(error_details: Dict[str, Any]) -> str:
+def handle_system_error(error: Exception, component: str) -> Dict[str, Any]:
     """
-    Formats the processed error details into a readable response string.
+    Main entry point for handling system errors. Logs the error appropriately
+    based on its severity and returns the analysis.
     
     Args:
-        error_details (Dict[str, Any]): The dictionary returned by handle_plain_text_error.
+        error (Exception): The exception that occurred.
+        component (str): The component where the error occurred.
         
     Returns:
-        str: A formatted summary of the error and the action to take.
+        Dict[str, Any]: The error analysis result.
     """
-    return (
-        f"Error Processed: {error_details['original_message']}\n"
-        f"Source: {error_details['source']}\n"
-        f"Severity: {error_details['severity'].upper()}\n"
-        f"Action Required: {error_details['recommended_action']}"
-    )
+    analysis = analyze_error(error, {"component": component})
+    
+    log_msg = f"[{analysis['severity'].upper()}] Error in {component}: {analysis['error_type']} - {analysis['message']}"
+    
+    if analysis["severity"] == "critical":
+        logger.critical(log_msg)
+        logger.critical(f"Suggested Action: {analysis['suggested_action']}")
+    else:
+        logger.error(log_msg)
+        
+    return analysis
