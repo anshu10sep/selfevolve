@@ -1,103 +1,90 @@
-import asyncio
 import logging
-from typing import Any, Callable, Dict, Optional
+import os
+from typing import Optional, Any
 
 logger = logging.getLogger(__name__)
 
-async def connect_with_retry(
-    connect_func: Callable[..., Any],
-    address: str,
-    max_retries: int = 5,
-    base_delay: float = 1.0,
-    **kwargs: Any
-) -> Any:
+class DatabaseManager:
     """
-    Attempt to establish a connection using the provided connect function,
-    with exponential backoff retry logic.
-
-    Args:
-        connect_func: The async function to call to establish the connection.
-        address: The address being connected to (for logging).
-        max_retries: Maximum number of retry attempts.
-        base_delay: Base delay in seconds for exponential backoff.
-        **kwargs: Additional arguments to pass to connect_func.
-
-    Returns:
-        The connection object returned by connect_func.
-
-    Raises:
-        OSError: If the connection fails after all retries.
+    Manages connections to PostgreSQL and Redis databases.
+    Includes robust error handling for connection failures to prevent application crashes
+    when infrastructure services are down.
     """
-    retries = 0
-    while True:
-        try:
-            logger.info(f"Attempting to connect to {address} (Attempt {retries + 1}/{max_retries + 1})")
-            connection = await connect_func(**kwargs)
-            logger.info(f"Successfully connected to {address}")
-            return connection
-        except OSError as e:
-            retries += 1
-            if retries > max_retries:
-                logger.error(f"Failed to connect to {address} after {max_retries} retries. Error: {e}")
-                # Re-raise the original OSError or a wrapped one
-                raise OSError(getattr(e, 'errno', None), f"Connect call failed {address}") from e
-            
-            delay = base_delay * (2 ** (retries - 1))
-            logger.warning(f"Connection to {address} failed. Retrying in {delay} seconds... Error: {e}")
-            await asyncio.sleep(delay)
-        except Exception as e:
-            logger.error(f"Unexpected error connecting to {address}: {e}")
-            raise
-
-class ConnectionManager:
-    """
-    Manages database and service connections with robust error handling.
-    """
+    
     def __init__(self):
-        self.connections: Dict[str, Any] = {}
-
-    async def get_connection(self, name: str, connect_func: Callable[..., Any], address: str, **kwargs: Any) -> Any:
-        """
-        Get an existing connection or create a new one with retry logic.
+        self.redis_host = os.getenv("REDIS_HOST", "127.0.0.1")
+        self.redis_port = int(os.getenv("REDIS_PORT", 6379))
+        self.redis_db = int(os.getenv("REDIS_DB", 0))
         
-        Args:
-            name: Identifier for the connection.
-            connect_func: The async function to call to establish the connection.
-            address: The address being connected to.
-            **kwargs: Additional arguments to pass to connect_func.
-            
-        Returns:
-            The established connection.
-        """
-        if name in self.connections:
-            return self.connections[name]
+        self.pg_host = os.getenv("PG_HOST", "127.0.0.1")
+        self.pg_port = int(os.getenv("PG_PORT", 5432))
+        self.pg_user = os.getenv("PG_USER", "postgres")
+        self.pg_password = os.getenv("PG_PASSWORD", "")
+        self.pg_db = os.getenv("PG_DB", "trading_db")
         
-        connection = await connect_with_retry(connect_func, address, **kwargs)
-        self.connections[name] = connection
-        return connection
+        self._redis_client = None
+        self._pg_conn = None
 
-    def close_connection(self, name: str) -> None:
-        """
-        Close and remove a connection.
-        
-        Args:
-            name: Identifier for the connection to close.
-        """
-        if name in self.connections:
-            conn = self.connections.pop(name)
-            if hasattr(conn, 'close') and callable(conn.close):
-                try:
-                    # Handle both async and sync close methods
-                    if asyncio.iscoroutinefunction(conn.close):
-                        asyncio.create_task(conn.close())
-                    else:
-                        conn.close()
-                except Exception as e:
-                    logger.error(f"Error closing connection {name}: {e}")
+    def get_redis_connection(self) -> Optional[Any]:
+        """Gets a Redis connection, handling connection errors gracefully."""
+        if self._redis_client is None:
+            try:
+                import redis
+                client = redis.Redis(
+                    host=self.redis_host,
+                    port=self.redis_port,
+                    db=self.redis_db,
+                    decode_responses=True
+                )
+                # Ping to verify connection
+                client.ping()
+                self._redis_client = client
+                logger.info(f"Successfully connected to Redis at {self.redis_host}:{self.redis_port}")
+            except ImportError:
+                logger.error("Redis library is not installed. Run `pip install redis`.")
+                return None
+            except Exception as e:
+                logger.error(f"Failed to connect to Redis at {self.redis_host}:{self.redis_port}. Is the service running? Error: {e}")
+                return None
+        return self._redis_client
 
-    def close_all(self) -> None:
-        """
-        Close all managed connections.
-        """
-        for name in list(self.connections.keys()):
-            self.close_connection(name)
+    def get_pg_connection(self) -> Optional[Any]:
+        """Gets a PostgreSQL connection, handling connection errors gracefully."""
+        if self._pg_conn is None:
+            try:
+                import psycopg2
+                from psycopg2 import OperationalError
+                conn = psycopg2.connect(
+                    host=self.pg_host,
+                    port=self.pg_port,
+                    user=self.pg_user,
+                    password=self.pg_password,
+                    dbname=self.pg_db
+                )
+                self._pg_conn = conn
+                logger.info(f"Successfully connected to PostgreSQL at {self.pg_host}:{self.pg_port}")
+            except ImportError:
+                logger.error("psycopg2 library is not installed. Run `pip install psycopg2-binary`.")
+                return None
+            except Exception as e:
+                logger.error(f"Failed to connect to PostgreSQL at {self.pg_host}:{self.pg_port}. Is the service running? Error: {e}")
+                return None
+        return self._pg_conn
+
+    def close_all(self):
+        """Closes all active database connections."""
+        if self._redis_client:
+            try:
+                self._redis_client.close()
+            except Exception as e:
+                logger.warning(f"Error closing Redis connection: {e}")
+            finally:
+                self._redis_client = None
+                
+        if self._pg_conn:
+            try:
+                self._pg_conn.close()
+            except Exception as e:
+                logger.warning(f"Error closing PostgreSQL connection: {e}")
+            finally:
+                self._pg_conn = None
