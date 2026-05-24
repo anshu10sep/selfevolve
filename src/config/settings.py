@@ -67,8 +67,8 @@ class Settings(BaseSettings):
     )
     # ── Premium Tier Model ────────────────────────────────────────
     premium_model: str = Field(
-        default="gemini-2.5-pro",
-        description="Premium model for debate/judge/evolution tasks",
+        default="gemini-3.1-pro-preview",
+        description="Premium model for debate/judge/evolution tasks (Gemini 3.1 Pro)",
     )
 
     # ── Communication ─────────────────────────────────────────────
