@@ -1,3 +1,1 @@
-"""
-Skills for the Bull agent, focused on identifying bullish market signals.
-"""
+# Bull Agent skills package

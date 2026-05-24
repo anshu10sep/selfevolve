@@ -1,4 +1,3 @@
-from .validator import SkillValidator, skill, SkillValidationError
-from .registry import SkillRegistry
+from .validator import skill, SkillRegistry, SkillValidationError, validate_skill_structure
 
-__all__ = ['SkillValidator', 'skill', 'SkillValidationError', 'SkillRegistry']
+__all__ = ['skill', 'SkillRegistry', 'SkillValidationError', 'validate_skill_structure']

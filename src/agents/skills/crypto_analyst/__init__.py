@@ -1,3 +1,1 @@
-"""
-Skills for the Crypto Analyst agent.
-"""
+# Crypto Analyst skills package

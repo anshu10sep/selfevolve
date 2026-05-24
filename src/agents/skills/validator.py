@@ -1,76 +1,93 @@
 import inspect
-from typing import Callable, Any
+import functools
+import logging
+from typing import Callable, Any, Dict
+
+logger = logging.getLogger(__name__)
 
 class SkillValidationError(Exception):
-    """Exception raised when a skill fails validation."""
+    """Exception raised for errors in the skill validation process."""
     pass
 
-class SkillValidator:
-    """
-    Validates skills to ensure they meet the SelfEvolve system requirements.
-    A valid skill must:
-    1. Be a callable (function or method).
-    2. Have a non-empty docstring (so the LLM knows what it does).
-    3. Have type hints for all parameters (so the LLM knows what to pass).
-    4. Have a return type hint (so the LLM knows what to expect).
-    """
-    
-    @staticmethod
-    def validate(func: Callable) -> bool:
-        """
-        Validates a skill function.
-        
-        Args:
-            func (Callable): The function to validate.
-            
-        Returns:
-            bool: True if the skill is valid.
-            
-        Raises:
-            SkillValidationError: If the skill fails validation.
-        """
-        if not callable(func):
-            raise SkillValidationError(f"Skill '{getattr(func, '__name__', str(func))}' is not callable.")
-            
-        name = func.__name__
-        
-        # 1. Check docstring
-        if not func.__doc__ or not func.__doc__.strip():
-            raise SkillValidationError(f"Skill '{name}' is missing a docstring. All skills must be documented.")
-            
-        # 2. Check type hints for parameters and return type
-        try:
-            sig = inspect.signature(func)
-        except ValueError:
-            raise SkillValidationError(f"Skill '{name}' does not have a valid signature.")
-            
-        for param_name, param in sig.parameters.items():
-            if param_name in ('self', 'cls'):
-                continue
-            if param.annotation == inspect.Parameter.empty:
-                raise SkillValidationError(f"Skill '{name}' is missing a type hint for parameter '{param_name}'.")
-                
-        if sig.return_annotation == inspect.Signature.empty:
-            raise SkillValidationError(f"Skill '{name}' is missing a return type hint.")
-            
-        return True
+class SkillRegistry:
+    """Registry to keep track of all validated skills per agent."""
+    _skills: Dict[str, Dict[str, Callable]] = {}
 
-def skill(func: Callable) -> Callable:
+    @classmethod
+    def register(cls, agent_name: str, name: str, func: Callable) -> None:
+        """Registers a skill for a specific agent."""
+        if agent_name not in cls._skills:
+            cls._skills[agent_name] = {}
+        cls._skills[agent_name][name] = func
+        logger.debug(f"Registered skill '{name}' for agent '{agent_name}'")
+
+    @classmethod
+    def get_skills(cls, agent_name: str) -> Dict[str, Callable]:
+        """Retrieves all skills for a specific agent."""
+        return cls._skills.get(agent_name, {})
+
+    @classmethod
+    def get_all_skills(cls) -> Dict[str, Dict[str, Callable]]:
+        """Retrieves all registered skills across all agents."""
+        return cls._skills
+
+    @classmethod
+    def clear(cls) -> None:
+        """Clears the registry (useful for testing)."""
+        cls._skills = {}
+
+def validate_skill_structure(func: Callable) -> None:
     """
-    Decorator to mark a function as a skill, validate it, and register it.
+    Validates that a skill function meets the required standards:
+    - Must have a docstring.
+    - All arguments must have type hints.
+    - Must have a return type hint.
+    """
+    if not inspect.isfunction(func):
+        raise SkillValidationError(f"Skill '{func.__name__}' must be a function.")
+
+    # 1. Check docstring
+    if not func.__doc__ or not func.__doc__.strip():
+        raise SkillValidationError(
+            f"Skill '{func.__name__}' must have a docstring describing its purpose, arguments, and return value."
+        )
+    
+    sig = inspect.signature(func)
+    
+    # 2. Check argument type hints
+    for name, param in sig.parameters.items():
+        if param.annotation == inspect.Parameter.empty and name != 'self':
+            raise SkillValidationError(
+                f"Parameter '{name}' in skill '{func.__name__}' is missing a type hint."
+            )
+            
+    # 3. Check return type hint
+    if sig.return_annotation == inspect.Signature.empty:
+        raise SkillValidationError(
+            f"Skill '{func.__name__}' is missing a return type hint."
+        )
+
+def skill(agent_name: str) -> Callable:
+    """
+    Decorator to mark a function as an agent skill.
+    Validates the skill structure and registers it in the SkillRegistry.
     
     Args:
-        func (Callable): The function to decorate.
+        agent_name: The name of the agent this skill belongs to.
         
     Returns:
-        Callable: The decorated function.
+        The decorated function.
     """
-    # Validate the skill structure at import time
-    SkillValidator.validate(func)
-    func.__is_skill__ = True
-    
-    # Register the skill in the global registry
-    from agents.skills.registry import SkillRegistry
-    SkillRegistry.register(func)
-    
-    return func
+    def decorator(func: Callable) -> Callable:
+        # Validate the skill before registering
+        validate_skill_structure(func)
+        
+        # Register the skill
+        SkillRegistry.register(agent_name, func.__name__, func)
+        
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            return func(*args, **kwargs)
+            
+        return wrapper
+    return decorator

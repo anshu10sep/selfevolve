@@ -244,10 +244,40 @@ class BugWorker:
             parsed_files = parse_gemini_files(content)
             files_created = []
 
+            # Critical files that must NEVER be overwritten by auto-generated code
+            PROTECTED_FILES = {
+                "agents/skills/jarvis/github_ops.py",
+                "evolution/bug_worker.py",
+                "evolution/self_evolution.py",
+                "evolution/self_healer.py",
+                "evolution/bug_scanner.py",
+                "evolution/tpm_tracker.py",
+                "evolution/engineer_agent.py",
+                "evolution/process_monitor.py",
+                "evolution/hot_reloader.py",
+                "agents/skills/pr_reviewer/review_pipeline.py",
+                "agents/skills/pr_reviewer/pr_tools.py",
+                "agents/skills/pr_reviewer/code_review.py",
+                "agents/skills/pr_reviewer/presubmit.py",
+                "persistence/db.py",
+                "config/settings.py",
+                "core/llm_utils.py",
+                "core/llm_factory.py",
+                "main.py",
+            }
+
             for filepath, file_content in parsed_files:
                 # Resolve path
                 if not os.path.isabs(filepath):
                     filepath = os.path.join(SRC_ROOT, filepath)
+
+                # Check if file is protected
+                rel_path_check = os.path.relpath(filepath, SRC_ROOT)
+                if rel_path_check in PROTECTED_FILES:
+                    logger.warning("bug_worker_skip_protected",
+                                   file=rel_path_check,
+                                   reason="Protected system file — cannot overwrite")
+                    continue
 
                 # Create directories if needed
                 os.makedirs(os.path.dirname(filepath), exist_ok=True)

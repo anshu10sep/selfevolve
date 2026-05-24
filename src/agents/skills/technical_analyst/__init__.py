@@ -1,3 +1,1 @@
-"""
-Skills for the Technical Analyst agent.
-"""
+# Technical Analyst skills package

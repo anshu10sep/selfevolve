@@ -1,3 +1,1 @@
-"""
-Skills for the Fundamental Analyst agent.
-"""
+# Fundamental Analyst skills package

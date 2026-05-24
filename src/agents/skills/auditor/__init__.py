@@ -1,3 +1,1 @@
-"""
-Skills for the Auditor agent.
-"""
+# Auditor skills package
