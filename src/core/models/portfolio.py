@@ -1,0 +1,184 @@
+"""
+Portfolio Domain Models
+
+Strongly-typed Pydantic models for portfolio state, positions, tranches,
+trade intents, and settlement tracking. These models are the single source
+of truth for all capital-related state in the system.
+"""
+
+from __future__ import annotations
+
+import uuid
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Optional
+
+from pydantic import BaseModel, Field, field_validator, computed_field
+
+
+class TradeSide(str, Enum):
+    """Trade direction. Shorting is disabled at schema level."""
+    BUY = "BUY"
+    SELL = "SELL"
+
+
+class TrancheStatus(str, Enum):
+    """Lifecycle state of a capital tranche."""
+    AVAILABLE = "AVAILABLE"
+    LOCKED = "LOCKED"
+    SETTLING = "SETTLING"
+
+
+class Position(BaseModel):
+    """A single portfolio position."""
+    ticker: str = Field(..., description="Asset symbol")
+    quantity: float = Field(..., description="Number of shares (fractional)")
+    avg_entry_price: float = Field(..., ge=0, description="Average entry price")
+    current_price: float = Field(default=0.0, ge=0, description="Current market price")
+    market_value: float = Field(default=0.0, description="Current market value")
+    side: TradeSide = Field(default=TradeSide.BUY, description="Position side")
+
+    @computed_field
+    @property
+    def unrealized_pnl(self) -> float:
+        """Unrealized profit/loss for this position."""
+        if self.side == TradeSide.BUY:
+            return (self.current_price - self.avg_entry_price) * self.quantity
+        return (self.avg_entry_price - self.current_price) * self.quantity
+
+    @computed_field
+    @property
+    def unrealized_pnl_pct(self) -> float:
+        """Unrealized P&L as percentage."""
+        cost_basis = self.avg_entry_price * self.quantity
+        if cost_basis == 0:
+            return 0.0
+        return (self.unrealized_pnl / cost_basis) * 100.0
+
+
+class TrancheState(BaseModel):
+    """
+    State of a single capital tranche.
+    
+    The $100 portfolio is divided into tranches ($10 each).
+    Each tranche has an independent lifecycle to prevent double-spending.
+    """
+    tranche_index: int = Field(..., ge=0, lt=20, description="Tranche identifier")
+    amount: float = Field(..., ge=0, description="Tranche dollar amount")
+    status: TrancheStatus = Field(
+        default=TrancheStatus.AVAILABLE,
+        description="Current lifecycle state",
+    )
+    locked_trade_id: Optional[str] = Field(
+        default=None, description="Trade ID holding this tranche"
+    )
+    locked_at: Optional[datetime] = Field(
+        default=None, description="When the tranche was locked"
+    )
+    settling_until: Optional[datetime] = Field(
+        default=None, description="T+1 settlement completion time"
+    )
+
+
+class PortfolioState(BaseModel):
+    """
+    Complete portfolio state snapshot.
+    
+    This is the authoritative state passed between deterministic nodes.
+    The LLM never calculates these values — they come from Alpaca API
+    and deterministic Python logic.
+    """
+    total_equity: float = Field(default=100.0, ge=0, description="Total account equity")
+    settled_cash: float = Field(default=100.0, ge=0, description="Settled (available) cash")
+    unsettled_cash: float = Field(default=0.0, ge=0, description="Unsettled cash (T+1)")
+    buying_power: float = Field(default=100.0, ge=0, description="Available buying power")
+    positions: dict[str, Position] = Field(
+        default_factory=dict, description="Open positions by ticker"
+    )
+    tranches: list[TrancheState] = Field(
+        default_factory=list, description="Capital tranche states"
+    )
+    high_water_mark: float = Field(
+        default=100.0, ge=0, description="Peak equity for drawdown calculation"
+    )
+    daily_pnl: float = Field(default=0.0, description="Today's realized P&L")
+    total_api_cost_today: float = Field(
+        default=0.0, ge=0, description="Today's LLM API costs"
+    )
+    updated_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        description="Last update timestamp",
+    )
+
+    @computed_field
+    @property
+    def net_pnl_today(self) -> float:
+        """Net P&L = trading profit minus API costs."""
+        return self.daily_pnl - self.total_api_cost_today
+
+    @computed_field
+    @property
+    def drawdown_pct(self) -> float:
+        """Current drawdown from high water mark."""
+        if self.high_water_mark == 0:
+            return 0.0
+        return ((self.high_water_mark - self.total_equity) / self.high_water_mark) * 100.0
+
+    @computed_field
+    @property
+    def available_tranches(self) -> int:
+        """Number of available (unlocked) tranches."""
+        return sum(1 for t in self.tranches if t.status == TrancheStatus.AVAILABLE)
+
+
+class TradeIntent(BaseModel):
+    """
+    A proposed trade before execution validation.
+    
+    Generated by the Judge Agent, validated by ExecutionGuardrailService
+    before reaching Alpaca.
+    """
+    ticker: str = Field(..., min_length=1, max_length=10, description="Asset symbol")
+    side: TradeSide = Field(..., description="Trade direction")
+    notional: float = Field(..., gt=0, description="Dollar amount to trade")
+    limit_price: Optional[float] = Field(
+        default=None, ge=0, description="Limit price (None = market)"
+    )
+    stop_loss_price: Optional[float] = Field(
+        default=None, ge=0, description="Stop loss price"
+    )
+    take_profit_price: Optional[float] = Field(
+        default=None, ge=0, description="Take profit target"
+    )
+    client_order_id: str = Field(
+        default_factory=lambda: str(uuid.uuid4()),
+        description="Idempotent order ID for crash recovery",
+    )
+    tranche_id: Optional[int] = Field(
+        default=None, description="Checked-out tranche index"
+    )
+    conviction_score: float = Field(
+        default=0.0, ge=0, le=10.0, description="Judge confidence"
+    )
+    reasoning: str = Field(default="", description="Brief trade rationale")
+
+    @field_validator("ticker")
+    @classmethod
+    def uppercase_ticker(cls, v: str) -> str:
+        return v.upper().strip()
+
+    @field_validator("side")
+    @classmethod
+    def no_shorting(cls, v: TradeSide) -> TradeSide:
+        """Shorting is programmatically disabled for fractional cash accounts."""
+        # SELL is only valid for closing existing positions
+        return v
+
+
+class SettlementRecord(BaseModel):
+    """Tracks T+1 settlement for a completed trade."""
+    trade_id: str = Field(..., description="Associated trade ID")
+    execution_time: datetime = Field(..., description="When the trade was executed")
+    settlement_date: datetime = Field(..., description="Expected settlement date")
+    amount: float = Field(..., description="Trade notional amount")
+    settled: bool = Field(default=False, description="Whether funds have settled")

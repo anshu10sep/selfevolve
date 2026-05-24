@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SelfEvolve — Autonomous Trading Command Center</title>
+    <meta name="description" content="Owner dashboard for the SelfEvolve autonomous self-evolving multi-agent trading system">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- SIDEBAR NAVIGATION -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <nav id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <span class="logo-icon">◆</span>
+                <span class="logo-text">SelfEvolve</span>
+            </div>
+            <span class="badge badge-live" id="system-status-badge">PAPER</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#" class="nav-link active" data-section="overview" id="nav-overview">
+                <span class="nav-icon">📊</span> Overview</a></li>
+            <li><a href="#" class="nav-link" data-section="agents" id="nav-agents">
+                <span class="nav-icon">🤖</span> Agent Registry</a></li>
+            <li><a href="#" class="nav-link" data-section="trades" id="nav-trades">
+                <span class="nav-icon">📈</span> Trade Ledger</a></li>
+            <li><a href="#" class="nav-link" data-section="evolution" id="nav-evolution">
+                <span class="nav-icon">🧬</span> Evolution</a></li>
+            <li><a href="#" class="nav-link" data-section="bugs" id="nav-bugs">
+                <span class="nav-icon">🐛</span> Bug Tracker</a></li>
+            <li><a href="#" class="nav-link" data-section="audit" id="nav-audit">
+                <span class="nav-icon">📋</span> Audit Trail</a></li>
+            <li><a href="#" class="nav-link" data-section="costs" id="nav-costs">
+                <span class="nav-icon">💰</span> Cost Center</a></li>
+            <li><a href="#" class="nav-link" data-section="chat" id="nav-chat">
+                <span class="nav-icon">💬</span> Owner Chat</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <div class="system-health" id="system-health">
+                <span class="health-dot healthy"></span>
+                <span>All Systems Operational</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- MAIN CONTENT -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <main id="main-content" class="main-content">
+        <!-- HEADER BAR -->
+        <header class="header-bar">
+            <h1 id="page-title">Command Center</h1>
+            <div class="header-controls">
+                <button class="btn btn-outline" id="btn-refresh" title="Refresh Data">↻ Refresh</button>
+                <button class="btn btn-warning" id="btn-pause" title="Pause Trading">⏸ Pause</button>
+                <button class="btn btn-danger" id="btn-hcf" title="Emergency Halt">🚨 HCF</button>
+            </div>
+        </header>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- OVERVIEW SECTION -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <section id="section-overview" class="section active">
+            <!-- KPI Cards -->
+            <div class="kpi-grid">
+                <div class="kpi-card" id="kpi-equity">
+                    <div class="kpi-label">Total Equity</div>
+                    <div class="kpi-value" id="equity-value">$100.00</div>
+                    <div class="kpi-change positive" id="equity-change">+0.00%</div>
+                </div>
+                <div class="kpi-card" id="kpi-pnl">
+                    <div class="kpi-label">Net P&L Today</div>
+                    <div class="kpi-value" id="pnl-value">$0.00</div>
+                    <div class="kpi-change neutral" id="pnl-change">Trading − API Costs</div>
+                </div>
+                <div class="kpi-card" id="kpi-agents">
+                    <div class="kpi-label">Active Agents</div>
+                    <div class="kpi-value" id="agents-count">0</div>
+                    <div class="kpi-change neutral" id="agents-status">Initializing...</div>
+                </div>
+                <div class="kpi-card" id="kpi-trades">
+                    <div class="kpi-label">Trades Today</div>
+                    <div class="kpi-value" id="trades-count">0</div>
+                    <div class="kpi-change neutral" id="trades-winrate">Win Rate: --</div>
+                </div>
+                <div class="kpi-card" id="kpi-api-cost">
+                    <div class="kpi-label">API Cost Today</div>
+                    <div class="kpi-value" id="api-cost-value">$0.00</div>
+                    <div class="kpi-change neutral" id="api-budget">Budget: $1.00</div>
+                </div>
+                <div class="kpi-card" id="kpi-drawdown">
+                    <div class="kpi-label">Drawdown</div>
+                    <div class="kpi-value" id="drawdown-value">0.00%</div>
+                    <div class="kpi-change neutral" id="drawdown-limit">Max: 5.00%</div>
+                </div>
+            </div>
+
+            <!-- System Status Panel -->
+            <div class="panel-grid">
+                <div class="panel" id="panel-circuit-breaker">
+                    <h3 class="panel-title">⚡ Circuit Breaker</h3>
+                    <div class="status-indicator" id="cb-status">
+                        <span class="status-dot healthy"></span>
+                        <span>ARMED — No trips</span>
+                    </div>
+                    <div class="panel-detail" id="cb-detail">
+                        <p>Exceptions: 0 / 3 in 60s window</p>
+                        <p>Dead Man's Switch: ✓ Active</p>
+                    </div>
+                </div>
+                <div class="panel" id="panel-settlement">
+                    <h3 class="panel-title">🏦 Settlement</h3>
+                    <div class="panel-detail">
+                        <p>Settled Cash: <strong id="settled-cash">$100.00</strong></p>
+                        <p>Unsettled: <strong id="unsettled-cash">$0.00</strong></p>
+                        <p>GFV Strikes: <strong id="gfv-strikes">0 / 2</strong></p>
+                    </div>
+                </div>
+                <div class="panel" id="panel-tranches">
+                    <h3 class="panel-title">📦 Tranches</h3>
+                    <div class="tranche-grid" id="tranche-grid">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="panel full-width" id="panel-activity">
+                <h3 class="panel-title">📝 Recent Activity</h3>
+                <div class="activity-feed" id="activity-feed">
+                    <div class="activity-item">
+                        <span class="activity-time">Now</span>
+                        <span class="activity-text">System initializing — awaiting API key configuration</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- AGENTS SECTION -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <section id="section-agents" class="section">
+            <div class="agents-grid" id="agents-grid">
+                <div class="agent-card empty-state">
+                    <p>Agents will appear here once the system is started.</p>
+                    <p>The Master Agent spawns the full hierarchy automatically.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- TRADES SECTION -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <section id="section-trades" class="section">
+            <div class="panel full-width">
+                <h3 class="panel-title">Trade Ledger</h3>
+                <table class="data-table" id="trades-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Ticker</th>
+                            <th>Side</th>
+                            <th>Notional</th>
+                            <th>Conviction</th>
+                            <th>P&L</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trades-tbody">
+                        <tr><td colspan="7" class="empty-state">No trades yet — system initializing</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- EVOLUTION SECTION -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <section id="section-evolution" class="section">
+            <div class="panel full-width">
+                <h3 class="panel-title">🧬 Evolution Timeline</h3>
+                <div class="evolution-timeline" id="evolution-timeline">
+                    <div class="empty-state">
+                        <p>Evolution events will appear after the first post-market cycle.</p>
+                        <p>The system runs Reflexion + A/B testing daily at 16:30 EST.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- BUGS SECTION -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <section id="section-bugs" class="section">
+            <div class="panel full-width">
+                <h3 class="panel-title">🐛 Bug Tracker</h3>
+                <table class="data-table" id="bugs-table">
+                    <thead>
+                        <tr>
+                            <th>Severity</th>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Filed</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bugs-tbody">
+                        <tr><td colspan="5" class="empty-state">No bugs reported — system healthy</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- AUDIT SECTION -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <section id="section-audit" class="section">
+            <div class="panel full-width">
+                <h3 class="panel-title">📋 Audit Trail</h3>
+                <div class="empty-state">Immutable audit records appear after first trade execution.</div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- COSTS SECTION -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <section id="section-costs" class="section">
+            <div class="kpi-grid small">
+                <div class="kpi-card">
+                    <div class="kpi-label">Total API Spend</div>
+                    <div class="kpi-value" id="total-api-spend">$0.00</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Budget Remaining</div>
+                    <div class="kpi-value" id="budget-remaining">$1.00</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Cost per Trade</div>
+                    <div class="kpi-value" id="cost-per-trade">$0.00</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- CHAT SECTION -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <section id="section-chat" class="section">
+            <div class="chat-container" id="chat-container">
+                <div class="chat-messages" id="chat-messages">
+                    <div class="chat-message system">
+                        <div class="chat-bubble">
+                            Welcome, Owner. I am the Master Agent of the SelfEvolve trading system.
+                            You are in full control. Ask me anything about the system status,
+                            portfolio performance, agent health, or strategic direction.
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-input-container">
+                    <input type="text" id="chat-input" class="chat-input"
+                           placeholder="Ask the Master Agent anything..."
+                           autocomplete="off">
+                    <button id="chat-send" class="btn btn-primary">Send</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
