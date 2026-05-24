@@ -525,10 +525,34 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "/bugs — Bug tracker\n"
         "/fr <text> — Feature request (instant)\n"
         "/work — Process next bug NOW\n"
+        "/review — Review open PRs NOW\n"
+        "/evolve — Merge approved PRs + self-update\n"
         "/audit — System audit\n\n"
         "_Or just type any question!_",
         parse_mode=ParseMode.MARKDOWN,
     )
+
+
+@_owner_only
+async def cmd_evolve(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """/evolve — Merge approved PRs, pull code, and self-restart."""
+    await update.message.reply_text("🧬 Checking for approved PRs to merge...")
+
+    from evolution.self_evolution import evolution_engine
+    merged = await evolution_engine.check_and_merge_approved_prs()
+
+    if not merged:
+        # Also check: are there PRs needing review first?
+        from agents.skills.pr_reviewer.pr_tools import pr_tools
+        open_prs = await pr_tools.list_open_prs()
+        if open_prs:
+            await update.message.reply_text(
+                f"📋 {len(open_prs)} open PR(s) but none approved yet.\n"
+                f"Use /review to review them first."
+            )
+        else:
+            await update.message.reply_text("✅ No approved PRs to merge. System is up to date!")
+    # If merged, the system will restart and we won't reach here
 
 
 
@@ -571,6 +595,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return await cmd_work(update, context)
     if lower.startswith("/review"):
         return await cmd_review(update, context)
+    if lower.startswith("/evolve"):
+        return await cmd_evolve(update, context)
     if lower.startswith("/help"):
         return await cmd_help(update, context)
     if lower.startswith("/"):
@@ -744,6 +770,7 @@ async def start_bot() -> Optional[Application]:
         _app.add_handler(CommandHandler("scan", cmd_scan))
         _app.add_handler(CommandHandler("work", cmd_work))
         _app.add_handler(CommandHandler("review", cmd_review))
+        _app.add_handler(CommandHandler("evolve", cmd_evolve))
         _app.add_handler(CommandHandler("help", cmd_help))
         _app.add_handler(MessageHandler(filters.TEXT, handle_message))
 
@@ -757,6 +784,7 @@ async def start_bot() -> Optional[Application]:
             BotCommand("fr", "Submit feature request (instant)"),
             BotCommand("work", "Process next bug NOW"),
             BotCommand("review", "Review open PRs NOW"),
+            BotCommand("evolve", "Merge + self-update NOW"),
             BotCommand("roadmap", "Evolution roadmap"),
             BotCommand("bugs", "Bug tracker"),
             BotCommand("audit", "System audit"),

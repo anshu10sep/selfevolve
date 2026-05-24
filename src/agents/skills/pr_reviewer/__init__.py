@@ -1,1 +1,4 @@
-"""PR Reviewer Agent Skills Package."""
+"""
+Skills for the PR Reviewer agent.
+"""
+===

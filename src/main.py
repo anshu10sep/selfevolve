@@ -227,6 +227,15 @@ class SelfEvolveSystem:
             if logger:
                 await logger.awarning("pr_review_loop_init_failed", error=str(e))
 
+        # Start Self-Evolution Loop (merge approved PRs → pull → restart)
+        try:
+            from evolution.self_evolution import evolution_engine
+            evolution_task = asyncio.create_task(evolution_engine.evolution_loop(interval_minutes=10))
+        except Exception as e:
+            evolution_task = None
+            if logger:
+                await logger.awarning("evolution_loop_init_failed", error=str(e))
+
         try:
             while self._running:
                 try:
@@ -269,6 +278,8 @@ class SelfEvolveSystem:
                 auto_save_task.cancel()
             if pr_review_task:
                 pr_review_task.cancel()
+            if evolution_task:
+                evolution_task.cancel()
             await self.shutdown()
 
     def _setup_schedule(self) -> None:
