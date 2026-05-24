@@ -1,53 +1,104 @@
+import os
 import logging
-import traceback
-from typing import Dict, Any, Optional
+from typing import Dict, Any
+from agents.skills.jarvis.network_utils import robust_request
 
 logger = logging.getLogger(__name__)
 
-def generate_code(prompt: str, context: Optional[Dict[str, Any]] = None) -> str:
+def generate_code(prompt: str, model: str = "gpt-4") -> str:
     """
-    Generate code based on a prompt and context.
-    Includes robust error handling to prevent unhandled tracebacks.
+    Generates code using an LLM based on the provided prompt.
+    Includes robust retry logic for network stability.
     
     Args:
-        prompt (str): The description of the code to generate.
-        context (dict, optional): Additional context for generation.
+        prompt: The instruction or description for the code to generate.
+        model: The LLM model to use.
         
     Returns:
-        str: The generated code or an error comment.
+        The generated code as a string.
     """
-    try:
-        logger.info(f"Generating code for prompt: {prompt[:50]}...")
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        raise ValueError("OPENAI_API_KEY environment variable is not set.")
         
-        if not prompt:
-            raise ValueError("Prompt cannot be empty.")
+    url = "https://api.openai.com/v1/chat/completions"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}"
+    }
+    
+    payload = {
+        "model": model,
+        "messages": [
+            {
+                "role": "system", 
+                "content": "You are an expert Python developer. Output only valid Python code without markdown formatting if possible, or ensure it's well-structured."
+            },
+            {
+                "role": "user", 
+                "content": prompt
+            }
+        ],
+        "temperature": 0.2
+    }
+    
+    response = robust_request("POST", url, headers=headers, json=payload, timeout=60)
+    response_data = response.json()
+    
+    try:
+        content = response_data["choices"][0]["message"]["content"]
+        # Strip markdown code blocks if present
+        if content.startswith("```python"):
+            content = content[9:]
+        elif content.startswith("```"):
+            content = content[3:]
             
-        # Simulated generation logic (would integrate with LLM here)
-        generated_code = f"# Generated code for: {prompt}\n\ndef generated_function():\n    pass\n"
-        return generated_code
-        
-    except Exception as e:
-        logger.error(f"Error during code generation: {str(e)}")
-        logger.debug(traceback.format_exc())
-        return f"# Error generating code: {str(e)}"
+        if content.endswith("```"):
+            content = content[:-3]
+            
+        return content.strip()
+    except (KeyError, IndexError) as e:
+        logger.error(f"Unexpected response format from LLM: {response_data}")
+        raise ValueError("Failed to parse code from LLM response") from e
 
-def review_generated_code(code: str) -> bool:
+def review_code(code: str, model: str = "gpt-4") -> str:
     """
-    Review generated code for basic syntax errors.
+    Reviews the provided code and suggests improvements.
+    Includes robust retry logic for network stability.
     
     Args:
-        code (str): The Python code to review.
+        code: The Python code to review.
+        model: The LLM model to use.
         
     Returns:
-        bool: True if syntax is valid, False otherwise.
+        A string containing the review comments.
     """
+    prompt = f"Please review the following Python code and suggest improvements for performance, security, and readability:\n\n{code}"
+    
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        raise ValueError("OPENAI_API_KEY environment variable is not set.")
+        
+    url = "https://api.openai.com/v1/chat/completions"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}"
+    }
+    
+    payload = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": "You are an expert Python code reviewer."},
+            {"role": "user", "content": prompt}
+        ],
+        "temperature": 0.3
+    }
+    
+    response = robust_request("POST", url, headers=headers, json=payload, timeout=60)
+    response_data = response.json()
+    
     try:
-        compile(code, '<string>', 'exec')
-        return True
-    except SyntaxError as e:
-        logger.error(f"Syntax error in generated code: {str(e)}")
-        return False
-    except Exception as e:
-        logger.error(f"Unexpected error during code review: {str(e)}")
-        logger.debug(traceback.format_exc())
-        return False
+        return response_data["choices"][0]["message"]["content"]
+    except (KeyError, IndexError) as e:
+        logger.error(f"Unexpected response format from LLM: {response_data}")
+        raise ValueError("Failed to parse review from LLM response") from e

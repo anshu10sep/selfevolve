@@ -1,41 +1,65 @@
+import os
+import json
 import logging
-import traceback
-from typing import List, Dict, Any
+from typing import Dict, Any, List
+from agents.skills.jarvis.network_utils import robust_request
 
 logger = logging.getLogger(__name__)
 
-def create_execution_plan(goal: str, available_agents: List[str]) -> Dict[str, Any]:
+def generate_plan(goal: str, context: str = "") -> List[Dict[str, Any]]:
     """
-    Create an execution plan for a given goal using available agents.
+    Generates a step-by-step plan to achieve a specific goal using an LLM.
+    Includes robust retry logic for network stability.
     
     Args:
-        goal (str): The objective to achieve.
-        available_agents (list): List of agent names available for tasks.
+        goal: The objective to achieve.
+        context: Additional context or constraints.
         
     Returns:
-        dict: The structured execution plan.
+        A list of steps, where each step is a dictionary with 'step' and 'description'.
     """
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        raise ValueError("OPENAI_API_KEY environment variable is not set.")
+        
+    url = "https://api.openai.com/v1/chat/completions"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}"
+    }
+    
+    system_prompt = (
+        "You are an AI agent planner. Break down the user's goal into a logical sequence of actionable steps. "
+        "Output ONLY a valid JSON array of objects, where each object has a 'step' (integer) and 'description' (string) key."
+    )
+    
+    user_prompt = f"Goal: {goal}\nContext: {context}"
+    
+    payload = {
+        "model": "gpt-4",
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ],
+        "temperature": 0.2
+    }
+    
+    response = robust_request("POST", url, headers=headers, json=payload, timeout=60)
+    response_data = response.json()
+    
     try:
-        logger.info(f"Creating execution plan for goal: {goal}")
-        
-        if not available_agents:
-            raise ValueError("No agents available for planning.")
+        content = response_data["choices"][0]["message"]["content"]
+        # Clean up potential markdown formatting
+        if content.startswith("```json"):
+            content = content[7:]
+        elif content.startswith("```"):
+            content = content[3:]
             
-        plan = {
-            "goal": goal,
-            "steps": [
-                {"step": 1, "agent": available_agents[0], "action": "Analyze requirements"},
-                {"step": 2, "agent": available_agents[-1] if len(available_agents) > 1 else available_agents[0], "action": "Execute task"}
-            ],
-            "status": "planned"
-        }
+        if content.endswith("```"):
+            content = content[:-3]
+            
+        plan = json.loads(content.strip())
         return plan
-        
-    except Exception as e:
-        logger.error(f"Error creating execution plan: {str(e)}")
-        logger.debug(traceback.format_exc())
-        return {
-            "goal": goal,
-            "status": "failed",
-            "error": str(e)
-        }
+    except (KeyError, IndexError, json.JSONDecodeError) as e:
+        logger.error(f"Failed to parse plan from LLM response: {response_data}")
+        raise ValueError("Failed to generate a valid plan format") from e
