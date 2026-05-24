@@ -293,6 +293,21 @@ class SelfEvolveSystem:
             id='post_market',
         )
 
+        # ── CRYPTO 24/7 — scans every 4 hours, 7 days/week ────────
+        for hour in [0, 4, 8, 12, 16, 20]:
+            self.scheduler.add_job(
+                self._run_crypto_scan,
+                CronTrigger(hour=hour, minute=15),
+                id=f'crypto_scan_{hour:02d}',
+            )
+
+        # ── CONTINUOUS EVOLUTION — every 6 hours, 7 days/week ──────
+        self.scheduler.add_job(
+            self._run_continuous_evolution,
+            CronTrigger(hour='1,7,13,19', minute=0),
+            id='continuous_evolution',
+        )
+
     async def _run_pre_market(self) -> None:
         """Pre-market: Screen stocks, gather research, build briefing."""
         global logger
@@ -568,6 +583,196 @@ class SelfEvolveSystem:
 
         except Exception as e:
             if logger: await logger.aerror("intraday_scan_failed", error=str(e))
+
+    async def _run_crypto_scan(self) -> None:
+        """Crypto scan: 24/7, runs every 4 hours, trades crypto on Alpaca."""
+        global logger
+        if logger: await logger.ainfo("phase_started", phase="CRYPTO_SCAN")
+
+        try:
+            from integrations.telegram_bot import send_alert
+            from integrations.crypto_data import CryptoDataClient, CryptoScreener
+            from dashboard.api.main import system_state
+            system_state["current_phase"] = "CRYPTO_SCAN"
+
+            # Screen crypto
+            cdc = CryptoDataClient()
+            screener = CryptoScreener(cdc)
+            candidates = await screener.screen_candidates(max_results=3)
+
+            if not candidates:
+                await cdc.close()
+                if logger: await logger.ainfo("crypto_scan_no_candidates")
+                return
+
+            # Check existing crypto positions
+            from dashboard.api.main import sync_alpaca_portfolio
+            await sync_alpaca_portfolio()
+            p = system_state.get("portfolio", {})
+            crypto_positions = sum(1 for t in p.get("positions", {}) if "/" in t)
+
+            if crypto_positions >= 3:
+                await cdc.close()
+                if logger: await logger.ainfo("crypto_max_positions", count=crypto_positions)
+                return
+
+            # Analyze top candidate
+            candidate = candidates[0]
+            ticker = candidate["ticker"]
+
+            # Skip if already holding
+            if ticker in p.get("positions", {}) or ticker.replace("/", "") in p.get("positions", {}):
+                await cdc.close()
+                return
+
+            # Get fresh quote
+            quotes = await cdc.get_latest_quotes([ticker])
+            current_price = quotes.get(ticker, {}).get("ask", candidate["price"])
+
+            # Get bars for context
+            bars = await cdc.get_bars(ticker, timeframe="1Day", limit=7)
+            await cdc.close()
+
+            bars_summary = ""
+            if bars:
+                recent = bars[-5:] if len(bars) >= 5 else bars
+                bars_summary = "Recent closes: " + ", ".join(f"${b['close']:.2f}" for b in recent)
+
+            from core.llm_factory import get_premium_llm
+            llm = get_premium_llm()
+
+            response = await llm.ainvoke(
+                f"You are a crypto trading analyst. Analyze {ticker} for a swing trade.\n"
+                f"Price: ${current_price:.2f}, Momentum: {candidate.get('momentum_score', 0):.2f}, "
+                f"24h change: {candidate.get('change_pct', 0):.1f}%\n"
+                f"{bars_summary}\n\n"
+                f"Crypto is volatile — use wider stops (3-5%). "
+                f"Respond: ACTION: BUY or PASS, CONFIDENCE: 1-10, REASONING: one line, "
+                f"STOP_LOSS_PCT: number, TAKE_PROFIT_PCT: number"
+            )
+            analysis = response.content
+
+            if "ACTION: BUY" in analysis.upper():
+                from broker.alpaca_client import AlpacaClient
+                from core.models.portfolio import TradeIntent, TradeSide
+                import uuid
+
+                sl_pct, tp_pct = 4.0, 8.0  # Wider for crypto
+                for line in analysis.split("\n"):
+                    if "STOP_LOSS_PCT" in line.upper():
+                        try: sl_pct = float(line.split(":")[-1].strip().replace("%", ""))
+                        except: pass
+                    if "TAKE_PROFIT_PCT" in line.upper():
+                        try: tp_pct = float(line.split(":")[-1].strip().replace("%", ""))
+                        except: pass
+
+                alpaca = AlpacaClient()
+                intent = TradeIntent(
+                    ticker=ticker.replace("/", ""),  # Alpaca uses BTCUSD not BTC/USD for orders
+                    side=TradeSide.BUY,
+                    notional=5000.0,  # $5K tranches for crypto (higher vol)
+                    stop_loss_price=round(current_price * (1 - sl_pct / 100), 2),
+                    take_profit_price=round(current_price * (1 + tp_pct / 100), 2),
+                    client_order_id=str(uuid.uuid4()),
+                )
+                order = await alpaca.submit_bracket_order(intent)
+                await alpaca.close()
+
+                await send_alert(
+                    f"🪙 *CRYPTO ORDER: {ticker}*\n\n"
+                    f"💰 $5,000 @ ${current_price:,.2f}\n"
+                    f"🛡 SL: -${sl_pct}% | TP: +{tp_pct}%\n"
+                    f"```\n{analysis[:200]}\n```"
+                )
+            else:
+                if logger: await logger.ainfo("crypto_pass", ticker=ticker)
+
+        except Exception as e:
+            if logger: await logger.aerror("crypto_scan_failed", error=str(e))
+            try:
+                from integrations.telegram_bot import send_alert
+                await send_alert(f"⚠️ Crypto scan error: `{str(e)[:100]}`")
+            except Exception:
+                pass
+
+    async def _run_continuous_evolution(self) -> None:
+        """Continuous evolution: runs every 6 hours, 24/7.
+
+        - Backtest current strategies on recent data
+        - Update agent trust scores
+        - Run system audit
+        - Research new strategy improvements via Gemini
+        """
+        global logger
+        if logger: await logger.ainfo("phase_started", phase="CONTINUOUS_EVOLUTION")
+
+        try:
+            from integrations.telegram_bot import send_alert
+            from dashboard.api.main import system_state
+            system_state["current_phase"] = "EVOLVING"
+
+            # 1. Backtest current strategies
+            from research.backtester import StrategyBacktester
+            from integrations.market_data import MarketDataClient
+            mdc = MarketDataClient()
+            bt = StrategyBacktester(mdc)
+
+            test_tickers = ["AAPL", "NVDA", "MSFT", "TSLA", "GOOGL"]
+            backtest_results = []
+            for ticker in test_tickers:
+                try:
+                    result = await bt.compare_strategies(ticker, lookback_days=30)
+                    backtest_results.append(result)
+                except Exception:
+                    pass
+            await mdc.close()
+
+            # 2. Run system audit
+            from agents.skills.jarvis.system_audit import SystemAuditor
+            auditor = SystemAuditor()
+            audit = auditor.run_audit()
+            readiness = audit.get("readiness_score", 0) * 100
+
+            # 3. Ask Gemini to analyze and suggest improvements
+            from core.llm_factory import get_efficient_llm
+            llm = get_efficient_llm()
+
+            bt_summary = "\n".join(
+                f"  {r.get('ticker','?')}: {r.get('recommended','?')} "
+                f"(momentum: {r.get('momentum',{}).get('total_return',0):.1f}%, "
+                f"mean_rev: {r.get('mean_reversion',{}).get('total_return',0):.1f}%)"
+                for r in backtest_results
+            ) or "  No backtest data"
+
+            p = system_state.get("portfolio", {})
+            response = await llm.ainvoke(
+                f"You are the evolution engine of an autonomous trading system.\n\n"
+                f"Portfolio: ${p.get('total_equity',0):,.2f} equity, "
+                f"${p.get('daily_pnl',0):,.2f} daily P&L\n"
+                f"Positions: {len(p.get('positions',{}))}\n"
+                f"System readiness: {readiness:.0f}%\n\n"
+                f"Latest backtests (30 days):\n{bt_summary}\n\n"
+                f"Write a brief evolution report (3-4 sentences):\n"
+                f"1. Which strategies are working?\n"
+                f"2. What should we adjust?\n"
+                f"3. Any new opportunities to explore?"
+            )
+
+            report = response.content
+
+            await send_alert(
+                f"🧬 *Evolution Report*\n\n"
+                f"⏰ Cycle: {datetime.now(timezone.utc).strftime('%H:%M UTC')}\n"
+                f"📊 Readiness: `{readiness:.0f}%`\n"
+                f"📈 Strategies tested: {len(backtest_results)}\n\n"
+                f"{report[:500]}"
+            )
+
+            system_state["current_phase"] = "IDLE"
+            if logger: await logger.ainfo("continuous_evolution_complete")
+
+        except Exception as e:
+            if logger: await logger.aerror("continuous_evolution_failed", error=str(e))
 
     async def _run_market_close(self) -> None:
         """Market close: Journal results, update portfolio."""

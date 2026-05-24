@@ -255,8 +255,148 @@ async def cmd_resume(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 @_owner_only
+async def cmd_fr(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Submit a Feature Request — processed IMMEDIATELY by Gemini."""
+    fr_text = " ".join(context.args) if context.args else ""
+    if not fr_text:
+        await update.message.reply_text(
+            "📝 Usage: `/fr <description>`\n"
+            "Example: `/fr add trailing stop loss to all trades`",
+            parse_mode=ParseMode.MARKDOWN,
+        )
+        return
+
+    await update.message.reply_text(
+        f"📝 *FR Received*\n`{fr_text}`\n🔄 Processing...",
+        parse_mode=ParseMode.MARKDOWN,
+    )
+
+    try:
+        from langchain_google_genai import ChatGoogleGenerativeAI
+        settings = get_settings()
+        llm = ChatGoogleGenerativeAI(
+            model="gemini-2.5-flash",
+            google_api_key=settings.gemini_api_key,
+            temperature=0.3,
+        )
+
+        status = await _api("/api/status") or {}
+        response = await llm.ainvoke(
+            f"You are Jarvis, CEO of SelfEvolve. Feature request from owner:\n\n"
+            f"FR: {fr_text}\n\n"
+            f"System: {status.get('status', 'RUNNING')}\n\n"
+            f"Respond with:\n"
+            f"1. FEASIBILITY: Easy/Medium/Hard\n"
+            f"2. ASSIGNED_TO: which agent\n"
+            f"3. PRIORITY: P1-P4\n"
+            f"4. PLAN: 2-3 steps\n"
+            f"5. ETA: time estimate\n"
+            f"6. STATUS: what you're doing now"
+        )
+
+        import uuid as _uuid
+        from datetime import datetime as _dt, timezone as _tz
+        fr_record = {
+            "id": str(_uuid.uuid4()),
+            "title": fr_text[:100],
+            "status": "IN_PROGRESS",
+            "created_at": _dt.now(_tz.utc).isoformat(),
+        }
+        from dashboard.api.main import system_state
+        system_state.setdefault("feature_requests", []).append(fr_record)
+
+        await update.message.reply_text(
+            f"✅ *FR #{fr_record['id'][:8]}*\n\n{response.content[:800]}",
+            parse_mode=None,
+        )
+        logger.info("feature_request", fr_id=fr_record["id"][:8], text=fr_text[:50])
+
+    except Exception as e:
+        await update.message.reply_text(f"❌ FR error: {str(e)[:100]}")
+
+
+@_owner_only
+async def cmd_crypto(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """/crypto — Immediate crypto scan."""
+    await update.message.reply_text("🪙 Scanning crypto NOW...")
+    try:
+        from integrations.crypto_data import CryptoDataClient, CryptoScreener
+        cdc = CryptoDataClient()
+        screener = CryptoScreener(cdc)
+        candidates = await screener.screen_candidates(max_results=5)
+        quotes = await cdc.get_latest_quotes()
+        await cdc.close()
+
+        if not candidates:
+            btc = quotes.get("BTC/USD", {})
+            eth = quotes.get("ETH/USD", {})
+            await update.message.reply_text(
+                f"📭 No strong signals\nBTC: ${btc.get('ask',0):,.2f} | ETH: ${eth.get('ask',0):,.2f}"
+            )
+            return
+
+        msg = "🪙 *Crypto Scan*\n\n"
+        for c in candidates[:5]:
+            e = "🟢" if c["momentum_score"] > 0.3 else "🟡" if c["momentum_score"] > 0 else "🔴"
+            msg += f"{e} `{c['ticker']:10s}` ${c['price']:>10,.2f} ({c['change_pct']:+.1f}%) m={c['momentum_score']:.2f}\n"
+        btc = quotes.get("BTC/USD", {})
+        eth = quotes.get("ETH/USD", {})
+        msg += f"\nBTC: ${btc.get('ask',0):,.2f} | ETH: ${eth.get('ask',0):,.2f}"
+        await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
+
+    except Exception as e:
+        await update.message.reply_text(f"❌ {str(e)[:100]}")
+
+
+@_owner_only
+async def cmd_scan(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """/scan — Immediate stock scan."""
+    await update.message.reply_text("🔍 Scanning stocks NOW...")
+    try:
+        from integrations.market_data import MarketDataClient
+        from research.screener import StockScreener
+        mdc = MarketDataClient()
+        screener = StockScreener(mdc)
+        candidates = await screener.screen_candidates(max_results=5)
+        is_open = await mdc.is_market_open()
+        await mdc.close()
+
+        if not candidates:
+            await update.message.reply_text(f"📭 No signals. Market: {'Open' if is_open else 'Closed'}")
+            return
+
+        msg = "📈 *Stock Scan*\n\n"
+        for c in candidates[:5]:
+            e = "🟢" if c["momentum_score"] > 0.3 else "🟡" if c["momentum_score"] > 0 else "🔴"
+            msg += f"{e} `{c['ticker']:6s}` ${c['price']:>8.2f} ({c['change_pct']:+.1f}%) m={c['momentum_score']:.2f}\n"
+        msg += f"\nMarket: {'🟢 Open' if is_open else '🔴 Closed'}"
+        await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
+
+    except Exception as e:
+        await update.message.reply_text(f"❌ {str(e)[:100]}")
+
+
+@_owner_only
 async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await cmd_start(update, context)
+    await update.message.reply_text(
+        "🤖 *Jarvis Command Center*\n\n"
+        "*Trading:*\n"
+        "/status — System health\n"
+        "/portfolio — Live Alpaca portfolio\n"
+        "/scan — Stock scan NOW\n"
+        "/crypto — Crypto scan NOW\n"
+        "/pause — Pause trading\n"
+        "/resume — Resume trading\n\n"
+        "*Company:*\n"
+        "/agents — All agents\n"
+        "/roadmap — Evolution roadmap\n"
+        "/bugs — Bug tracker\n"
+        "/fr <text> — Feature request (instant)\n"
+        "/audit — System audit\n\n"
+        "_Or just type any question!_",
+        parse_mode=ParseMode.MARKDOWN,
+    )
+
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -436,17 +576,23 @@ async def start_bot() -> Optional[Application]:
         _app.add_handler(CommandHandler("audit", cmd_audit))
         _app.add_handler(CommandHandler("pause", cmd_pause))
         _app.add_handler(CommandHandler("resume", cmd_resume))
+        _app.add_handler(CommandHandler("fr", cmd_fr))
+        _app.add_handler(CommandHandler("crypto", cmd_crypto))
+        _app.add_handler(CommandHandler("scan", cmd_scan))
         _app.add_handler(CommandHandler("help", cmd_help))
         _app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
         # Set bot commands menu
         await _app.bot.set_my_commands([
             BotCommand("status", "System status & health"),
-            BotCommand("portfolio", "Live portfolio from Alpaca"),
+            BotCommand("portfolio", "Live Alpaca portfolio"),
+            BotCommand("scan", "Run stock scan NOW"),
+            BotCommand("crypto", "Run crypto scan NOW"),
             BotCommand("agents", "All agents with trust scores"),
+            BotCommand("fr", "Submit feature request (instant)"),
             BotCommand("roadmap", "Evolution roadmap"),
-            BotCommand("bugs", "Open bugs & issues"),
-            BotCommand("audit", "Run system audit"),
+            BotCommand("bugs", "Bug tracker"),
+            BotCommand("audit", "System audit"),
             BotCommand("pause", "Pause trading"),
             BotCommand("resume", "Resume trading"),
             BotCommand("help", "Show all commands"),

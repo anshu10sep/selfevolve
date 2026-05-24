@@ -84,7 +84,8 @@ system_state: dict[str, Any] = {
     },
     "agents": [
         {"id": str(uuid.uuid4()), "name": "Jarvis", "role": "MASTER", "type": "EXECUTIVE", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": datetime.now(timezone.utc).isoformat()},
-        {"id": str(uuid.uuid4()), "name": "CTO Agent", "role": "CTO", "type": "EXECUTIVE", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
+        {"id": str(uuid.uuid4()), "name": "CTO — Stocks", "role": "CTO", "type": "EXECUTIVE", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None, "division": "stocks"},
+        {"id": str(uuid.uuid4()), "name": "CTO — Crypto", "role": "CTO_CRYPTO", "type": "EXECUTIVE", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None, "division": "crypto"},
         {"id": str(uuid.uuid4()), "name": "CSO Agent", "role": "CSO", "type": "EXECUTIVE", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
         {"id": str(uuid.uuid4()), "name": "QA Agent", "role": "QA", "type": "MANAGER", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
         {"id": str(uuid.uuid4()), "name": "Developer Agent", "role": "DEVELOPER", "type": "SPECIALIST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
@@ -100,6 +101,8 @@ system_state: dict[str, Any] = {
         {"id": str(uuid.uuid4()), "name": "Journaling Agent", "role": "JOURNALING", "type": "SPECIALIST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
         {"id": str(uuid.uuid4()), "name": "Auditor Agent", "role": "AUDITOR", "type": "SPECIALIST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
         {"id": str(uuid.uuid4()), "name": "Model Orchestrator", "role": "MODEL_ORCHESTRATOR", "type": "SPECIALIST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
+        {"id": str(uuid.uuid4()), "name": "Crypto Analyst", "role": "CRYPTO_ANALYST", "type": "ANALYST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None, "division": "crypto"},
+        {"id": str(uuid.uuid4()), "name": "Crypto Sentiment", "role": "CRYPTO_SENTIMENT", "type": "ANALYST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None, "division": "crypto"},
     ],
     "recent_trades": [],
     "evolution_events": [],
@@ -264,7 +267,7 @@ async def get_agent_detail(agent_id: str):
 
     # Map role to skills directory name
     role_to_dir = {
-        "MASTER": "jarvis", "CTO": "cto", "CSO": "cso", "QA": "qa",
+        "MASTER": "jarvis", "CTO": "cto", "CTO_CRYPTO": "cto_crypto", "CSO": "cso", "QA": "qa",
         "DEVELOPER": "developer", "PRODUCT": "product",
         "FUNDAMENTAL_ANALYST": "fundamental_analyst",
         "TECHNICAL_ANALYST": "technical_analyst",
@@ -273,6 +276,7 @@ async def get_agent_detail(agent_id: str):
         "BULL": "bull", "BEAR": "bear", "JUDGE": "judge",
         "META_REVIEW": "meta_review", "JOURNALING": "journaling",
         "AUDITOR": "auditor", "MODEL_ORCHESTRATOR": "model_orchestrator",
+        "CRYPTO_ANALYST": "crypto_analyst", "CRYPTO_SENTIMENT": "crypto_sentiment",
     }
 
     role = agent.get("role", "")
