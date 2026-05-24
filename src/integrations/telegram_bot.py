@@ -488,6 +488,27 @@ async def cmd_work(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 @_owner_only
+async def cmd_review(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """/review — Review all unreviewed PRs NOW."""
+    await update.message.reply_text("🔍 Reviewing open PRs...")
+
+    from agents.skills.pr_reviewer.review_pipeline import review_pipeline
+    results = await review_pipeline.review_all_open_prs()
+
+    if not results:
+        await update.message.reply_text("✅ No unreviewed PRs found!")
+        return
+
+    msg = f"🔍 *Reviewed {len(results)} PR(s)*\n\n"
+    for r in results:
+        verdict = r.get("result", {}).get("verdict", "?") if r.get("result") else "ERROR"
+        icon = {"APPROVE": "✅", "REQUEST_CHANGES": "❌", "COMMENT": "💬"}.get(verdict, "📝")
+        msg += f"{icon} PR #{r['pr']}: {r['title'][:40]} → {verdict}\n"
+
+    await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
+
+
+@_owner_only
 async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "🤖 *Jarvis Command Center*\n\n"
@@ -548,6 +569,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return await cmd_agents(update, context)
     if lower.startswith("/work"):
         return await cmd_work(update, context)
+    if lower.startswith("/review"):
+        return await cmd_review(update, context)
     if lower.startswith("/help"):
         return await cmd_help(update, context)
     if lower.startswith("/"):
@@ -720,6 +743,7 @@ async def start_bot() -> Optional[Application]:
         _app.add_handler(CommandHandler("crypto", cmd_crypto))
         _app.add_handler(CommandHandler("scan", cmd_scan))
         _app.add_handler(CommandHandler("work", cmd_work))
+        _app.add_handler(CommandHandler("review", cmd_review))
         _app.add_handler(CommandHandler("help", cmd_help))
         _app.add_handler(MessageHandler(filters.TEXT, handle_message))
 
@@ -732,6 +756,7 @@ async def start_bot() -> Optional[Application]:
             BotCommand("agents", "All agents with trust scores"),
             BotCommand("fr", "Submit feature request (instant)"),
             BotCommand("work", "Process next bug NOW"),
+            BotCommand("review", "Review open PRs NOW"),
             BotCommand("roadmap", "Evolution roadmap"),
             BotCommand("bugs", "Bug tracker"),
             BotCommand("audit", "System audit"),

@@ -103,6 +103,7 @@ system_state: dict[str, Any] = {
         {"id": str(uuid.uuid4()), "name": "Model Orchestrator", "role": "MODEL_ORCHESTRATOR", "type": "SPECIALIST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
         {"id": str(uuid.uuid4()), "name": "Crypto Analyst", "role": "CRYPTO_ANALYST", "type": "ANALYST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None, "division": "crypto"},
         {"id": str(uuid.uuid4()), "name": "Crypto Sentiment", "role": "CRYPTO_SENTIMENT", "type": "ANALYST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None, "division": "crypto"},
+        {"id": str(uuid.uuid4()), "name": "PR Reviewer", "role": "PR_REVIEWER", "type": "SPECIALIST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
     ],
     "recent_trades": [],
     "evolution_events": [],

@@ -218,6 +218,15 @@ class SelfEvolveSystem:
         # DB handles persistence — no auto-save loop needed
         auto_save_task = None
 
+        # Start PR Review Loop (reviews unreviewed PRs periodically)
+        try:
+            from agents.skills.pr_reviewer.review_pipeline import review_pipeline
+            pr_review_task = asyncio.create_task(review_pipeline.review_loop(interval_minutes=30))
+        except Exception as e:
+            pr_review_task = None
+            if logger:
+                await logger.awarning("pr_review_loop_init_failed", error=str(e))
+
         try:
             while self._running:
                 try:
@@ -257,7 +266,9 @@ class SelfEvolveSystem:
             if bug_worker_task:
                 bug_worker_task.cancel()
             if auto_save_task:
-                auto_save_task.cancel()  # Triggers final save in CancelledError handler
+                auto_save_task.cancel()
+            if pr_review_task:
+                pr_review_task.cancel()
             await self.shutdown()
 
     def _setup_schedule(self) -> None:

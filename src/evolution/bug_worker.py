@@ -79,11 +79,30 @@ class BugWorker:
             result = await self._generate_fix(bug)
 
             if result.get("success"):
-                # Create PR
-                pr_info = await self._create_pr(bug, result)
+                # Run full pipeline: pre-submit → PR → AI review
+                from agents.skills.pr_reviewer.review_pipeline import review_pipeline
+                from agents.skills.jarvis.github_ops import GitHubOps
 
-                # Update DB
+                github = GitHubOps()
+                pipeline_result = await review_pipeline.presubmit_and_create_pr(
+                    bug=bug,
+                    files_created=result.get("files_created", []),
+                    github_ops=github,
+                )
+
+                # Check if blocked by pre-submit
+                if pipeline_result.get("blocked"):
+                    update_bug(bug_id, status="OPEN",
+                               worker_error=pipeline_result.get("reason", "Pre-submit failed"))
+                    logger.warning("bug_blocked_presubmit", bug_id=bug_id[:8],
+                                   reason=pipeline_result.get("reason"))
+                    return {"bug_id": bug_id, "status": "BLOCKED", "reason": pipeline_result.get("reason")}
+
+                # PR was created (and possibly reviewed)
+                pr_info = pipeline_result.get("pr")
                 pr_url_val = pr_info.get("url") if pr_info else None
+                review_verdict = (pipeline_result.get("review", {}) or {}).get("verdict", "N/A")
+
                 update_bug(bug_id, status="RESOLVED",
                            resolved_at=datetime.now(timezone.utc),
                            pr_url=pr_url_val)
@@ -94,6 +113,7 @@ class BugWorker:
                     "title": bug_title[:60],
                     "status": "RESOLVED",
                     "pr_url": pr_url_val,
+                    "review": review_verdict,
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                 })
 
@@ -104,13 +124,14 @@ class BugWorker:
                         f"✅ *Bug Resolved*\n\n"
                         f"`{bug_title[:60]}`\n"
                         f"Files: {len(result.get('files_created', []))}\n"
-                        f"PR: {pr_url}"
+                        f"PR: {pr_url}\n"
+                        f"Review: {review_verdict}"
                     )
                 except Exception:
                     pass
 
-                logger.info("bug_resolved", bug_id=bug_id[:8], pr=pr_info)
-                return {"bug_id": bug_id, "status": "RESOLVED", "pr": pr_info}
+                logger.info("bug_resolved", bug_id=bug_id[:8], pr=pr_info, review=review_verdict)
+                return {"bug_id": bug_id, "status": "RESOLVED", "pr": pr_info, "review": review_verdict}
 
             else:
                 update_bug(bug_id, status="OPEN",
