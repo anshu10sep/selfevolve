@@ -499,6 +499,31 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not user_msg:
         return
 
+    # ── Failsafe: intercept /commands that should have been routed ──
+    # python-telegram-bot sometimes misroutes commands to the text handler
+    lower = user_msg.lower()
+    if lower.startswith("/fr ") or lower == "/fr":
+        # Manually inject args and call cmd_fr
+        context.args = user_msg.split()[1:] if " " in user_msg else []
+        return await cmd_fr(update, context)
+    if lower.startswith("/crypto"):
+        return await cmd_crypto(update, context)
+    if lower.startswith("/scan"):
+        return await cmd_scan(update, context)
+    if lower.startswith("/bugs"):
+        return await cmd_bugs(update, context)
+    if lower.startswith("/status"):
+        return await cmd_status(update, context)
+    if lower.startswith("/portfolio"):
+        return await cmd_portfolio(update, context)
+    if lower.startswith("/agents"):
+        return await cmd_agents(update, context)
+    if lower.startswith("/help"):
+        return await cmd_help(update, context)
+    if lower.startswith("/"):
+        # Unknown command — show help
+        return await cmd_help(update, context)
+
     await update.message.reply_text("🤔 Thinking...")
 
     try:
@@ -665,7 +690,7 @@ async def start_bot() -> Optional[Application]:
         _app.add_handler(CommandHandler("crypto", cmd_crypto))
         _app.add_handler(CommandHandler("scan", cmd_scan))
         _app.add_handler(CommandHandler("help", cmd_help))
-        _app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+        _app.add_handler(MessageHandler(filters.TEXT, handle_message))
 
         # Set bot commands menu
         await _app.bot.set_my_commands([

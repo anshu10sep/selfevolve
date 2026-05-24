@@ -435,3 +435,47 @@ AFC is enabled with max remote calls: 10.
 {"component": "telegram_bot", "length": 70, "event": "telegram_alert_sent", "logger": "integrations.telegram_bot", "level": "info", "correlation_id": "9289bd58", "timestamp": "2026-05-24T04:14:39.189490Z"}
 {"component": "hot_reloader", "module": "integrations.telegram_bot", "file": "/home/agentx/self-evolving/src/integrations/telegram_bot.py", "event": "module_reloaded", "logger": "evolution.hot_reloader", "level": "info", "correlation_id": "9289bd58", "timestamp": "2026-05-24T04:15:09.191088Z"}
 {"component": "telegram_bot", "length": 70, "event": "telegram_alert_sent", "logger": "integrations.telegram_bot", "level": "info", "correlation_id": "9289bd58", "timestamp": "2026-05-24T04:15:10.010193Z"}
+{"component": "dashboard_api", "equity": 99999.95, "cash": 99980.4, "positions": 2, "daily_pnl": -0.05000000000291038, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "9289bd58", "timestamp": "2026-05-24T04:15:22.367582Z"}
+{"component": "dashboard_api", "equity": 99999.95, "cash": 99980.4, "positions": 2, "daily_pnl": -0.05000000000291038, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "9289bd58", "timestamp": "2026-05-24T04:16:22.377803Z"}
+{"component": "main", "environment": "paper", "initial_capital": 100000.0, "version": "1.0.0", "event": "selfevolve_starting", "logger": "__main__", "level": "info", "correlation_id": "b8ece5bd", "timestamp": "2026-05-24T04:16:58.916964Z"}
+{"component": "database", "url": "localhost:5432/selfevolve", "event": "database_engine_created", "logger": "persistence.database", "level": "info", "correlation_id": "210fc141", "timestamp": "2026-05-24T04:16:58.944847Z"}
+{"component": "main", "error": "[Errno 111] Connect call failed ('127.0.0.1', 5432)", "event": "database_init_failed", "logger": "__main__", "level": "error", "correlation_id": "210fc141", "timestamp": "2026-05-24T04:16:58.948689Z"}
+{"component": "redis_client", "url": "redis://localhost:6379/0", "event": "redis_client_created", "logger": "persistence.redis_client", "level": "info", "correlation_id": "210fc141", "timestamp": "2026-05-24T04:16:58.949285Z"}
+{"component": "main", "error": "Error 111 connecting to localhost:6379. Connect call failed ('127.0.0.1', 6379).", "message": "Running in DASHBOARD-ONLY mode. Start Redis/Postgres for full trading functionality.", "event": "infra_not_available", "logger": "__main__", "level": "warning", "correlation_id": "210fc141", "timestamp": "2026-05-24T04:16:58.950674Z"}
+Scheduler started
+Application started
+{"component": "telegram_bot", "username": "selfevolve_trade_bot", "event": "telegram_bot_started", "logger": "integrations.telegram_bot", "level": "info", "correlation_id": "210fc141", "timestamp": "2026-05-24T04:16:59.982587Z"}
+{"component": "telegram_bot", "length": 85, "event": "telegram_alert_sent", "logger": "integrations.telegram_bot", "level": "info", "correlation_id": "210fc141", "timestamp": "2026-05-24T04:17:00.597359Z"}
+{"component": "main", "event": "telegram_bot_started", "logger": "__main__", "level": "info", "correlation_id": "210fc141", "timestamp": "2026-05-24T04:17:00.597675Z"}
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Added job "SelfEvolveSystem._run_pre_market" to job store "default"
+Added job "SelfEvolveSystem._run_market_open" to job store "default"
+Added job "SelfEvolveSystem._run_intraday_scan" to job store "default"
+Added job "SelfEvolveSystem._run_intraday_scan" to job store "default"
+Added job "SelfEvolveSystem._run_intraday_scan" to job store "default"
+Added job "SelfEvolveSystem._run_market_close" to job store "default"
+Added job "SelfEvolveSystem._run_post_market_evolution" to job store "default"
+Added job "SelfEvolveSystem._run_crypto_scan" to job store "default"
+Added job "SelfEvolveSystem._run_continuous_evolution" to job store "default"
+Scheduler started
+{"component": "main", "event": "scheduler_started", "logger": "__main__", "level": "info", "correlation_id": "210fc141", "timestamp": "2026-05-24T04:17:00.601455Z"}
+{"component": "main", "status": "RUNNING", "event": "selfevolve_started", "logger": "__main__", "level": "info", "correlation_id": "210fc141", "timestamp": "2026-05-24T04:17:00.601694Z"}
+{"component": "hot_reloader", "watched_dirs": 3, "files_tracked": 9, "event": "hot_reloader_started", "logger": "evolution.hot_reloader", "level": "info", "correlation_id": "210fc141", "timestamp": "2026-05-24T04:17:00.698276Z"}
+{"component": "dashboard_api", "equity": 99999.95, "cash": 99980.4, "positions": 2, "daily_pnl": -0.05000000000291038, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "210fc141", "timestamp": "2026-05-24T04:17:01.054148Z"}
+{"component": "dashboard_api", "equity": 99999.95, "cash": 99980.4, "positions": 2, "daily_pnl": -0.05000000000291038, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "210fc141", "timestamp": "2026-05-24T04:17:22.377850Z"}
+{"component": "dashboard_api", "equity": 99999.95, "cash": 99980.4, "positions": 2, "daily_pnl": -0.05000000000291038, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "210fc141", "timestamp": "2026-05-24T04:17:26.542060Z"}
+{"component": "dashboard_api", "equity": 99999.95, "cash": 99980.4, "positions": 2, "daily_pnl": -0.05000000000291038, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "210fc141", "timestamp": "2026-05-24T04:17:26.929525Z"}
+AFC is enabled with max remote calls: 10.
+{"component": "telegram_bot", "question": "/fr all agents need skills files", "reply_len": 1816, "event": "jarvis_chat", "logger": "integrations.telegram_bot", "level": "info", "correlation_id": "210fc141", "timestamp": "2026-05-24T04:17:34.066987Z"}
+{"component": "dashboard_api", "equity": 99999.95, "cash": 99980.4, "positions": 2, "daily_pnl": -0.05000000000291038, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "210fc141", "timestamp": "2026-05-24T04:18:22.391674Z"}
+{"component": "dashboard_api", "equity": 99999.95, "cash": 99980.4, "positions": 2, "daily_pnl": -0.05000000000291038, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "210fc141", "timestamp": "2026-05-24T04:19:22.361642Z"}
+{"component": "hot_reloader", "module": "integrations.telegram_bot", "file": "/home/agentx/self-evolving/src/integrations/telegram_bot.py", "event": "module_reloaded", "logger": "evolution.hot_reloader", "level": "info", "correlation_id": "210fc141", "timestamp": "2026-05-24T04:20:00.710841Z"}
+{"component": "telegram_bot", "length": 70, "event": "telegram_alert_sent", "logger": "integrations.telegram_bot", "level": "info", "correlation_id": "210fc141", "timestamp": "2026-05-24T04:20:01.367007Z"}
