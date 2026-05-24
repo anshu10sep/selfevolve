@@ -16,4 +16,3 @@ def roadmap_planning(strategic_goals: list, current_tech_stack: dict) -> dict:
     else:
         initiatives = ["System optimization"]
     return {"roadmap_initiatives": initiatives, "timeline": "6-12 months", "estimated_cost": "$500k"}
-===

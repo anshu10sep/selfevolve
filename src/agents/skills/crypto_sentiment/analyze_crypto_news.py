@@ -26,4 +26,3 @@ def analyze_crypto_news(news_articles: list) -> dict:
         "dominant_sentiment": dominant_sentiment,
         "key_topics": ["regulation", "adoption", "defi", "nfts"] # Example topics
     }
-===

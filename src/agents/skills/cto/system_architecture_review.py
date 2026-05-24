@@ -14,4 +14,3 @@ def system_architecture_review(architecture_diagram: str, performance_metrics: d
     if performance_metrics.get("avg_latency", 0) > 100:
         return {"status": "needs_optimization", "recommendations": ["Implement caching", "Distribute load"]}
     return {"status": "optimal", "recommendations": []}
-===

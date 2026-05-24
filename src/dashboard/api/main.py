@@ -120,13 +120,41 @@ system_state: dict[str, Any] = {
         "critical_findings": 0,
         "high_findings": 0,
     },
-    "model_config": {
-        "current_model": "gemini-3.1-pro",
-        "efficient_tier": "gemini-3.1-pro",
-        "premium_tier": "gemini-3.1-pro",
-        "subscriptions": {"gemini": True, "openai": False, "anthropic": False},
-    },
+    "model_config": {},  # Populated dynamically from settings
 }
+
+
+# ── DYNAMIC CONFIG HELPERS ────────────────────────────────────────
+def _get_model_name() -> str:
+    """Get model name from settings (not hardcoded)."""
+    try:
+        from config.settings import get_settings
+        return get_settings().efficient_model
+    except Exception:
+        return "gemini-2.5-flash"
+
+
+def _get_model_config() -> dict:
+    """Get model config from settings."""
+    try:
+        from config.settings import get_settings
+        s = get_settings()
+        return {
+            "current_model": s.efficient_model,
+            "efficient_tier": s.efficient_model,
+            "premium_tier": s.premium_model,
+            "subscriptions": {
+                "gemini": bool(s.gemini_api_key),
+                "openai": bool(s.openai_api_key),
+                "anthropic": bool(s.anthropic_api_key),
+            },
+        }
+    except Exception:
+        return {"current_model": "gemini-2.5-flash", "efficient_tier": "gemini-2.5-flash", "premium_tier": "gemini-2.5-flash", "subscriptions": {}}
+
+
+# Populate model_config dynamically
+system_state["model_config"] = _get_model_config()
 
 # ── DATABASE INITIALIZATION ───────────────────────────────────────
 # Production-ready SQLAlchemy DB (SQLite now, Postgres later)
@@ -319,7 +347,7 @@ async def get_agent_detail(agent_id: str):
         "goals": goals_text,
         "skills": skill_files,
         "skills_dir": skills_dir_name,
-        "model": "gemini-3.1-pro",
+        "model": _get_model_name(),
         "metrics": {
             "trust_weight": agent.get("trust_weight", 1.0),
             "brier_score": agent.get("brier_score"),

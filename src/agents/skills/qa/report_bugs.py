@@ -14,4 +14,3 @@ def report_bugs(bug_description: str, steps_to_reproduce: list, severity: str, a
     print(f"Reporting bug: '{bug_description[:100]}' in {affected_component} with severity {severity}.")
     bug_id = f"BUG-{hash(bug_description)}" # Simulate bug ID generation
     return {"status": "bug_reported", "bug_id": bug_id, "severity": severity, "affected_component": affected_component}
-===

@@ -14,4 +14,3 @@ def test_code(file_path: str, test_cases: list) -> dict:
     if "critical_function" in file_path:
         return {"status": "passed", "failures": 0, "coverage": "85%"}
     return {"status": "passed_with_warnings", "failures": 1, "coverage": "70%"}
-===

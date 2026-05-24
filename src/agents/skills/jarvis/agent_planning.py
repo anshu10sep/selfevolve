@@ -31,4 +31,3 @@ def create_plan(task_description: str, available_agents: list) -> dict:
             "overall_status": "planned"
         }
     return plan
-===

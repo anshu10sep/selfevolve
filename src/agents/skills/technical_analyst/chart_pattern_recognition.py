@@ -16,4 +16,3 @@ def chart_pattern_recognition(price_data: list) -> list:
     if len(price_data) > 50 and price_data[-1] > price_data[-2] > price_data[-3]:
         patterns.append({"pattern": "bullish_trend", "implication": "potential_further_advance"})
     return patterns
-===

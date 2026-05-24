@@ -14,4 +14,3 @@ def retrain_models(model_id: str, new_data_path: str, retraining_parameters: dic
     # Placeholder for actual model retraining pipeline trigger
     new_model_version_id = f"{model_id}_v2_{hash(new_data_path)}" # Simulate new version ID
     return {"status": "retraining_initiated", "job_id": "retrain_job_123", "new_model_version_id": new_model_version_id}
-===

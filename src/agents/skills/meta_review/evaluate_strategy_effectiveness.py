@@ -19,4 +19,3 @@ def evaluate_strategy_effectiveness(strategy_id: str, performance_data: dict, ma
         effectiveness = "moderate_effectiveness"
         recommendations = ["Review parameters for high volatility markets."]
     return {"effectiveness": effectiveness, "strengths": ["consistent_returns"], "weaknesses": ["poor_in_high_volatility"], "recommendations": recommendations}
-===

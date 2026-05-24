@@ -25,4 +25,3 @@ def analyze_news_articles(articles: list) -> dict:
         "dominant_sentiment": dominant_sentiment,
         "key_themes": ["earnings", "interest rates", "technology"] # Example themes
     }
-===

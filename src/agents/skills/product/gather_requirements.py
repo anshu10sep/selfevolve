@@ -16,4 +16,3 @@ def gather_requirements(feature_name: str, stakeholders: list) -> list:
     if "compliance_officer" in stakeholders:
         requirements.append("Audit trail for all transactions.")
     return requirements
-===

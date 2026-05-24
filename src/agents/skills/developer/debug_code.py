@@ -14,4 +14,3 @@ def debug_code(file_path: str, error_message: str) -> str:
     if "IndexError" in error_message:
         return "Consider adding boundary checks to list access."
     return "Investigating the root cause of the error."
-===

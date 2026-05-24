@@ -24,4 +24,3 @@ def predict_price_movements(historical_data: dict, time_horizon: str) -> dict:
         target_price = historical_data.get("current_price", 100)
         confidence = 0.5
     return {"predicted_direction": direction, "target_price": target_price, "confidence": confidence, "time_horizon": time_horizon}
-===

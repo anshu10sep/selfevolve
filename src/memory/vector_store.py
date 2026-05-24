@@ -32,7 +32,13 @@ class VectorStore:
 
     COLLECTION_NAME = "reflexion_memory"
 
-    def __init__(self, qdrant_url: str = "http://localhost:6333"):
+    def __init__(self, qdrant_url: str = None):
+        if qdrant_url is None:
+            try:
+                from config.settings import get_settings
+                qdrant_url = get_settings().qdrant_url
+            except Exception:
+                qdrant_url = "http://localhost:6333"
         self.qdrant_url = qdrant_url
         self._client = None
         self._embedder = None

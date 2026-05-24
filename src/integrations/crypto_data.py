@@ -32,7 +32,7 @@ class CryptoDataClient:
 
     def __init__(self):
         settings = get_settings()
-        self.data_url = "https://data.alpaca.markets"
+        self.data_url = settings.alpaca_data_url
         self.base_url = settings.alpaca_base_url
         self.headers = {
             "APCA-API-KEY-ID": settings.alpaca_api_key,

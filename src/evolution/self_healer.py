@@ -69,7 +69,7 @@ class SelfHealer:
         try:
             from langchain_google_genai import ChatGoogleGenerativeAI
             llm = ChatGoogleGenerativeAI(
-                model="gemini-2.5-flash",
+                model=self.settings.efficient_model,
                 google_api_key=self.settings.gemini_api_key,
                 temperature=0.1,
             )

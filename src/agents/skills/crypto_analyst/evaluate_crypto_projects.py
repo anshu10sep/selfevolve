@@ -18,4 +18,3 @@ def evaluate_crypto_projects(project_name: str, whitepaper_url: str, tokenomics_
     if tokenomics_data.get("supply_cap") and tokenomics_data["supply_cap"] > 0:
         score += 0.4 # Good tokenomics
     return {"project_score": score, "strengths": ["innovative_tech"], "weaknesses": ["early_stage"], "potential": "high"}
-===

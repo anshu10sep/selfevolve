@@ -19,4 +19,3 @@ def summarize_daily_activity(date: str) -> dict:
         "agent_performance_highlights": {"bull": "successful_trades"}
     }
     return {"status": "summary_generated", "summary": summary}
-===

@@ -57,7 +57,7 @@ def get_llm_by_name(model_name: str, temperature: float = 0.2) -> BaseChatModel:
             "unknown_model_prefix_defaulting_to_gemini",
             model=model_name,
         )
-        return _create_gemini_model("gemini-3.1-pro", temperature)
+        return _create_gemini_model(get_settings().efficient_model, temperature)
 
 
 def _create_gemini_model(

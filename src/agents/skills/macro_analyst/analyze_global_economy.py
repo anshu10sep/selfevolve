@@ -18,4 +18,3 @@ def analyze_global_economy(economic_reports: list, geopolitical_events: list) ->
         outlook = "neutral_to_bullish"
         factors = ["stable growth", "easing inflation"]
     return {"global_outlook": outlook, "key_factors": factors}
-===

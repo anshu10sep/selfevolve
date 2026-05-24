@@ -13,4 +13,3 @@ def threat_detection(monitoring_data: dict) -> dict:
     if "malware_signature_match" in monitoring_data.get("alerts", []):
         return {"threat_detected": True, "type": "malware", "severity": "high", "impact": "data_compromise"}
     return {"threat_detected": False, "type": "none", "severity": "none", "impact": "none"}
-===

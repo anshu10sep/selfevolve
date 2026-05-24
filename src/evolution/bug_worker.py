@@ -153,7 +153,7 @@ class BugWorker:
             settings = get_settings()
 
             llm = ChatGoogleGenerativeAI(
-                model="gemini-2.5-flash",
+                model=settings.efficient_model,
                 google_api_key=settings.gemini_api_key,
                 temperature=0.2,
             )

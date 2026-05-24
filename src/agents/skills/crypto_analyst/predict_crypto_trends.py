@@ -16,4 +16,3 @@ def predict_crypto_trends(historical_data: dict, news_sentiment: str) -> dict:
     elif historical_data.get("price_change_7d", 0) < -0.05 and news_sentiment == "negative":
         return {"short_term": "bearish", "long_term": "bearish", "confidence": 0.60}
     return {"short_term": "sideways", "long_term": "uncertain", "confidence": 0.40}
-===

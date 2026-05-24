@@ -18,4 +18,3 @@ def analyze_financial_statements(company_symbol: str, statement_type: str, fisca
     elif statement_type == "balance_sheet":
         return {"current_ratio": 2.5, "debt_to_equity": 0.5, "assessment": "healthy_liquidity"}
     return {"assessment": "data_unavailable"}
-===

@@ -20,4 +20,3 @@ def forecast_interest_rates(central_bank_statements: list, inflation_data: dict)
         prediction = "hold"
         confidence = 0.6
     return {"rate_prediction": prediction, "confidence": confidence, "implications": "bond_market_impact"}
-===

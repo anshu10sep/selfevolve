@@ -14,4 +14,3 @@ def monitor_crypto_social_media(keywords: list, platforms: list) -> dict:
     sentiment_score = 0.65 # Example positive sentiment
     trending_topics = ["ETH2.0", "NFTs", "Metaverse"]
     return {"social_media_sentiment_score": sentiment_score, "trending_topics": trending_topics}
-===

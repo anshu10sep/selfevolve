@@ -14,4 +14,3 @@ def security_policy_enforcement(policy_id: str, system_config: dict) -> dict:
     if system_config.get("password_policy_strength", "weak") == "weak":
         return {"status": "non_compliant", "action_required": "Strengthen password policy."}
     return {"status": "compliant", "action_required": "None"}
-===

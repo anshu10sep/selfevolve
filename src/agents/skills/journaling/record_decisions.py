@@ -15,4 +15,3 @@ def record_decisions(decision_maker: str, decision_details: dict, rationale: str
     print(f"Journaling: Recording decision by {decision_maker} at {timestamp}. Rationale: {rationale[:100]}...")
     # Placeholder for actual persistent storage
     return {"status": "recorded", "timestamp": timestamp, "decision_maker": decision_maker, "decision": decision_details}
-===

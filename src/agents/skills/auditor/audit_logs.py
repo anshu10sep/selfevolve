@@ -13,4 +13,3 @@ def audit_logs(log_data: str) -> dict:
     if "error" in log_data.lower() or "failure" in log_data.lower():
         return {"status": "issues_found", "details": "Potential errors or failures detected."}
     return {"status": "clean", "details": "No critical issues found in logs."}
-===

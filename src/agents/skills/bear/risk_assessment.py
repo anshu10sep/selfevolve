@@ -14,4 +14,3 @@ def risk_assessment(position_details: dict, market_volatility: float) -> dict:
     if risk_score > 5.0:
         return {"risk_level": "high", "score": risk_score, "recommendation": "Proceed with extreme caution or avoid."}
     return {"risk_level": "moderate", "score": risk_score, "recommendation": "Monitor closely."}
-===

@@ -15,4 +15,3 @@ def long_position_analysis(asset_symbol: str, current_price: float, target_price
     if potential_profit > 0:
         return {"status": "viable", "potential_profit": potential_profit, "risk_factors": ["market_correction"], "recommendation": "Consider buying."}
     return {"status": "not_viable", "potential_profit": potential_profit, "risk_factors": [], "recommendation": "Do not buy at this target."}
-===

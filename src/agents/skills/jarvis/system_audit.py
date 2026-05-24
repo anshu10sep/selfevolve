@@ -43,4 +43,3 @@ def get_agent_status(agent_name: str = None) -> dict:
     if agent_name:
         return {agent_name: all_agent_statuses.get(agent_name, {"status": "unknown", "message": "Agent not found"})}
     return all_agent_statuses
-===

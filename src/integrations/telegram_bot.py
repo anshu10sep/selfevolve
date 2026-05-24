@@ -29,7 +29,17 @@ logger = structlog.get_logger(component="telegram_bot")
 
 # ── Module-level state ────────────────────────────────────────────
 _app: Optional[Application] = None
-_dashboard_url = "http://localhost:8000"
+_dashboard_url = None  # Loaded from settings on first use
+
+
+def _get_dashboard_url() -> str:
+    global _dashboard_url
+    if _dashboard_url is None:
+        try:
+            _dashboard_url = get_settings().dashboard_url
+        except Exception:
+            _dashboard_url = "http://localhost:8000"
+    return _dashboard_url
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -295,7 +305,7 @@ async def cmd_fr(update: Update, context: ContextTypes.DEFAULT_TYPE):
         from langchain_google_genai import ChatGoogleGenerativeAI
         settings = get_settings()
         llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash",
+            model=settings.efficient_model,
             google_api_key=settings.gemini_api_key,
             temperature=0.3,
         )
@@ -680,7 +690,7 @@ RULES:
 
         from langchain_google_genai import ChatGoogleGenerativeAI
         llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash",
+            model=settings.efficient_model,
             google_api_key=settings.gemini_api_key,
             temperature=0.7,
         )
@@ -803,7 +813,7 @@ async def start_bot() -> Optional[Application]:
         # Send startup notification
         await send_alert(
             "🟢 *Jarvis Online*\n\n"
-            "Dashboard: `http://localhost:8000`\n"
+            f"Dashboard: `{_get_dashboard_url()}`\n"
             "Type /status for system health.",
         )
 

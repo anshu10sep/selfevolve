@@ -14,4 +14,3 @@ def incident_response(incident_report: dict) -> dict:
     else:
         actions = ["Investigate logs", "Assess impact"]
     return {"status": "response_initiated", "actions_taken": actions, "next_steps": "Detailed investigation and remediation."}
-===

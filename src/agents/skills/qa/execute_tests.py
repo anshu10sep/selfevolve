@@ -14,4 +14,3 @@ def execute_tests(test_plan_id: str, environment: str) -> dict:
     if test_plan_id == "critical_path_tests":
         return {"status": "completed", "total_tests": 10, "passed": 9, "failed": 1, "errors": ["Login failed in edge case."]}
     return {"status": "completed", "total_tests": 5, "passed": 5, "failed": 0, "errors": []}
-===

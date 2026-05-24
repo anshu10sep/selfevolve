@@ -47,4 +47,3 @@ def clone_repository(repo_url: str, local_path: str) -> dict:
     print(f"Jarvis: Cloning repository {repo_url} to {local_path}")
     # Placeholder for actual git command execution
     return {"status": "success", "message": f"Repository {repo_url} cloned to {local_path}"}
-===

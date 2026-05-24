@@ -20,4 +20,3 @@ def write_test_cases(feature_requirements: list, test_type: str) -> list:
             "type": test_type
         })
     return test_cases
-===

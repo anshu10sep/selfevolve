@@ -25,4 +25,3 @@ def evaluate_company_news(company_symbol: str, news_articles: list) -> dict:
         impact = "minimal"
 
     return {"overall_sentiment": sentiment, "key_developments": ["product launch"], "potential_impact": impact}
-===

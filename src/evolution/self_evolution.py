@@ -44,7 +44,7 @@ class SelfEvolutionEngine:
             self._repo = settings.github_repo
         except Exception:
             self._pat = os.getenv("GITHUB_PAT", "")
-            self._repo = os.getenv("GITHUB_REPO", "anshu10sep/selfevolve")
+            self._repo = os.getenv("GITHUB_REPO", "")
 
         self._base_url = f"https://api.github.com/repos/{self._repo}"
         self._headers = {

@@ -34,4 +34,3 @@ def execute_unit_tests(test_file_content: str, test_file_path: str) -> dict:
     if "assert False" in test_file_content:
         return {"status": "failed", "failures": 1, "coverage": "75%", "error_message": "Assertion failed in test_example."}
     return {"status": "passed", "failures": 0, "coverage": "90%"}
-===

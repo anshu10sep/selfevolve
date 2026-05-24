@@ -15,4 +15,3 @@ def identify_bullish_signals(market_data: dict) -> list:
     if market_data.get("news_sentiment") == "positive" and market_data.get("rsi") > 70:
         signals.append("Positive sentiment with overbought conditions (potential for continued momentum)")
     return signals
-===

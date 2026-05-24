@@ -15,4 +15,3 @@ def assess_economic_indicators(indicator_name: str, region: str, time_period: st
     if indicator_name == "GDP" and region == "USA":
         return {"value": 3.2, "trend": "increasing", "implications": "positive_for_equities"}
     return {"value": "N/A", "trend": "unknown", "implications": "uncertain"}
-===

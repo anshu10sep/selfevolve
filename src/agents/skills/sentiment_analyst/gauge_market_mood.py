@@ -19,4 +19,3 @@ def gauge_market_mood(social_media_sentiment: float, news_sentiment: float, inve
     else:
         assessment = "neutral"
     return {"overall_mood_score": overall_score, "assessment": assessment}
-===

@@ -14,4 +14,3 @@ def blockchain_integration(target_blockchain: str, system_requirements: dict) ->
     if target_blockchain == "Solana":
         return {"plan": "RPC node setup, SDK integration", "resources": ["dev_team", "infra"], "challenges": ["network_congestion"]}
     return {"plan": "Research phase", "resources": ["researcher"], "challenges": ["compatibility"]}
-===

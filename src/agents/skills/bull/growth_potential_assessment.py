@@ -14,4 +14,3 @@ def growth_potential_assessment(company_data: dict, industry_outlook: dict) -> d
     if growth_score > 0.7:
         return {"growth_potential": "high", "score": growth_score, "drivers": ["innovation", "market_demand"]}
     return {"growth_potential": "moderate", "score": growth_score, "drivers": ["stable_market"]}
-===

@@ -15,4 +15,3 @@ def short_position_analysis(asset_symbol: str, current_price: float, target_pric
     if potential_profit > 0:
         return {"status": "viable", "potential_profit": potential_profit, "risk_factors": ["market_reversal"], "recommendation": "Consider shorting."}
     return {"status": "not_viable", "potential_profit": potential_profit, "risk_factors": [], "recommendation": "Do not short at this target."}
-===

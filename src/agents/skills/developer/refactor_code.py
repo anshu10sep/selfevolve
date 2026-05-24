@@ -14,4 +14,3 @@ def refactor_code(file_path: str, refactoring_goal: str) -> str:
     if refactoring_goal == "improve readability":
         return "Applied consistent naming conventions and broke down large functions."
     return "Refactoring complete, awaiting review."
-===

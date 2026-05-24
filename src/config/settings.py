@@ -96,6 +96,14 @@ class Settings(BaseSettings):
         default="http://qdrant:6333",
         description="Qdrant vector database URL",
     )
+    dashboard_url: str = Field(
+        default="http://localhost:8000",
+        description="Dashboard API URL",
+    )
+    alpaca_data_url: str = Field(
+        default="https://data.alpaca.markets",
+        description="Alpaca market data API URL",
+    )
 
     # ── Risk Management ───────────────────────────────────────────
     max_daily_api_budget: float = Field(

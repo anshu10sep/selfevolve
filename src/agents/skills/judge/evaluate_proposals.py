@@ -24,4 +24,3 @@ def evaluate_proposals(proposals: list, criteria: dict) -> dict:
         results.append({"proposal_id": i + 1, "score": score, "feedback": feedback, "proposal": proposal})
     results.sort(key=lambda x: x["score"], reverse=True)
     return {"evaluation_status": "completed", "ranked_proposals": results}
-===

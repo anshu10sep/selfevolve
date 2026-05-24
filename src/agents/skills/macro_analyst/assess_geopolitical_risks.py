@@ -19,4 +19,3 @@ def assess_geopolitical_risks(event_description: str, affected_regions: list) ->
         affected_sectors = ["various"]
         recommendation = "Monitor closely."
     return {"risk_level": risk_level, "affected_sectors": affected_sectors, "recommendation": recommendation}
-===

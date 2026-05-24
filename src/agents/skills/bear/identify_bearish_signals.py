@@ -15,4 +15,3 @@ def identify_bearish_signals(market_data: dict) -> list:
     if market_data.get("news_sentiment") == "negative" and market_data.get("rsi") < 30:
         signals.append("Negative sentiment with oversold conditions")
     return signals
-===

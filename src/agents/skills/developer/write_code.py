@@ -14,4 +14,3 @@ def write_code(requirements: str, language: str = "python") -> str:
     if "API endpoint" in requirements:
         return f"def get_data():\n    # Implement API call logic here\n    pass"
     return f"# Placeholder code for: {requirements}"
-===

@@ -17,4 +17,3 @@ def analyze_blockchain_data(blockchain_name: str, data_type: str, time_range: st
     elif data_type == "active_addresses":
         return {"metric": "active_addresses", "value": 500000, "trend": "stable"}
     return {"metric": data_type, "value": "N/A", "trend": "N/A", "error": "Data type not supported."}
-===

@@ -14,4 +14,3 @@ def smart_contract_audit(contract_code: str, blockchain_platform: str) -> dict:
     if "reentrancy_vulnerability" in contract_code: # Simplified check
         return {"status": "vulnerabilities_found", "severity": "critical", "details": "Reentrancy vulnerability detected."}
     return {"status": "clean", "severity": "none", "details": "No critical vulnerabilities found."}
-===

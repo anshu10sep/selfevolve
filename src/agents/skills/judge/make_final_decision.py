@@ -27,4 +27,3 @@ def make_final_decision(options: list, evaluation_results: dict, risk_tolerance:
                 break
 
     return {"decision_status": "made", "chosen_option": best_option["proposal"], "rationale": rationale}
-===

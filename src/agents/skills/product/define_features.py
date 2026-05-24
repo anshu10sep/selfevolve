@@ -13,4 +13,3 @@ def define_features(user_story: str, business_value: str) -> dict:
     feature_name = f"Implement {user_story.split(' ')[0]} functionality"
     requirements = [f"As a user, I want to {user_story.lower().replace('as a user, i want to ', '')}", "Acceptance criteria: ..."]
     return {"feature_name": feature_name, "description": user_story, "business_value": business_value, "initial_requirements": requirements}
-===

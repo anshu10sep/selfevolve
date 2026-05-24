@@ -23,4 +23,3 @@ def indicator_analysis(price_data: list, volume_data: list, indicator_type: str)
         signal = "bullish_crossover" if macd_value > 0 else "bearish_crossover"
         return {"indicator": "MACD", "value": macd_value, "signal": signal, "interpretation": f"MACD shows a {signal}."}
     return {"indicator": indicator_type, "value": "N/A", "signal": "N/A", "interpretation": "Indicator not supported or data insufficient."}
-===

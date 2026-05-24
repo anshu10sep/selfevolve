@@ -14,4 +14,3 @@ def tech_stack_evaluation(new_technology: str, existing_stack: list) -> dict:
     if new_technology == "Kubernetes" and "Docker" in existing_stack:
         return {"compatibility": "high", "benefits": ["scalability", "resilience"], "risks": ["complexity"], "effort": "medium"}
     return {"compatibility": "low", "benefits": [], "risks": ["unknowns"], "effort": "high"}
-===

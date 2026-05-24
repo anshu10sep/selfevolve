@@ -14,4 +14,3 @@ def monitor_social_media(keywords: list, platforms: list) -> dict:
     sentiment_score = 0.55 # Example slightly positive sentiment
     trending_topics = ["AI_boom", "interest_rate_hike_fears"]
     return {"social_media_sentiment_score": sentiment_score, "trending_topics": trending_topics}
-===

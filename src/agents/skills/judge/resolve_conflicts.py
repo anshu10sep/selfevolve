@@ -18,4 +18,3 @@ def resolve_conflicts(conflicting_proposals: list, conflict_type: str) -> dict:
         if bull_proposal and bear_proposal:
             return {"resolution_strategy": "neutral_stance", "details": "Adopted a wait-and-see approach due to conflicting bullish/bearish signals.", "compromise": True}
     return {"resolution_strategy": "default_to_safety", "details": "Prioritized risk mitigation due to unresolved conflict.", "compromise": False}
-===

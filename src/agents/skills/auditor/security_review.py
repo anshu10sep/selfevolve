@@ -14,4 +14,3 @@ def security_review(codebase_path: str, configuration_data: dict) -> dict:
     if configuration_data.get("open_ports", []) and "8080" in configuration_data["open_ports"]:
         return {"status": "vulnerabilities_found", "details": "Unsecured port 8080 detected."}
     return {"status": "secure", "details": "No major vulnerabilities identified."}
-===

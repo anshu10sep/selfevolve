@@ -18,4 +18,3 @@ def monitor_model_performance(model_id: str, metrics_data: dict) -> dict:
         health_status = "healthy"
         alert = "None"
     return {"health_status": health_status, "current_metrics": metrics_data, "alert": alert}
-===

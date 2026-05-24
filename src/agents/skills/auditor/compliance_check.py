@@ -14,4 +14,3 @@ def compliance_check(policy_document: str, system_state: dict) -> dict:
     if "unauthorized_access" in system_state.get("security_events", []):
         return {"status": "non_compliant", "violations": ["Unauthorized access detected."]}
     return {"status": "compliant", "violations": []}
-===

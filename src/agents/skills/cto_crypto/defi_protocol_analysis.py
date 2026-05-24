@@ -14,4 +14,3 @@ def defi_protocol_analysis(protocol_name: str, smart_contract_address: str) -> d
     if protocol_name == "Aave":
         return {"security_score": "high", "economic_model": "lending/borrowing", "benefits": ["liquidity"], "risks": ["smart_contract_bugs"], "feasibility": "high"}
     return {"security_score": "medium", "economic_model": "unknown", "benefits": [], "risks": ["audits_pending"], "feasibility": "low"}
-===

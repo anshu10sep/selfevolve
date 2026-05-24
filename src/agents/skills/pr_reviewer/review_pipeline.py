@@ -33,4 +33,3 @@ def summarize_review_findings(pr_url: str, review_results: list) -> dict:
     
     recommendation = "Approve" if overall_status == "approved" else "Request changes"
     return {"overall_status": overall_status, "total_comments": comments_count, "recommendation": recommendation}
-===
