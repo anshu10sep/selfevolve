@@ -293,13 +293,13 @@ class SelfEvolveSystem:
             id='post_market',
         )
 
-        # ── CRYPTO 24/7 — scans every 4 hours, 7 days/week ────────
-        for hour in [0, 4, 8, 12, 16, 20]:
-            self.scheduler.add_job(
-                self._run_crypto_scan,
-                CronTrigger(hour=hour, minute=15),
-                id=f'crypto_scan_{hour:02d}',
-            )
+        # ── CRYPTO 24/7 — scans every 30 mins for fast learning ──
+        from apscheduler.triggers.interval import IntervalTrigger
+        self.scheduler.add_job(
+            self._run_crypto_scan,
+            IntervalTrigger(minutes=30),
+            id='crypto_scan_30m',
+        )
 
         # ── CONTINUOUS EVOLUTION — every 6 hours, 7 days/week ──────
         self.scheduler.add_job(
@@ -653,8 +653,6 @@ class SelfEvolveSystem:
             analysis = response.content
 
             if "ACTION: BUY" in analysis.upper():
-                from broker.alpaca_client import AlpacaClient
-                from core.models.portfolio import TradeIntent, TradeSide
                 import uuid
 
                 sl_pct, tp_pct = 4.0, 8.0  # Wider for crypto
@@ -666,22 +664,46 @@ class SelfEvolveSystem:
                         try: tp_pct = float(line.split(":")[-1].strip().replace("%", ""))
                         except: pass
 
-                alpaca = AlpacaClient()
-                intent = TradeIntent(
-                    ticker=ticker.replace("/", ""),  # Alpaca uses BTCUSD not BTC/USD for orders
-                    side=TradeSide.BUY,
-                    notional=5000.0,  # $5K tranches for crypto (higher vol)
-                    stop_loss_price=round(current_price * (1 - sl_pct / 100), 2),
-                    take_profit_price=round(current_price * (1 + tp_pct / 100), 2),
-                    client_order_id=str(uuid.uuid4()),
-                )
-                order = await alpaca.submit_bracket_order(intent)
-                await alpaca.close()
+                # Crypto: simple market order (bracket not supported)
+                import httpx
+                from config.settings import get_settings
+                settings = get_settings()
+                order_data = {
+                    "symbol": ticker,  # Alpaca accepts "BTC/USD" for crypto
+                    "notional": "5000",
+                    "side": "buy",
+                    "type": "market",
+                    "time_in_force": "gtc",  # GTC for crypto (not "day")
+                }
+                async with httpx.AsyncClient(
+                    headers={
+                        "APCA-API-KEY-ID": settings.alpaca_api_key,
+                        "APCA-API-SECRET-KEY": settings.alpaca_secret_key,
+                    },
+                    timeout=15,
+                ) as hc:
+                    r = await hc.post(f"{settings.alpaca_base_url}/v2/orders", json=order_data)
+                    r.raise_for_status()
+                    order = r.json()
+
+                order_id = order.get("id", "?")
+                sl_price = round(current_price * (1 - sl_pct / 100), 2)
+                tp_price = round(current_price * (1 + tp_pct / 100), 2)
+
+                # Track SL/TP in system state for software stop monitoring
+                system_state.setdefault("crypto_stops", {})[ticker] = {
+                    "entry": current_price,
+                    "sl": sl_price,
+                    "tp": tp_price,
+                    "order_id": order_id,
+                }
 
                 await send_alert(
                     f"🪙 *CRYPTO ORDER: {ticker}*\n\n"
                     f"💰 $5,000 @ ${current_price:,.2f}\n"
-                    f"🛡 SL: -${sl_pct}% | TP: +{tp_pct}%\n"
+                    f"🛡 SL: ${sl_price:,.2f} (-{sl_pct}%)\n"
+                    f"🎯 TP: ${tp_price:,.2f} (+{tp_pct}%)\n"
+                    f"🔖 ID: `{order_id[:8]}`\n"
                     f"```\n{analysis[:200]}\n```"
                 )
             else:
