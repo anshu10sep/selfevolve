@@ -26,7 +26,13 @@ class GitHubOps:
 
     def __init__(self, repo_path: str = REPO_ROOT):
         self.repo_path = repo_path
-        self._github_pat: Optional[str] = os.getenv("GITHUB_PAT")
+        # Load PAT from settings (.env) with os.getenv as fallback
+        try:
+            from config.settings import get_settings
+            settings = get_settings()
+            self._github_pat: Optional[str] = getattr(settings, "github_pat", None) or os.getenv("GITHUB_PAT")
+        except Exception:
+            self._github_pat = os.getenv("GITHUB_PAT")
         self._github_repo: str = os.getenv("GITHUB_REPO", "anshu10sep/selfevolve")
 
     def _run_git(self, *args: str) -> tuple[int, str, str]:

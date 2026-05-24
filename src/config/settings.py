@@ -75,6 +75,10 @@ class Settings(BaseSettings):
     telegram_bot_token: str = Field(default="", description="Telegram bot token for HITL")
     telegram_chat_id: str = Field(default="", description="Telegram chat ID for alerts")
 
+    # ── GitHub ─────────────────────────────────────────────────────
+    github_pat: str = Field(default="", description="GitHub Personal Access Token for PR creation")
+    github_repo: str = Field(default="anshu10sep/selfevolve", description="GitHub repo (owner/name)")
+
     # ── Infrastructure ────────────────────────────────────────────
     postgres_url: str = Field(
         default="postgresql+asyncpg://selfevolve:selfevolve@postgres:5432/selfevolve",
