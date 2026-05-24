@@ -202,18 +202,35 @@ async def cmd_roadmap(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 @_owner_only
 async def cmd_bugs(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    data = await _api("/api/bugs/summary")
-    if not data:
+    summary = await _api("/api/bugs/summary")
+    bugs_data = await _api("/api/bugs")
+
+    if not summary:
         await update.message.reply_text("❌ Dashboard unreachable")
         return
 
+    total = summary.get("total", 0)
+    open_count = summary.get("open", 0)
+    in_prog = summary.get("in_progress", 0)
+    resolved = summary.get("resolved", 0)
+
     msg = (
         f"🐛 *Bug Tracker*\n\n"
-        f"📊 Total: *{data.get('total', 0)}*\n"
-        f"🔴 Open: *{data.get('open', 0)}*\n"
-        f"🟠 In Progress: *{data.get('in_progress', 0)}*\n"
-        f"🟢 Resolved: *{data.get('resolved', 0)}*\n"
+        f"📊 Total: *{total}* | 🔴 Open: *{open_count}* | 🟠 In Progress: *{in_prog}* | 🟢 Resolved: *{resolved}*\n\n"
     )
+
+    if bugs_data:
+        bugs = bugs_data.get("bugs", [])
+        open_bugs = [b for b in bugs if b.get("status") in ("OPEN", "IN_PROGRESS")]
+        if open_bugs:
+            sev_emoji = {"CRITICAL": "🔴", "HIGH": "🟠", "MEDIUM": "🟡", "LOW": "⚪"}
+            for b in open_bugs[:10]:
+                emoji = sev_emoji.get(b.get("severity", ""), "🔹")
+                src = f" (from {b['source']})" if b.get("source") else ""
+                msg += f"{emoji} `{b.get('title', '?')[:55]}`{src}\n"
+        else:
+            msg += "✅ No open bugs!"
+
     await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
 
 
@@ -256,7 +273,10 @@ async def cmd_resume(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 @_owner_only
 async def cmd_fr(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Submit a Feature Request — processed IMMEDIATELY by Gemini."""
+    """Submit a Feature Request — processed IMMEDIATELY.
+    
+    Creates real bugs/tasks in the system that show up in /bugs.
+    """
     fr_text = " ".join(context.args) if context.args else ""
     if not fr_text:
         await update.message.reply_text(
@@ -280,38 +300,103 @@ async def cmd_fr(update: Update, context: ContextTypes.DEFAULT_TYPE):
             temperature=0.3,
         )
 
-        status = await _api("/api/status") or {}
+        # Get current agent list for context
+        agents_data = await _api("/api/agents") or {}
+        agent_names = [a["name"] for a in agents_data.get("agents", [])]
+
         response = await llm.ainvoke(
-            f"You are Jarvis, CEO of SelfEvolve. Feature request from owner:\n\n"
+            f"You are Jarvis, CEO of SelfEvolve. Feature request from the owner:\n\n"
             f"FR: {fr_text}\n\n"
-            f"System: {status.get('status', 'RUNNING')}\n\n"
-            f"Respond with:\n"
-            f"1. FEASIBILITY: Easy/Medium/Hard\n"
-            f"2. ASSIGNED_TO: which agent\n"
-            f"3. PRIORITY: P1-P4\n"
-            f"4. PLAN: 2-3 steps\n"
-            f"5. ETA: time estimate\n"
-            f"6. STATUS: what you're doing now"
+            f"Active agents: {', '.join(agent_names)}\n\n"
+            f"Respond in EXACTLY this format:\n"
+            f"SUMMARY: one sentence summary\n"
+            f"FEASIBILITY: Easy/Medium/Hard\n"
+            f"PRIORITY: P1/P2/P3/P4\n"
+            f"ASSIGNED_TO: agent name\n"
+            f"PLAN: 2-3 step plan\n"
+            f"ETA: time estimate\n\n"
+            f"Then list bugs/tasks to create (one per line, prefix with BUG:):\n"
+            f"BUG: [severity HIGH/MEDIUM/LOW] title of the bug or task\n"
+            f"BUG: [severity HIGH/MEDIUM/LOW] another bug or task\n"
+            f"(create at least 1 bug, up to 5)"
         )
+
+        analysis = response.content
 
         import uuid as _uuid
         from datetime import datetime as _dt, timezone as _tz
+        from dashboard.api.main import system_state
+
+        # Create the FR record
+        fr_id = str(_uuid.uuid4())
         fr_record = {
-            "id": str(_uuid.uuid4()),
+            "id": fr_id,
             "title": fr_text[:100],
+            "description": fr_text,
+            "analysis": analysis,
             "status": "IN_PROGRESS",
             "created_at": _dt.now(_tz.utc).isoformat(),
         }
-        from dashboard.api.main import system_state
         system_state.setdefault("feature_requests", []).append(fr_record)
 
-        await update.message.reply_text(
-            f"✅ *FR #{fr_record['id'][:8]}*\n\n{response.content[:800]}",
-            parse_mode=None,
+        # Parse and create bugs from Gemini's response
+        bugs_created = []
+        for line in analysis.split("\n"):
+            line = line.strip()
+            if line.upper().startswith("BUG:"):
+                bug_text = line[4:].strip()
+
+                # Parse severity
+                severity = "MEDIUM"
+                for sev in ["CRITICAL", "HIGH", "MEDIUM", "LOW"]:
+                    if f"[{sev}]" in bug_text.upper() or f"[{sev.lower()}]" in bug_text.lower():
+                        severity = sev
+                        bug_text = bug_text.replace(f"[{sev}]", "").replace(f"[{sev.lower()}]", "").replace(f"[severity {sev}]", "").replace(f"[severity {sev.lower()}]", "").strip()
+                        break
+
+                bug_id = str(_uuid.uuid4())
+                bug = {
+                    "id": bug_id,
+                    "title": bug_text[:100],
+                    "severity": severity,
+                    "status": "OPEN",
+                    "source": f"FR #{fr_id[:8]}",
+                    "description": fr_text,
+                    "created_at": _dt.now(_tz.utc).isoformat(),
+                }
+                system_state["bugs"].append(bug)
+                bugs_created.append(f"🐛 [{severity}] {bug_text[:60]}")
+
+        # If Gemini didn't create any BUG: lines, create one from the FR itself
+        if not bugs_created:
+            bug_id = str(_uuid.uuid4())
+            bug = {
+                "id": bug_id,
+                "title": fr_text[:100],
+                "severity": "MEDIUM",
+                "status": "OPEN",
+                "source": f"FR #{fr_id[:8]}",
+                "description": fr_text,
+                "created_at": _dt.now(_tz.utc).isoformat(),
+            }
+            system_state["bugs"].append(bug)
+            bugs_created.append(f"🐛 [MEDIUM] {fr_text[:60]}")
+
+        # Build response
+        bugs_list = "\n".join(bugs_created)
+        reply = (
+            f"✅ FR #{fr_id[:8]}\n\n"
+            f"{analysis[:600]}\n\n"
+            f"━━━ Bugs Created ({len(bugs_created)}) ━━━\n"
+            f"{bugs_list}\n\n"
+            f"Use /bugs to see all open bugs."
         )
-        logger.info("feature_request", fr_id=fr_record["id"][:8], text=fr_text[:50])
+
+        await update.message.reply_text(reply, parse_mode=None)
+        logger.info("feature_request", fr_id=fr_id[:8], bugs=len(bugs_created), text=fr_text[:50])
 
     except Exception as e:
+        logger.error("fr_command_failed", error=str(e))
         await update.message.reply_text(f"❌ FR error: {str(e)[:100]}")
 
 
