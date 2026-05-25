@@ -1,4 +1,4 @@
-def monitor_crypto_social_media(keywords: list, platforms: list) -> dict:
+def monitor_crypto_social_media(keywords: list[str], platforms: list[str]) -> dict:
     """
     Monitors specified social media platforms for mentions of cryptocurrencies and extracts sentiment.
 

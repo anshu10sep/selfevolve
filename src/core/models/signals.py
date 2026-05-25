@@ -64,6 +64,41 @@ class ConvictionScore(BaseModel):
         return v.upper().strip()
 
 
+class DebateArgument(BaseModel):
+    """
+    Structured output from Bull/Bear debate agents.
+
+    Enforces argument length limits and provides a trackable conviction
+    score that feeds into the prediction tracking system.
+    """
+    agent_id: str = Field(..., description="Source agent identifier")
+    ticker: str = Field(..., description="Asset under debate")
+    argument: str = Field(
+        ..., max_length=600,
+        description="The agent's bull/bear thesis (max 150 words)",
+    )
+    conviction_score: float = Field(
+        ..., ge=0.0, le=10.0,
+        description="Conviction in this thesis (0 = no conviction, 10 = maximum)",
+    )
+    key_data_points: list[str] = Field(
+        default_factory=list,
+        description="Top 3 data points supporting the argument",
+    )
+    confidence: float = Field(
+        default=0.5, ge=0.0, le=1.0,
+        description="Confidence in prediction accuracy (0 = uncertain, 1 = certain)",
+    )
+    timestamp: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+    )
+
+    @field_validator("ticker")
+    @classmethod
+    def uppercase_ticker(cls, v: str) -> str:
+        return v.upper().strip()
+
+
 class DebateState(BaseModel):
     """
     State flowing through the Bull/Bear debate workflow.

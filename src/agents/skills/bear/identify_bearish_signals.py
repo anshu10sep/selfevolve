@@ -1,7 +1,7 @@
 from typing import List
 from agents.skills.validator import skill
 
-@skill
+@skill("bear")
 def detect_death_cross(short_term_ma: List[float], long_term_ma: List[float]) -> bool:
     """
     Detects a 'Death Cross' bearish signal where a short-term moving average crosses below a long-term moving average.

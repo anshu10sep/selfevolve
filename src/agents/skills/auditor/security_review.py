@@ -1,7 +1,7 @@
 from typing import Dict, Any, List
 from agents.skills.validator import skill
 
-@skill
+@skill("auditor")
 def review_smart_contract_security(contract_code: str, known_vulnerabilities: List[str]) -> Dict[str, Any]:
     """
     Reviews smart contract code for known security vulnerabilities.

@@ -1,4 +1,7 @@
-def make_final_decision(options: list, evaluation_results: dict, risk_tolerance: str) -> dict:
+from agents.skills.validator import skill
+
+@skill("judge")
+def make_final_decision(options: list[str], evaluation_results: dict, risk_tolerance: str) -> dict:
     """
     Makes a final, binding decision based on evaluated options, considering risk tolerance.
 

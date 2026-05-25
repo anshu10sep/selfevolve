@@ -1,4 +1,7 @@
-def gather_requirements(feature_name: str, stakeholders: list) -> list:
+from agents.skills.validator import skill
+
+@skill("product")
+def gather_requirements(feature_name: str, stakeholders: list[str]) -> list[str]:
     """
     Gathers detailed requirements for a new feature from various stakeholders.
 

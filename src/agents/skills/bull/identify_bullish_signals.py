@@ -1,7 +1,7 @@
 from typing import List
 from agents.skills.validator import skill
 
-@skill
+@skill("bull")
 def detect_golden_cross(short_term_ma: List[float], long_term_ma: List[float]) -> bool:
     """
     Detects a 'Golden Cross' bullish signal where a short-term moving average crosses above a long-term moving average.

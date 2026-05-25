@@ -1,3 +1,6 @@
+from agents.skills.validator import skill
+
+@skill("product")
 def define_features(user_story: str, business_value: str) -> dict:
     """
     Defines new product features based on user stories and their associated business value.

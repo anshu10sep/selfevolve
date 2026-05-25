@@ -1,3 +1,6 @@
+from agents.skills.validator import skill
+
+@skill("cso")
 def security_policy_enforcement(policy_id: str, system_config: dict) -> dict:
     """
     Ensures that system configurations and operational procedures adhere to defined security policies.

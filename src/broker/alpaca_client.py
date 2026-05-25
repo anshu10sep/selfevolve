@@ -241,6 +241,53 @@ class AlpacaClient:
         response.raise_for_status()
         return response.json()
 
+    async def get_closed_orders(self, limit: int = 50) -> list[dict]:
+        """Get recently closed/filled orders."""
+        client = await self._get_client()
+        response = await client.get(
+            f"{self.base_url}/v2/orders",
+            params={"status": "closed", "limit": limit, "direction": "desc"},
+        )
+        response.raise_for_status()
+        return response.json()
+
+    async def close_position(self, ticker: str) -> dict[str, Any]:
+        """Close an entire position by liquidating all shares.
+
+        Used by the position review engine for exit recommendations.
+        """
+        client = await self._get_client()
+        response = await client.delete(
+            f"{self.base_url}/v2/positions/{ticker}",
+        )
+        response.raise_for_status()
+        result = response.json()
+        logger.info("position_closed", ticker=ticker, order_id=result.get("id"))
+        return result
+
+    async def replace_order(
+        self, order_id: str, stop_price: float = None, limit_price: float = None,
+    ) -> dict[str, Any]:
+        """Replace (modify) an existing order with new price levels.
+
+        Used to tighten trailing stops on winning positions.
+        """
+        patch_data: dict[str, Any] = {}
+        if stop_price is not None:
+            patch_data["stop_price"] = str(stop_price)
+        if limit_price is not None:
+            patch_data["limit_price"] = str(limit_price)
+
+        client = await self._get_client()
+        response = await client.patch(
+            f"{self.base_url}/v2/orders/{order_id}",
+            json=patch_data,
+        )
+        response.raise_for_status()
+        result = response.json()
+        logger.info("order_replaced", order_id=order_id, new_stop=stop_price)
+        return result
+
     # ── Market Data ────────────────────────────────────────────────
 
     async def get_latest_quote(self, ticker: str) -> dict[str, Any]:
@@ -272,3 +319,27 @@ class AlpacaClient:
         response.raise_for_status()
         data = response.json()
         return data.get("bars", [])
+
+    async def get_asset(self, ticker: str) -> dict[str, Any]:
+        """Get basic asset details (marginable, shortable, fractionable, status)."""
+        client = await self._get_client()
+        response = await client.get(
+            f"{self.base_url}/v2/assets/{ticker}"
+        )
+        response.raise_for_status()
+        return response.json()
+
+    async def get_news(self, ticker: str, limit: int = 10) -> list[dict]:
+        """Get recent news articles for a ticker."""
+        client = await self._get_client()
+        response = await client.get(
+            f"{self.data_url}/v1beta1/news",
+            headers=self.headers,
+            params={
+                "symbols": ticker,
+                "limit": limit,
+            },
+        )
+        response.raise_for_status()
+        data = response.json()
+        return data.get("news", [])

@@ -9,7 +9,11 @@ Monitor for freeriding violations, verify trade chronology, cross-reference inte
 - **Compliance Score**: → target 100% regulatory compliance
 
 ## Current Skills
-- `compliance_validator.py`: Validate trades against FINRA/OFAC rules
+- `compliance_check.py`: Validate individual trades against FINRA/OFAC rules
+- `compliance_skills.py`: Comprehensive compliance skill library
+- `audit_logs.py`: Audit log parsing and analysis
+- `security_review.py`: Security review of trade operations
+- `skills.py`: Core auditor skill functions
 
 ## Evolution Targets
 - [ ] Build real-time freeriding detector

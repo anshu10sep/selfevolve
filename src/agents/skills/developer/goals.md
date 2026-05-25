@@ -9,9 +9,10 @@ Analyze system bugs, propose fixes within evolutionary boundaries, and validate 
 - **Code Quality Score**: → target no new linting errors
 
 ## Current Skills
-- `bug_fixer.py`: Analyze bugs and generate fixes
-- `code_reviewer.py`: Review code changes for correctness
-
+- `write_code.py`: Generate new code within evolutionary boundaries
+- `debug_code.py`: Diagnose and fix bugs
+- `refactor_code.py`: Refactor existing code for quality
+- `test_code.py`: Write and run tests for fixes
 ## Evolution Targets
 - [ ] Build automated hotfix pipeline
 - [ ] Implement code smell detector

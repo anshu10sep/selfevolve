@@ -1,4 +1,7 @@
-def resolve_conflicts(conflicting_proposals: list, conflict_type: str) -> dict:
+from agents.skills.validator import skill
+
+@skill("judge")
+def resolve_conflicts(conflicting_proposals: list[str], conflict_type: str) -> dict:
     """
     Resolves conflicts between competing proposals or agent recommendations.
 

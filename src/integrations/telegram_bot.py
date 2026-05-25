@@ -13,10 +13,11 @@ from typing import Optional
 
 import httpx
 import structlog
-from telegram import Update, BotCommand
+from telegram import Update, BotCommand, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application,
     CommandHandler,
+    CallbackQueryHandler,
     ContextTypes,
     MessageHandler,
     filters,
@@ -69,6 +70,17 @@ async def _api(path: str, method: str = "GET") -> Optional[dict]:
             return r.json()
     except Exception as e:
         logger.error("telegram_api_call_failed", path=path, error=str(e))
+        return None
+
+
+async def _api_json(path: str, data: dict) -> Optional[dict]:
+    """POST JSON to the Jarvis dashboard API."""
+    try:
+        async with httpx.AsyncClient(timeout=10) as c:
+            r = await c.post(f"{_dashboard_url}{path}", json=data)
+            return r.json()
+    except Exception as e:
+        logger.error("telegram_api_json_failed", path=path, error=str(e))
         return None
 
 
@@ -538,7 +550,8 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "/work — Process next bug NOW\n"
         "/review — Review open PRs NOW\n"
         "/evolve — Merge approved PRs + self-update\n"
-        "/audit — System audit\n\n"
+        "/audit — System audit\n"
+        "/hitl — Pending HITL approvals\n\n"
         "_Or just type any question!_",
         parse_mode=ParseMode.MARKDOWN,
     )
@@ -610,9 +623,16 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return await cmd_evolve(update, context)
     if lower.startswith("/help"):
         return await cmd_help(update, context)
+    if lower.startswith("/hitl"):
+        return await cmd_hitl(update, context)
     if lower.startswith("/"):
         # Unknown command — show help
         return await cmd_help(update, context)
+
+    # Check if this is a SL/TP modify response
+    from datetime import datetime, timezone  # noqa: reimport in scope
+    if await _handle_modify_input(update, context):
+        return
 
     await update.message.reply_text("🤔 Thinking...")
 
@@ -718,6 +738,322 @@ RULES:
 
 
 # ══════════════════════════════════════════════════════════════════
+# HITL — HUMAN IN THE LOOP TRADE APPROVALS
+# ══════════════════════════════════════════════════════════════════
+
+async def send_hitl_approval_request(request) -> tuple[Optional[int], Optional[int]]:
+    """Send a rich HITL approval message with inline buttons.
+    
+    Args:
+        request: HITLRequest dataclass
+        
+    Returns:
+        Tuple of (message_id, chat_id) for later editing
+    """
+    try:
+        settings = get_settings()
+        token = settings.telegram_bot_token
+        chat_id = settings.telegram_chat_id
+
+        if not token or not chat_id:
+            return None, None
+
+        # Build approval message
+        sl_pct = abs((request.stop_loss - request.price) / request.price * 100) if request.price > 0 else 0
+        tp_pct = abs((request.take_profit - request.price) / request.price * 100) if request.price > 0 else 0
+
+        msg = (
+            f"🔔 *HITL APPROVAL REQUIRED*\n"
+            f"━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            f"📊 *{request.ticker}* — {request.side} *${request.notional:,.0f}*\n"
+            f"💰 Price: *${request.price:,.2f}*\n"
+            f"🛡 SL: *${request.stop_loss:,.2f}* (-{sl_pct:.1f}%)\n"
+            f"🎯 TP: *${request.take_profit:,.2f}* (+{tp_pct:.1f}%)\n"
+            f"📈 Confidence: *{request.confidence:.1f}/10*\n\n"
+            f"⚠️ *Trigger:* {request.trigger_reason}\n\n"
+        )
+
+        if request.analysis_preview:
+            preview = request.analysis_preview[:200].replace('`', "'")
+            msg += f"📝 *Analysis:*\n```\n{preview}\n```\n\n"
+
+        msg += f"⏱ Auto-approves in *60 seconds* if no response\n"
+        msg += f"🆔 `{request.id}`"
+
+        # Inline keyboard buttons
+        keyboard = InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton("✅ Approve", callback_data=f"hitl_approve:{request.id}"),
+                InlineKeyboardButton("❌ Reject", callback_data=f"hitl_reject:{request.id}"),
+            ],
+            [
+                InlineKeyboardButton("✏️ Modify SL/TP", callback_data=f"hitl_modify:{request.id}"),
+            ],
+        ])
+
+        # Send via HTTP API (direct, not through python-telegram-bot handlers)
+        async with httpx.AsyncClient(timeout=15) as client:
+            resp = await client.post(
+                f"https://api.telegram.org/bot{token}/sendMessage",
+                json={
+                    "chat_id": chat_id,
+                    "text": msg,
+                    "parse_mode": "Markdown",
+                    "reply_markup": keyboard.to_dict(),
+                },
+            )
+            result = resp.json()
+
+            if result.get("ok"):
+                msg_id = result["result"]["message_id"]
+                logger.info("hitl_telegram_sent", request_id=request.id, msg_id=msg_id)
+                return msg_id, int(chat_id)
+            else:
+                logger.error("hitl_telegram_send_failed", error=result)
+                return None, None
+
+    except Exception as e:
+        logger.error("hitl_telegram_failed", error=str(e))
+        return None, None
+
+
+async def update_hitl_message(request) -> None:
+    """Edit the original Telegram message to show the resolution."""
+    try:
+        settings = get_settings()
+        token = settings.telegram_bot_token
+
+        if not token or not request.telegram_message_id or not request.telegram_chat_id:
+            return
+
+        # Build resolution status
+        status = request.status
+        if hasattr(status, 'value'):
+            status = status.value
+
+        status_emoji = {
+            "APPROVED": "✅",
+            "REJECTED": "🚫",
+            "MODIFIED": "✏️",
+            "TIMED_OUT": "⏱",
+        }
+        emoji = status_emoji.get(status, "❓")
+        source = request.resolved_by or "system"
+
+        # Build updated message
+        sl_pct = abs((request.stop_loss - request.price) / request.price * 100) if request.price > 0 else 0
+        tp_pct = abs((request.take_profit - request.price) / request.price * 100) if request.price > 0 else 0
+
+        msg = (
+            f"{emoji} *HITL {status}*\n"
+            f"━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            f"📊 *{request.ticker}* — {request.side} *${request.notional:,.0f}*\n"
+            f"💰 Price: *${request.price:,.2f}*\n"
+        )
+
+        if status == "MODIFIED" and (request.modified_sl or request.modified_tp):
+            new_sl = request.modified_sl or request.stop_loss
+            new_tp = request.modified_tp or request.take_profit
+            new_sl_pct = abs((new_sl - request.price) / request.price * 100) if request.price > 0 else 0
+            new_tp_pct = abs((new_tp - request.price) / request.price * 100) if request.price > 0 else 0
+            msg += (
+                f"🛡 SL: ~${request.stop_loss:,.2f}~ → *${new_sl:,.2f}* (-{new_sl_pct:.1f}%)\n"
+                f"🎯 TP: ~${request.take_profit:,.2f}~ → *${new_tp:,.2f}* (+{new_tp_pct:.1f}%)\n"
+            )
+        else:
+            msg += (
+                f"🛡 SL: *${request.stop_loss:,.2f}* (-{sl_pct:.1f}%)\n"
+                f"🎯 TP: *${request.take_profit:,.2f}* (+{tp_pct:.1f}%)\n"
+            )
+
+        msg += f"\n{emoji} *Resolved:* {status} (via {source})"
+
+        if request.human_notes:
+            msg += f"\n📝 Notes: _{request.human_notes}_"
+
+        # Edit the message (remove inline keyboard)
+        async with httpx.AsyncClient(timeout=10) as client:
+            await client.post(
+                f"https://api.telegram.org/bot{token}/editMessageText",
+                json={
+                    "chat_id": request.telegram_chat_id,
+                    "message_id": request.telegram_message_id,
+                    "text": msg,
+                    "parse_mode": "Markdown",
+                },
+            )
+
+        logger.info("hitl_message_updated", request_id=request.id, status=status)
+
+    except Exception as e:
+        logger.debug("hitl_message_update_failed", error=str(e))
+
+
+# Module-level state for modify flow
+_modify_pending: dict[int, str] = {}  # chat_id -> request_id waiting for SL/TP input
+
+
+async def hitl_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle inline button taps for HITL approvals."""
+    query = update.callback_query
+    await query.answer()  # Acknowledge the button tap
+
+    # Verify owner
+    settings = get_settings()
+    if str(query.from_user.id) != str(settings.telegram_chat_id):
+        await query.answer("⛔ Unauthorized", show_alert=True)
+        return
+
+    data = query.data  # e.g., "hitl_approve:abc12345"
+    if ":" not in data:
+        return
+
+    action, request_id = data.split(":", 1)
+
+    from core.hitl_gateway import hitl_gateway, HITLSource
+
+    if action == "hitl_approve":
+        resolved = await hitl_gateway.resolve(
+            request_id=request_id,
+            action="APPROVED",
+            source=HITLSource.TELEGRAM,
+        )
+        if resolved:
+            await query.answer(f"✅ {resolved.ticker} trade APPROVED", show_alert=True)
+        else:
+            await query.answer("❌ Request not found or already resolved", show_alert=True)
+
+    elif action == "hitl_reject":
+        resolved = await hitl_gateway.resolve(
+            request_id=request_id,
+            action="REJECTED",
+            source=HITLSource.TELEGRAM,
+            notes="Rejected via Telegram",
+        )
+        if resolved:
+            await query.answer(f"🚫 {resolved.ticker} trade REJECTED", show_alert=True)
+        else:
+            await query.answer("❌ Request not found or already resolved", show_alert=True)
+
+    elif action == "hitl_modify":
+        # Prompt the user for new SL/TP values
+        request = hitl_gateway.get_request(request_id)
+        if not request or request.status.value != "PENDING":
+            await query.answer("❌ Request not found or already resolved", show_alert=True)
+            return
+
+        # Store the pending modify request
+        _modify_pending[query.from_user.id] = request_id
+
+        await query.message.reply_text(
+            f"✏️ *Modify SL/TP for {request.ticker}*\n\n"
+            f"Current SL: `${request.stop_loss:,.2f}`\n"
+            f"Current TP: `${request.take_profit:,.2f}`\n\n"
+            f"Reply with new values in this format:\n"
+            f"`SL:188.50 TP:205.00`\n\n"
+            f"Or type `cancel` to keep original values.",
+            parse_mode=ParseMode.MARKDOWN,
+        )
+        await query.answer("Enter new SL/TP values")
+
+
+async def _handle_modify_input(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
+    """Check if this message is a SL/TP modification response.
+    
+    Returns True if handled, False otherwise.
+    """
+    user_id = update.effective_user.id
+    if user_id not in _modify_pending:
+        return False
+
+    request_id = _modify_pending.pop(user_id)
+    text = update.message.text.strip()
+
+    if text.lower() == "cancel":
+        await update.message.reply_text("❌ Modification cancelled. Use the buttons to approve or reject.")
+        return True
+
+    # Parse SL:xxx TP:xxx format
+    new_sl = None
+    new_tp = None
+    for part in text.upper().replace(",", "").split():
+        if part.startswith("SL:"):
+            try:
+                new_sl = float(part[3:])
+            except ValueError:
+                pass
+        elif part.startswith("TP:"):
+            try:
+                new_tp = float(part[3:])
+            except ValueError:
+                pass
+
+    if new_sl is None and new_tp is None:
+        await update.message.reply_text(
+            "❌ Could not parse SL/TP values.\n"
+            "Use format: `SL:188.50 TP:205.00`",
+            parse_mode=ParseMode.MARKDOWN,
+        )
+        _modify_pending[user_id] = request_id  # Put it back
+        return True
+
+    from core.hitl_gateway import hitl_gateway, HITLSource
+
+    resolved = await hitl_gateway.resolve(
+        request_id=request_id,
+        action="MODIFIED",
+        source=HITLSource.TELEGRAM,
+        notes=f"SL/TP modified via Telegram",
+        modified_sl=new_sl,
+        modified_tp=new_tp,
+    )
+
+    if resolved:
+        sl_str = f"${new_sl:,.2f}" if new_sl else "unchanged"
+        tp_str = f"${new_tp:,.2f}" if new_tp else "unchanged"
+        await update.message.reply_text(
+            f"✏️ *Trade Modified & Approved*\n\n"
+            f"📊 {resolved.ticker}\n"
+            f"🛡 SL: {sl_str}\n"
+            f"🎯 TP: {tp_str}",
+            parse_mode=ParseMode.MARKDOWN,
+        )
+    else:
+        await update.message.reply_text("❌ Request not found or already resolved.")
+
+    return True
+
+
+@_owner_only
+async def cmd_hitl(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Show pending HITL approval requests."""
+    from core.hitl_gateway import hitl_gateway
+
+    pending = hitl_gateway.get_pending()
+
+    if not pending:
+        await update.message.reply_text(
+            "✅ *No pending approvals*\n\n"
+            "All trades are auto-approved or already resolved.",
+            parse_mode=ParseMode.MARKDOWN,
+        )
+        return
+
+    msg = f"🔔 *Pending HITL Approvals ({len(pending)})*\n\n"
+    for req in pending:
+        age_sec = (datetime.now(timezone.utc) - req.created_at).total_seconds()
+        msg += (
+            f"📊 *{req.ticker}* — {req.side} ${req.notional:,.0f}\n"
+            f"   💰 ${req.price:,.2f} | Conf: {req.confidence:.1f}\n"
+            f"   ⚠️ {req.trigger_reason[:60]}\n"
+            f"   ⏱ {age_sec:.0f}s ago | 🆔 `{req.id}`\n\n"
+        )
+
+    msg += "_Use the inline buttons on each request to approve/reject._"
+    await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
+
+
+# ══════════════════════════════════════════════════════════════════
 # ALERT SYSTEM — called by other parts of the system
 # ══════════════════════════════════════════════════════════════════
 
@@ -782,6 +1118,7 @@ async def start_bot() -> Optional[Application]:
         _app.add_handler(CommandHandler("work", cmd_work))
         _app.add_handler(CommandHandler("review", cmd_review))
         _app.add_handler(CommandHandler("evolve", cmd_evolve))
+        _app.add_handler(CommandHandler("hitl", cmd_hitl))
         _app.add_handler(CommandHandler("help", cmd_help))
         _app.add_handler(MessageHandler(filters.TEXT, handle_message))
 
@@ -799,10 +1136,14 @@ async def start_bot() -> Optional[Application]:
             BotCommand("roadmap", "Evolution roadmap"),
             BotCommand("bugs", "Bug tracker"),
             BotCommand("audit", "System audit"),
+            BotCommand("hitl", "Pending trade approvals"),
             BotCommand("pause", "Pause trading"),
             BotCommand("resume", "Resume trading"),
             BotCommand("help", "Show all commands"),
         ])
+
+        # Register HITL callback handler for inline buttons
+        _app.add_handler(CallbackQueryHandler(hitl_callback_handler))
 
         # Initialize and start polling (non-blocking)
         await _app.initialize()

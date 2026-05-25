@@ -9,8 +9,9 @@ Analyze news sentiment, social media trends, and market psychology to generate c
 - **Data Freshness**: → target news within last 4 hours
 
 ## Current Skills
-- `news_scorer.py`: Score news articles for sentiment and relevance
-
+- `analyze_news_articles.py`: Score news articles for sentiment and relevance
+- `gauge_market_mood.py`: Aggregate market mood from multiple sources
+- `monitor_social_media.py`: Track social media sentiment signals
 ## Evolution Targets
 - [ ] Build Reddit/Twitter sentiment aggregator
 - [ ] Implement insider trading signal detector

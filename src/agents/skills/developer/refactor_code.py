@@ -1,3 +1,6 @@
+from agents.skills.validator import skill
+
+@skill("developer")
 def refactor_code(file_path: str, refactoring_goal: str) -> str:
     """
     Refactors existing code to improve its structure, readability, or performance without changing its external behavior.

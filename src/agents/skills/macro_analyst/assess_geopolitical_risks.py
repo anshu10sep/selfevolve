@@ -1,4 +1,4 @@
-def assess_geopolitical_risks(event_description: str, affected_regions: list) -> dict:
+def assess_geopolitical_risks(event_description: str, affected_regions: list[str]) -> dict:
     """
     Assesses the potential impact of geopolitical events (e.g., conflicts, policy changes) on global markets.
 

@@ -2,7 +2,7 @@
 LLM Factory
 
 Centralized LLM instantiation for the entire system.
-Currently locked to Gemini 3.1 Pro across all tiers.
+Currently locked to Gemini 2.5 across all tiers.
 Future: Model Optimizer Agent will dynamically switch models
 per agent based on performance metrics once subscriptions are active.
 """
@@ -23,7 +23,7 @@ def get_efficient_llm() -> BaseChatModel:
     """
     Get the cost-efficient LLM for triage, parsing, and analyst tasks.
     
-    Currently: Gemini 3.1 Pro (all tiers locked until multi-model subs)
+    Currently: Gemini 2.5 Flash (all tiers locked until multi-model subs)
     """
     settings = get_settings()
     return _create_gemini_model(settings.efficient_model, temperature=0.3)
@@ -33,7 +33,7 @@ def get_premium_llm() -> BaseChatModel:
     """
     Get the premium LLM for Judge, debate, and evolution tasks.
     
-    Currently: Gemini 3.1 Pro (all tiers locked until multi-model subs)
+    Currently: Gemini 2.5 Pro (all tiers locked until multi-model subs)
     """
     settings = get_settings()
     return _create_gemini_model(settings.premium_model, temperature=0.1)

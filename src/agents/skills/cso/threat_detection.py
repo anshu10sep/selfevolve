@@ -1,3 +1,6 @@
+from agents.skills.validator import skill
+
+@skill("cso")
 def threat_detection(monitoring_data: dict) -> dict:
     """
     Monitors system activities and external threat intelligence for potential security threats.

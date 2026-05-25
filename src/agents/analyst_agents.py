@@ -43,12 +43,21 @@ class FundamentalAnalystAgent(BaseAgent):
             agent_type=AgentType.ANALYST,
             identity_core=FUNDAMENTAL_CORE,
         )
+        # Load Fundamental Analyst skills into SkillRegistry before super()
+        try:
+            import agents.skills.fundamental_analyst.market_data_skill  # noqa: F401
+            import agents.skills.fundamental_analyst.yfinance_fundamentals  # noqa: F401
+            import agents.skills.fundamental_analyst.analyze_financial_statements  # noqa: F401
+            import agents.skills.fundamental_analyst.financial_skills  # noqa: F401
+        except ImportError:
+            pass
         super().__init__(identity, llm, trust_weight)
 
     async def analyze(self, ticker: str, data: dict) -> ConvictionScore:
         message = f"""Analyze {ticker} fundamentals and produce your ConvictionScore.
 
-Data provided:
+You MUST use your available tools to fetch deep fundamental data for this ticker before scoring it.
+Initial Context:
 {data}
 
 Output your score (-1.0 to 1.0), confidence (0-1), and rationale (max 100 words).
@@ -100,12 +109,22 @@ class TechnicalAnalystAgent(BaseAgent):
             agent_type=AgentType.ANALYST,
             identity_core=TECHNICAL_CORE,
         )
+        # Load Technical Analyst skills into SkillRegistry before super()
+        try:
+            import agents.skills.technical_analyst.market_data_skill  # noqa: F401
+        except ImportError:
+            pass
+        try:
+            import agents.skills.technical_analyst.indicator_analysis  # noqa: F401
+        except ImportError:
+            pass  # pandas_ta not installed
         super().__init__(identity, llm, trust_weight)
 
     async def analyze(self, ticker: str, data: dict) -> ConvictionScore:
         message = f"""Analyze {ticker} technical setup and produce your ConvictionScore.
 
-Technical Data:
+You MUST use your available tools to fetch technical data and indicators for this ticker before scoring it.
+Initial Technical Data:
 {data}
 
 Include in your rationale: key support/resistance levels, trend direction, and any setup.
@@ -157,11 +176,18 @@ class SentimentAnalystAgent(BaseAgent):
             agent_type=AgentType.ANALYST,
             identity_core=SENTIMENT_CORE,
         )
+        # Load Sentiment Analyst skills into SkillRegistry before super()
+        try:
+            import agents.skills.sentiment_analyst.alpaca_news_sentiment  # noqa: F401
+            import agents.skills.sentiment_analyst.analyze_news_articles  # noqa: F401
+        except ImportError:
+            pass
         super().__init__(identity, llm, trust_weight)
 
     async def analyze(self, ticker: str, data: dict) -> ConvictionScore:
         message = f"""Analyze {ticker} sentiment and produce your ConvictionScore.
 
+You MUST use your available tools to fetch sentiment data for this ticker before scoring it.
 Sanitized Sentiment Data:
 {data}
 
@@ -216,24 +242,41 @@ class MacroAnalystAgent(BaseAgent):
             agent_type=AgentType.ANALYST,
             identity_core=MACRO_CORE,
         )
+        # Load Macro Analyst skills into SkillRegistry before super()
+        try:
+            import agents.skills.macro_analyst.analyze_global_economy  # noqa: F401
+            import agents.skills.macro_analyst.market_breadth  # noqa: F401
+        except ImportError:
+            pass
         super().__init__(identity, llm, trust_weight)
 
-    async def analyze(self, data: dict) -> dict[str, Any]:
-        message = f"""Analyze current macroeconomic conditions.
+    async def analyze(self, ticker: str, data: dict) -> dict[str, Any]:
+        message = f"""Analyze current macroeconomic conditions and their impact on {ticker}.
 
-Macro Data:
+You MUST use your available tools to fetch macro data and market breadth before scoring.
+Initial Macro Data:
 {data}
 
-Output:
-1. Your ConvictionScore (score, confidence, rationale)
-2. A position_size_modifier (0.0 to 1.0) for the entire portfolio
+Provide your ConvictionScore:
+- score: -1.0 (strongly negative macro environment) to 1.0 (strongly positive)
+- confidence: 0.0 (uncertain) to 1.0 (certain)
+- rationale: Brief explanation of macro impact on this asset (max 100 words)
 """
-        result = await self.invoke(message)
-        return result
+        try:
+            result = await self.invoke(
+                message,
+                output_schema=ConvictionScore,
+                context={"ticker": ticker},
+            )
+            return result
+        except Exception as e:
+            return self._safe_default(str(e))
 
     def _safe_default(self, error: str) -> dict[str, Any]:
         return {
+            "agent_id": self.agent_id,
+            "ticker": "UNKNOWN",
             "score": 0.0, "confidence": 0.0,
-            "rationale": f"Error: {error}",
-            "position_size_modifier": 0.5,  # Cautious default
+            "rationale": f"Macro analysis unavailable: {error}",
         }
+

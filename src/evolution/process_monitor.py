@@ -189,16 +189,14 @@ class ProcessMonitor:
     # ── Bug Filing ───────────────────────────────────────────────
 
     async def _file_pipeline_bug(self, issue: dict) -> Optional[dict]:
-        """File a bug about a pipeline problem."""
+        """File a bug about a pipeline problem (with deduplication)."""
         try:
-            from persistence.db import create_bug
-            import uuid
+            from persistence.db import create_bug_dedup
 
             title = f"[Pipeline] {issue['agent']}: {issue['issue']}"[:200]
             severity = issue.get("severity", "HIGH")
 
-            bug = create_bug(
-                id=str(uuid.uuid4()),
+            bug = create_bug_dedup(
                 title=title,
                 severity=severity,
                 source="process_monitor",
@@ -209,6 +207,9 @@ class ProcessMonitor:
                     f"Time: {datetime.now(timezone.utc).isoformat()}"
                 ),
             )
+
+            if bug is None:
+                return None  # Duplicate already exists
 
             self._issues_found += 1
             logger.info("pipeline_bug_filed", title=title[:60])

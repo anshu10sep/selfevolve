@@ -1,4 +1,7 @@
-def review_agent_performance(agent_name: str, task_logs: list, feedback: list) -> dict:
+from agents.skills.validator import skill
+
+@skill("meta_review")
+def review_agent_performance(agent_name: str, task_logs: list[str], feedback: list[str]) -> dict:
     """
     Reviews the performance of individual agents based on their task logs and feedback.
 

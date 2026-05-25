@@ -240,3 +240,157 @@ def merge_pull_request(repo_url: str, pr_id: str, merge_method: str = "merge") -
 def clone_repository(repo_url: str, local_path: str) -> dict:
     """Legacy wrapper."""
     return {"status": "success", "message": f"Repository {repo_url} cloned to {local_path}"}
+
+
+# ── LLM Tool-Calling Registration ─────────────────────────────────
+from agents.skills.validator import skill
+
+
+@skill("master")
+def create_git_branch(branch_name: str) -> str:
+    """Create a new git feature branch from main for code evolution.
+    Checks out main, pulls latest, then creates and switches to the new branch.
+
+    Args:
+        branch_name: Name for the new branch (will be auto-prefixed with 'jarvis/').
+
+    Returns:
+        Status message indicating whether the branch was created successfully.
+    """
+    ops = GitHubOps()
+    full_name = f"jarvis/{branch_name}"
+    ok = ops.create_branch(full_name)
+    return f"Branch '{full_name}' created: {'SUCCESS' if ok else 'FAILED'}"
+
+
+@skill("master")
+def commit_and_push_changes(commit_message: str) -> str:
+    """Stage ALL current changes, commit with the given message, and push to origin.
+    After pushing, switches back to the main branch.
+    Use this after generating code or making modifications.
+
+    Args:
+        commit_message: Descriptive git commit message explaining the changes.
+
+    Returns:
+        Status message with the branch name and push result.
+    """
+    ops = GitHubOps()
+    committed = ops.stage_and_commit(f"[Jarvis] {commit_message}")
+    if committed:
+        _, branch = ops._run_git("rev-parse", "--abbrev-ref", "HEAD")
+        branch = branch.strip()
+        pushed = ops.push_branch(branch)
+        ops.checkout_main()
+        return f"Committed and pushed to '{branch}': {'SUCCESS' if pushed else 'PUSH FAILED'}"
+    ops.checkout_main()
+    return "Nothing to commit or commit failed"
+
+
+@skill("master")
+def get_git_status() -> str:
+    """Get the current git status: branch name, changed files, and recent commits.
+    Use this to understand what has changed in the repository.
+
+    Returns:
+        Formatted string with branch, status, and recent commit log.
+    """
+    ops = GitHubOps()
+    _, branch = ops._run_git("rev-parse", "--abbrev-ref", "HEAD")
+    _, status = ops._run_git("status", "--short")
+    _, log = ops._run_git("log", "--oneline", "-5")
+    return f"Branch: {branch.strip()}\n\nChanged files:\n{status.strip() or '(clean)'}\n\nRecent commits:\n{log.strip()}"
+
+
+@skill("master")
+def create_pull_request_tool(title: str, body: str, branch_name: str) -> str:
+    """Create a GitHub Pull Request from a feature branch to main.
+    The branch must already exist on origin (use commit_and_push_changes first).
+    Use this to submit code changes for review.
+
+    Args:
+        title: PR title (concise description of changes).
+        body: PR description with details about what changed and why.
+        branch_name: The source branch name (e.g., "jarvis/fix-bug-123").
+
+    Returns:
+        PR URL and number if successful, or an error message.
+    """
+    import asyncio
+
+    ops = GitHubOps()
+
+    async def _create():
+        return await ops.create_pull_request(
+            title=title, body=body, head_branch=branch_name,
+        )
+
+    try:
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+
+        if loop and loop.is_running():
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                result = pool.submit(lambda: asyncio.run(_create())).result(timeout=30)
+        else:
+            result = asyncio.run(_create())
+
+        if result and result.get("url"):
+            return f"✅ PR created: {result['url']} (#{result.get('number', '?')})"
+        return f"⚠️ PR creation issue: {result.get('error', 'Unknown error')}"
+
+    except Exception as e:
+        return f"❌ PR creation failed: {str(e)[:200]}"
+
+
+@skill("master")
+def full_evolution_pipeline(branch_name: str, commit_message: str, pr_title: str, pr_body: str) -> str:
+    """Run the full evolution pipeline: create branch → stage all changes → commit →
+    push to origin → create Pull Request → switch back to main.
+    Use this for end-to-end code evolution workflows.
+
+    Args:
+        branch_name: Name for the feature branch (will be prefixed with 'jarvis/').
+        commit_message: Git commit message describing the changes.
+        pr_title: Pull Request title.
+        pr_body: Pull Request description with details.
+
+    Returns:
+        Result summary with PR URL or error details.
+    """
+    import asyncio
+
+    ops = GitHubOps()
+    full_branch = f"jarvis/{branch_name}"
+
+    async def _pipeline():
+        return await ops.evolution_commit_and_pr(
+            branch_name=full_branch,
+            files=[],  # stage all changes
+            commit_message=f"[Jarvis] {commit_message}",
+            pr_title=pr_title,
+            pr_body=pr_body,
+        )
+
+    try:
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+
+        if loop and loop.is_running():
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                result = pool.submit(lambda: asyncio.run(_pipeline())).result(timeout=60)
+        else:
+            result = asyncio.run(_pipeline())
+
+        if result and result.get("url"):
+            return f"✅ Evolution pipeline complete! PR: {result['url']}"
+        return f"⚠️ Pipeline issue: {result.get('error', 'Unknown error')}"
+
+    except Exception as e:
+        return f"❌ Evolution pipeline failed: {str(e)[:200]}"

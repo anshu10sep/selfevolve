@@ -1,3 +1,6 @@
+from agents.skills.validator import skill
+
+@skill("journaling")
 def log_market_events(event_type: str, event_details: dict) -> dict:
     """
     Logs significant market events, such as major price movements, news releases, or economic data publications.

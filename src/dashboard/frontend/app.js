@@ -35,6 +35,8 @@ function loadSectionData(section) {
     case 'overview': loadOverview(); break;
     case 'agents': loadAgents(); break;
     case 'roadmap': loadRoadmap(); break;
+    case 'architecture': loadArchitecture(); break;
+    case 'watchdog': loadWatchdog(); break;
     case 'bugs': loadBugs(); break;
     case 'hitl': loadHitlQueue(); break;
     case 'audit': break; // loaded on demand
@@ -340,13 +342,196 @@ async function loadBugs() {
     return;
   }
 
-  bugList.innerHTML = bugs.map(b => `
-    <div class="bug-item" onclick="openHitlModal('${b.id}', '${(b.title||'').replace(/'/g,"\\'")}', '${(b.description||'').replace(/'/g,"\\'")}', '${b.severity}')">
-      <div class="bug-severity ${(b.severity || '').toLowerCase()}"></div>
-      <div class="bug-title">${b.title || 'Untitled'}</div>
-      <span class="bug-status ${(b.status || '').toLowerCase().replace('_','-')}">${b.status || 'OPEN'}</span>
+  const severityColors = {
+    CRITICAL: '#F87171', HIGH: '#FB923C', MEDIUM: '#FBBF24', LOW: '#60A5FA'
+  };
+
+  bugList.innerHTML = bugs.map(b => {
+    const sevColor = severityColors[b.severity] || severityColors.MEDIUM;
+    const statusClass = (b.status || '').toLowerCase().replace('_', '-');
+    const ago = timeAgo(b.created_at);
+    const source = b.source ? `<span class="bug-source">via ${b.source}</span>` : '';
+    const sevLabel = `<span class="bug-sev-label" style="color:${sevColor}">${b.severity || 'MEDIUM'}</span>`;
+
+    return `
+      <div class="bug-item clickable" onclick="openBugDetail('${b.id}')">
+        <div class="bug-severity" style="background:${sevColor};box-shadow:0 0 8px ${sevColor}"></div>
+        <div class="bug-info">
+          <div class="bug-title">${b.title || 'Untitled'}</div>
+          <div class="bug-meta-row">${ago ? `<span class="bug-ago">${ago}</span>` : ''}${source}${sevLabel}</div>
+        </div>
+        <span class="bug-status ${statusClass}">${b.status || 'OPEN'}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── Bug Detail Modal ────────────────────────────────────────────
+
+function formatDateFull(iso) {
+  if (!iso) return null;
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })
+      + ' at ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  } catch(e) { return iso; }
+}
+
+function timeAgo(iso) {
+  if (!iso) return '';
+  try {
+    const now = new Date();
+    const then = new Date(iso);
+    const diffMs = now - then;
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return 'just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHrs = Math.floor(diffMins / 60);
+    if (diffHrs < 24) return `${diffHrs}h ago`;
+    const diffDays = Math.floor(diffHrs / 24);
+    return `${diffDays}d ago`;
+  } catch(e) { return ''; }
+}
+
+function calcDuration(created, resolved) {
+  if (!created || !resolved) return null;
+  try {
+    const c = new Date(created);
+    const r = new Date(resolved);
+    const diffMs = r - c;
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 60) return `${diffMins} minutes`;
+    const diffHrs = Math.floor(diffMins / 60);
+    if (diffHrs < 24) return `${diffHrs} hours`;
+    const diffDays = Math.floor(diffHrs / 24);
+    return `${diffDays} days`;
+  } catch(e) { return null; }
+}
+
+async function openBugDetail(bugId) {
+  const bug = await api(`/api/bugs/${bugId}`);
+  if (!bug) return;
+
+  const severityStyles = {
+    CRITICAL: { bg: 'rgba(239,68,68,0.15)', border: 'rgba(239,68,68,0.4)', text: '#F87171' },
+    HIGH:     { bg: 'rgba(249,115,22,0.15)', border: 'rgba(249,115,22,0.4)', text: '#FB923C' },
+    MEDIUM:   { bg: 'rgba(245,158,11,0.15)', border: 'rgba(245,158,11,0.4)', text: '#FBBF24' },
+    LOW:      { bg: 'rgba(59,130,246,0.15)', border: 'rgba(59,130,246,0.4)', text: '#60A5FA' },
+  };
+  const statusStyles = {
+    OPEN:        { bg: 'rgba(239,68,68,0.15)', border: 'rgba(239,68,68,0.4)', text: '#F87171', icon: '🔴' },
+    IN_PROGRESS: { bg: 'rgba(245,158,11,0.15)', border: 'rgba(245,158,11,0.4)', text: '#FBBF24', icon: '🟡' },
+    RESOLVED:    { bg: 'rgba(16,185,129,0.15)', border: 'rgba(16,185,129,0.4)', text: '#34D399', icon: '✅' },
+    WONT_FIX:    { bg: 'rgba(107,114,128,0.15)', border: 'rgba(107,114,128,0.4)', text: '#9CA3AF', icon: '⏭️' },
+    DEFERRED:    { bg: 'rgba(139,92,246,0.15)', border: 'rgba(139,92,246,0.4)', text: '#A78BFA', icon: '⏸️' },
+  };
+
+  const sev = severityStyles[bug.severity] || severityStyles.MEDIUM;
+  const stat = statusStyles[bug.status] || statusStyles.OPEN;
+  const isAuto = (bug.title || '').startsWith('[Auto]') || bug.source === 'bug_scanner' || bug.source === 'process_monitor';
+
+  // Badges
+  let badges = `
+    <span class="detail-badge" style="background:${sev.bg};border:1px solid ${sev.border};color:${sev.text}">${bug.severity}</span>
+    <span class="detail-badge" style="background:${stat.bg};border:1px solid ${stat.border};color:${stat.text}">${stat.icon} ${bug.status}</span>
+  `;
+  if (isAuto) {
+    badges += `<span class="detail-badge" style="background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.3);color:#A78BFA">🤖 Auto-filed</span>`;
+  }
+  document.getElementById('bug-detail-badges').innerHTML = badges;
+
+  // Title + filed date
+  document.getElementById('bug-detail-title').textContent = bug.title || 'Untitled';
+  const filedDate = formatDateFull(bug.created_at);
+  const agoStr = timeAgo(bug.created_at);
+  document.getElementById('bug-detail-filed').innerHTML = filedDate
+    ? `Filed ${filedDate} <span style="color:var(--text-muted)">(${agoStr})</span>`
+    : '';
+
+  // Timeline
+  let timelineHtml = `
+    <div class="timeline-card">
+      <div class="timeline-label">Created</div>
+      <div class="timeline-value">${formatDateFull(bug.created_at) || '—'}</div>
     </div>
-  `).join('');
+  `;
+  if (bug.started_at) {
+    timelineHtml += `
+      <div class="timeline-card">
+        <div class="timeline-label">Work Started</div>
+        <div class="timeline-value">${formatDateFull(bug.started_at)}</div>
+      </div>
+    `;
+  }
+  if (bug.resolved_at) {
+    timelineHtml += `
+      <div class="timeline-card">
+        <div class="timeline-label">Resolved</div>
+        <div class="timeline-value" style="color:var(--accent-green)">${formatDateFull(bug.resolved_at)}</div>
+      </div>
+    `;
+  }
+  const dur = calcDuration(bug.created_at, bug.resolved_at);
+  if (dur) {
+    timelineHtml += `
+      <div class="timeline-card">
+        <div class="timeline-label">Resolution Time</div>
+        <div class="timeline-value" style="color:var(--accent-cyan)">${dur}</div>
+      </div>
+    `;
+  }
+  document.getElementById('bug-detail-timeline').innerHTML = timelineHtml;
+
+  // Description
+  const descSection = document.getElementById('bug-detail-desc-section');
+  if (bug.description) {
+    descSection.style.display = 'block';
+    document.getElementById('bug-detail-desc').textContent = bug.description;
+  } else {
+    descSection.style.display = 'none';
+  }
+
+  // Metadata
+  document.getElementById('bug-detail-meta').innerHTML = `
+    <div class="meta-card">
+      <div class="meta-label">Source</div>
+      <div class="meta-value">${bug.source || 'Manual'}</div>
+    </div>
+    <div class="meta-card">
+      <div class="meta-label">Assigned To</div>
+      <div class="meta-value">${bug.assigned_to || 'Unassigned'}</div>
+    </div>
+  `;
+
+  // PR link
+  const prSection = document.getElementById('bug-detail-pr-section');
+  if (bug.pr_url) {
+    prSection.style.display = 'block';
+    const prLink = document.getElementById('bug-detail-pr-link');
+    prLink.href = bug.pr_url;
+    prLink.textContent = '🔗 ' + bug.pr_url;
+  } else {
+    prSection.style.display = 'none';
+  }
+
+  // Worker error
+  const errSection = document.getElementById('bug-detail-error-section');
+  if (bug.worker_error) {
+    errSection.style.display = 'block';
+    document.getElementById('bug-detail-error').textContent = bug.worker_error;
+  } else {
+    errSection.style.display = 'none';
+  }
+
+  // Bug ID
+  document.getElementById('bug-detail-id').textContent = 'ID: ' + bug.id;
+
+  // Show modal
+  document.getElementById('bug-detail-modal').style.display = 'flex';
+}
+
+function closeBugDetail() {
+  document.getElementById('bug-detail-modal').style.display = 'none';
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -563,3 +748,111 @@ document.getElementById('btn-resume').addEventListener('click', async () => {
   document.getElementById('btn-resume').style.display = 'none';
   document.getElementById('btn-pause').style.display = 'flex';
 });
+
+// ════════════════════════════════════════════════════════════════
+// ARCHITECTURE (vis.js)
+// ════════════════════════════════════════════════════════════════
+
+let archNetwork = null;
+
+async function loadArchitecture() {
+  const data = await api('/api/agents');
+  if (!data || !data.agents) return;
+  const agents = data.agents;
+  
+  document.getElementById('arch-agent-count').textContent = `${agents.length} active agents`;
+
+  // Create nodes
+  const nodes = new vis.DataSet(agents.map(a => {
+    // Determine color based on type
+    let color = { background: '#1e293b', border: '#475569' };
+    if (a.role === 'MASTER') color = { background: '#2563eb', border: '#60a5fa' };
+    else if (a.type === 'EXECUTIVE') color = { background: '#7c3aed', border: '#a78bfa' };
+    else if (a.type === 'MANAGER') color = { background: '#059669', border: '#34d399' };
+    else if (a.type === 'ANALYST') color = { background: '#d97706', border: '#fbbf24' };
+
+    return {
+      id: a.id,
+      label: a.name + '\\n(' + (a.role || 'Agent') + ')',
+      title: 'Click to view details',
+      color: color,
+      shape: 'box',
+      font: { color: '#f0f3f6', face: 'Inter' },
+      borderWidth: 2,
+      shadow: true
+    };
+  }));
+
+  // Create edges: Executive -> Manager -> Specialist/Analyst
+  const edgesData = [];
+  const master = agents.find(a => a.role === 'MASTER');
+  const executives = agents.filter(a => a.type === 'EXECUTIVE' && a.role !== 'MASTER');
+  const managers = agents.filter(a => a.type === 'MANAGER');
+  const others = agents.filter(a => ['ANALYST', 'SPECIALIST'].includes(a.type) && a.role !== 'MASTER');
+
+  if (master) {
+    executives.forEach(e => edgesData.push({ from: master.id, to: e.id, arrows: 'to', color: '#475569' }));
+  }
+  
+  executives.forEach(e => {
+      managers.forEach(m => {
+          if ((e.division === m.division) || (!e.division && !m.division)) {
+              edgesData.push({ from: e.id, to: m.id, arrows: 'to', color: '#475569' });
+          }
+      });
+  });
+
+  managers.forEach(m => {
+      others.forEach(o => {
+          if ((m.division === o.division) || (!m.division && !o.division)) {
+              edgesData.push({ from: m.id, to: o.id, arrows: 'to', color: '#475569', dashes: true });
+          }
+      });
+  });
+
+  const edges = new vis.DataSet(edgesData);
+  const container = document.getElementById('architecture-network');
+  const networkData = { nodes, edges };
+  const options = {
+    layout: { hierarchical: { direction: 'UD', sortMethod: 'directed', nodeSpacing: 150, treeSpacing: 200 } },
+    physics: false,
+    interaction: { hover: true, tooltipDelay: 200 }
+  };
+
+  if (archNetwork) archNetwork.destroy();
+  archNetwork = new vis.Network(container, networkData, options);
+
+  // Click event to drill down
+  archNetwork.on("click", function (params) {
+    if (params.nodes.length > 0) {
+      openAgentDetail(params.nodes[0]);
+    }
+  });
+}
+
+// ════════════════════════════════════════════════════════════════
+// WATCHDOG
+// ════════════════════════════════════════════════════════════════
+
+async function loadWatchdog() {
+  const data = await api('/api/watchdog');
+  const container = document.getElementById('watchdog-logs');
+  
+  if (!data || !data.logs || data.logs.length === 0) {
+    container.innerHTML = '<div class="empty-state">No watchdog logs found.</div>';
+    return;
+  }
+  
+  const logsHtml = data.logs.map(l => {
+      let colorClass = '';
+      if (l.includes('ISSUES FOUND') || l.includes('❌') || l.includes('Error') || l.includes('failed')) colorClass = 'log-error';
+      else if (l.includes('⚠️')) colorClass = 'log-warning';
+      else if (l.includes('✅')) colorClass = 'log-success';
+      
+      const escaped = l.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      return `<div class="log-line ${colorClass}">${escaped}</div>`;
+  }).join('');
+
+  container.innerHTML = logsHtml;
+  container.scrollTop = container.scrollHeight;
+}

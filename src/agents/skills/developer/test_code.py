@@ -1,4 +1,7 @@
-def test_code(file_path: str, test_cases: list) -> dict:
+from agents.skills.validator import skill
+
+@skill("developer")
+def test_code(file_path: str, test_cases: list[str]) -> dict:
     """
     Executes unit or integration tests on a given code module.
 

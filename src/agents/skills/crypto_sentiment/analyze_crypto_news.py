@@ -1,4 +1,4 @@
-def analyze_crypto_news(news_articles: list) -> dict:
+def analyze_crypto_news(news_articles: list[str]) -> dict:
     """
     Analyzes a list of cryptocurrency news articles to extract overall sentiment and key topics.
 

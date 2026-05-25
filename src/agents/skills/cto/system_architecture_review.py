@@ -1,3 +1,6 @@
+from agents.skills.validator import skill
+
+@skill("cto")
 def system_architecture_review(architecture_diagram: str, performance_metrics: dict) -> dict:
     """
     Reviews the overall system architecture for scalability, reliability, and efficiency.

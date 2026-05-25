@@ -1,3 +1,6 @@
+from agents.skills.validator import skill
+
+@skill("journaling")
 def record_decisions(decision_maker: str, decision_details: dict, rationale: str) -> dict:
     """
     Records strategic and operational decisions made by agents or the system, along with their rationale.
