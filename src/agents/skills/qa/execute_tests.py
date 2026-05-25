@@ -1,3 +1,6 @@
+from agents.skills.validator import skill
+
+@skill("qa")
 def execute_tests(test_plan_id: str, environment: str) -> dict:
     """
     Executes a predefined test plan in a specified environment.

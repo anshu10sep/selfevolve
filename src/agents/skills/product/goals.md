@@ -9,8 +9,9 @@ Prioritize feature development, track owner requirements, and ensure the system 
 - **Roadmap Accuracy**: → target deliver within ±20% of estimates
 
 ## Current Skills
-- `feature_prioritizer.py`: Rank features by impact and effort
-
+- `define_features.py`: Define and scope new features
+- `gather_requirements.py`: Gather and prioritize owner requirements
+- `roadmap_management.py`: Maintain and update the product roadmap
 ## Evolution Targets
 - [ ] Build owner feedback loop via Telegram
 - [ ] Implement feature impact tracking

@@ -1,4 +1,7 @@
-def roadmap_management(current_roadmap: list, new_features: list, priorities: dict) -> list:
+from agents.skills.validator import skill
+
+@skill("product")
+def roadmap_management(current_roadmap: list[str], new_features: list[str], priorities: dict) -> list[str]:
     """
     Manages the product roadmap, prioritizing features and adjusting timelines.
 

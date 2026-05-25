@@ -1,4 +1,4 @@
-def chart_pattern_recognition(price_data: list) -> list:
+def chart_pattern_recognition(price_data: list[str]) -> list[str]:
     """
     Analyzes historical price data to identify common chart patterns (e.g., head and shoulders, double top/bottom).
 

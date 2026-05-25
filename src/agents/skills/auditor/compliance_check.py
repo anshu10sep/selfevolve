@@ -1,7 +1,7 @@
 from typing import Dict, Any, List
 from agents.skills.validator import skill
 
-@skill
+@skill("auditor")
 def verify_trade_compliance(trade_details: Dict[str, Any], compliance_rules: List[str]) -> bool:
     """
     Verifies if a proposed trade meets all compliance rules.

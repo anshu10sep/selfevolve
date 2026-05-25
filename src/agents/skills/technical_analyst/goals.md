@@ -9,8 +9,11 @@ Analyze price action, volume patterns, and technical indicators to generate conv
 - **Signal-to-Noise Ratio**: → target minimize false signals
 
 ## Current Skills
-- `chart_pattern_detector.py`: Detect common chart patterns and breakouts
-
+- `skills.py`: Core technical indicators (RSI, MACD, Bollinger Bands, SMA/EMA)
+- `indicator_skills.py`: Extended indicator calculations
+- `indicator_analysis.py`: Multi-indicator confluence analysis
+- `chart_pattern_recognition.py`: Detect chart patterns and breakouts
+- `predict_price_movements.py`: Price prediction based on technical setup
 ## Evolution Targets
 - [ ] Build multi-timeframe confluence detector
 - [ ] Implement volume profile analysis

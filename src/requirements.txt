@@ -27,3 +27,6 @@ lxml>=5.0
 pandas-market-calendars>=4.4
 python-telegram-bot>=21.0
 scipy>=1.14
+psutil>=7.0
+yfinance>=0.2.30
+pandas_ta>=0.3.14b0

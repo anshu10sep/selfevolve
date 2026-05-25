@@ -1,7 +1,7 @@
 from typing import Dict, Any
 from agents.skills.validator import skill
 
-@skill
+@skill("crypto_analyst")
 def evaluate_tokenomics(total_supply: float, circulating_supply: float, inflation_rate: float) -> Dict[str, Any]:
     """
     Evaluates the tokenomics of a cryptocurrency project.

@@ -1,71 +1,437 @@
 import os
-import time
-import socket
+import asyncio
 import logging
-import requests
 from typing import Dict, Any, Optional
-from functools import wraps
 
 logger = logging.getLogger(__name__)
 
-def retry_on_network_error(max_retries=5, backoff_factor=2):
-    """
-    Decorator to retry LLM API calls on network errors, specifically handling
-    socket.gaierror (Temporary failure in name resolution).
-    """
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            retries = 0
-            while retries < max_retries:
-                try:
-                    return func(*args, **kwargs)
-                except (socket.gaierror, requests.exceptions.RequestException, ConnectionError) as e:
-                    retries += 1
-                    if retries >= max_retries:
-                        logger.error(f"Max retries ({max_retries}) reached in CodeGenerator. Failed with error: {e}")
-                        raise
-                    sleep_time = backoff_factor ** retries
-                    logger.warning(f"Network error in code generation: {e}. Retrying in {sleep_time} seconds... ({retries}/{max_retries})")
-                    time.sleep(sleep_time)
-        return wrapper
-    return decorator
 
 class CodeGenerator:
     """
-    Skill for Jarvis to generate code using LLM APIs, robust against network errors
-    like temporary failure in name resolution (socket.gaierror).
+    Skill for Jarvis to generate code using the centralized LLM factory.
+
+    Uses Gemini via llm_factory.get_premium_llm() — the same LLM backend
+    used by all other agents. No direct API calls to OpenAI.
     """
-    def __init__(self, api_key: Optional[str] = None):
-        self.api_key = api_key or os.environ.get("OPENAI_API_KEY")
-        self.base_url = "https://api.openai.com/v1/chat/completions"
-        self.headers = {
-            "Content-Type": "application/json",
-        }
-        if self.api_key:
-            self.headers["Authorization"] = f"Bearer {self.api_key}"
 
-    @retry_on_network_error(max_retries=5, backoff_factor=2)
-    def generate_code(self, prompt: str, model: str = "gpt-4") -> str:
-        """Generate code based on a prompt."""
-        if not self.api_key:
-            logger.warning("No API key provided for code generation.")
-            return "# Error: No API key provided."
-            
-        payload = {
-            "model": model,
-            "messages": [
-                {"role": "system", "content": "You are an expert Python developer for the SelfEvolve autonomous trading system."},
-                {"role": "user", "content": prompt}
-            ],
-            "temperature": 0.2
-        }
-        response = requests.post(self.base_url, headers=self.headers, json=payload, timeout=45)
-        response.raise_for_status()
-        data = response.json()
-        return data["choices"][0]["message"]["content"]
+    def __init__(self):
+        # Paths for generated files
+        self._agents_dir = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..", "..")
+        )
+        self._src_dir = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..", "..", "..")
+        )
 
-def generate_code(prompt: str, model: str = "gpt-4") -> str:
+    def generate_code(self, prompt: str) -> str:
+        """Generate code based on a prompt using the centralized LLM factory.
+
+        Uses Gemini via llm_factory.get_premium_llm(). Runs synchronously
+        by executing the async LLM call in an event loop.
+        """
+        try:
+            from core.llm_factory import get_premium_llm
+            from core.llm_utils import extract_text
+
+            llm = get_premium_llm()
+
+            system_msg = "You are an expert Python developer for the SelfEvolve autonomous trading system. Generate ONLY Python code. No markdown fences. No explanations."
+            full_prompt = f"{system_msg}\n\n{prompt}"
+
+            # Handle both sync and async contexts
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = None
+
+            if loop and loop.is_running():
+                # Already in async context — create a new thread to run sync
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor() as pool:
+                    result = pool.submit(
+                        lambda: asyncio.run(llm.ainvoke(full_prompt))
+                    ).result(timeout=60)
+            else:
+                result = asyncio.run(llm.ainvoke(full_prompt))
+
+            return extract_text(result.content)
+
+        except Exception as e:
+            logger.error(f"Code generation failed: {e}")
+            return f"# Error: Code generation failed: {e}"
+
+    def generate_agent_file(
+        self,
+        role: str,
+        agent_name: str,
+        identity_core: str,
+        agent_type: str = "SPECIALIST",
+    ) -> str:
+        """
+        Generate a production-quality agent Python file with skill wiring.
+
+        The generated agent includes:
+        - Skill imports in __init__() before super().__init__()
+        - Domain-specific async methods (not just generic execute_task)
+        - A @skill() decorated function for the ReAct tool-calling loop
+        - Proper _safe_default with role context
+        - publish_insight integration
+
+        Args:
+            role: The AgentRole enum value (e.g., "AUDITOR").
+            agent_name: Human-readable name (e.g., "Auditor Agent").
+            identity_core: The system prompt / identity core string.
+            agent_type: The AgentType enum value (default "SPECIALIST").
+
+        Returns:
+            Absolute path to the generated file.
+        """
+        class_name = "".join(word.capitalize() for word in agent_name.split()) + "Agent"
+        role_upper = role.upper().replace(" ", "_")
+        role_lower = role.lower().replace(" ", "_")
+        type_upper = agent_type.upper()
+        filename = f"{role_lower}_agent.py"
+        filepath = os.path.join(self._agents_dir, filename)
+
+        code = f'''"""
+{agent_name}
+
+Auto-generated by Jarvis CodeGenerator.
+Part of the SelfEvolve autonomous trading system.
+"""
+
+from __future__ import annotations
+
+from typing import Any
+from datetime import datetime, timezone
+
+from core.models.agents import AgentIdentity, AgentRole, AgentType
+from agents.base_agent import BaseAgent
+
+
+{role_upper}_IDENTITY_CORE = """{identity_core}"""
+
+
+class {class_name}(BaseAgent):
+    """
+    {agent_name} — auto-generated by Jarvis.
+
+    Capabilities:
+    - analyze_task: Perform domain-specific analysis
+    - report_status: Generate a status report
+    - Primary skill registered for ReAct tool-calling
+    """
+
+    def __init__(self, llm, trust_weight: float = 1.0):
+        identity = AgentIdentity(
+            agent_name="{agent_name}",
+            agent_role=AgentRole.{role_upper},
+            agent_type=AgentType.{type_upper},
+            identity_core={role_upper}_IDENTITY_CORE,
+        )
+        # Load skills into SkillRegistry before super() loads them
+        import agents.skills.{role_lower}  # noqa: F401
+        super().__init__(identity, llm, trust_weight)
+
+    async def analyze_task(self, task_description: str, context: dict = None) -> dict[str, Any]:
+        """Perform domain-specific analysis based on the agent's expertise.
+
+        Args:
+            task_description: Description of the analysis to perform.
+            context: Optional context data relevant to the analysis.
+
+        Returns:
+            Analysis results as a structured dict.
+        """
+        message = f"""Analyze the following task based on your role and expertise as {agent_name}.
+
+Task: {{task_description}}
+
+Context: {{context or 'No additional context'}}
+
+Provide:
+1. Your assessment
+2. Key findings
+3. Recommendations
+4. Risk factors (if any)
+5. Confidence level (1-10)
+"""
+        try:
+            result = await self.invoke(message)
+            return result
+        except Exception as e:
+            return self._safe_default(str(e))
+
+    async def report_status(self) -> dict[str, Any]:
+        """Generate a status report for this agent's domain."""
+        try:
+            result = await self.invoke(
+                f"Generate a brief status report for your domain as {agent_name}. "
+                f"Include: current state, recent activity, issues found, and recommendations."
+            )
+            return result
+        except Exception as e:
+            return self._safe_default(str(e))
+
+    def _safe_default(self, error: str) -> dict[str, Any]:
+        return {{
+            "agent": "{agent_name}",
+            "role": "{role_upper}",
+            "content": f"{agent_name} encountered an error: {{error}}",
+            "status": "error",
+            "error": error,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }}
+
+
+# ── LLM Tool-Calling Registration ─────────────────────────────────
+from agents.skills.validator import skill
+
+
+@skill("{role_lower}")
+def {role_lower}_analyze(task: str, context: str = "") -> str:
+    """Perform a domain-specific analysis task for {agent_name}.
+    Use this when you need {agent_name}'s expertise on a specific topic.
+
+    Args:
+        task: Description of the analysis to perform.
+        context: Optional additional context for the analysis.
+
+    Returns:
+        Analysis results as a formatted string.
+    """
+    return f"[{agent_name}] Analysis requested: {{task}}. Context: {{context or 'none'}}. Ready for LLM processing."
+'''
+
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write(code)
+
+        logger.info(f"Generated agent file: {filepath}")
+
+        # Also create the skills directory
+        skills_dir = os.path.join(
+            self._agents_dir, "skills", role_lower
+        )
+        os.makedirs(skills_dir, exist_ok=True)
+        init_path = os.path.join(skills_dir, "__init__.py")
+        if not os.path.exists(init_path):
+            with open(init_path, "w") as f:
+                f.write(f'"""Skills for {agent_name}."""\n')
+
+        goals_path = os.path.join(skills_dir, "goals.md")
+        if not os.path.exists(goals_path):
+            with open(goals_path, "w") as f:
+                f.write(f"# {agent_name} — Goals & Mission\n\n")
+                f.write(f"## Mission\n{identity_core[:200]}\n\n")
+                f.write("## Current Skills\n- analyze: Domain-specific analysis\n\n")
+                f.write("## Evolution Targets\n- [ ] Add specialized skills\n- [ ] Improve analysis depth\n\n")
+
+        return filepath
+
+    def generate_test_file(self, module_path: str) -> str:
+        """
+        Generate a basic test file for an agent module.
+
+        Args:
+            module_path: Dotted module path (e.g., "agents.auditor_agent").
+
+        Returns:
+            Absolute path to the generated test file.
+        """
+        module_parts = module_path.split(".")
+        filename = f"test_{module_parts[-1]}.py"
+        tests_dir = os.path.join(self._src_dir, "tests")
+        os.makedirs(tests_dir, exist_ok=True)
+        filepath = os.path.join(tests_dir, filename)
+
+        code = f'''"""
+Auto-generated tests for {module_path}
+"""
+
+import pytest
+from unittest.mock import MagicMock, AsyncMock
+
+
+class TestAgent:
+    """Basic tests for the agent module."""
+
+    def test_import(self):
+        """Verify the module can be imported."""
+        import {module_path}
+
+    def test_instantiation(self):
+        """Verify the agent can be instantiated with a mock LLM."""
+        import {module_path} as mod
+        # Get the first class that looks like an agent
+        for name in dir(mod):
+            obj = getattr(mod, name)
+            if isinstance(obj, type) and hasattr(obj, "_safe_default"):
+                instance = obj(llm=MagicMock())
+                assert instance is not None
+                assert instance.name is not None
+                break
+
+    def test_safe_default(self):
+        """Verify _safe_default returns a valid dict."""
+        import {module_path} as mod
+        for name in dir(mod):
+            obj = getattr(mod, name)
+            if isinstance(obj, type) and hasattr(obj, "_safe_default"):
+                instance = obj(llm=MagicMock())
+                result = instance._safe_default("test error")
+                assert isinstance(result, dict)
+                break
+
+    def test_health_report(self):
+        """Verify get_health returns valid metrics."""
+        import {module_path} as mod
+        for name in dir(mod):
+            obj = getattr(mod, name)
+            if isinstance(obj, type) and hasattr(obj, "get_health"):
+                instance = obj(llm=MagicMock())
+                health = instance.get_health()
+                assert "agent_id" in health
+                assert "name" in health
+                assert "role" in health
+                break
+'''
+
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write(code)
+
+        logger.info(f"Generated test file: {filepath}")
+        return filepath
+
+
+def generate_code(prompt: str) -> str:
     """Helper function to generate code."""
     generator = CodeGenerator()
-    return generator.generate_code(prompt, model)
+    return generator.generate_code(prompt)
+
+
+# ── LLM Tool-Calling Registration ─────────────────────────────────
+# These @skill("master") functions are discovered by BaseAgent._load_skills()
+# and wired into the ReAct tool-calling loop so the LLM can invoke them.
+
+from agents.skills.validator import skill
+
+
+@skill("master")
+def generate_agent_code(prompt: str) -> str:
+    """Generate Python code based on a natural language prompt.
+    Use this when you need to write new Python code for the SelfEvolve system.
+    The prompt should describe what code to generate in detail.
+
+    Args:
+        prompt: Detailed description of what code to generate.
+
+    Returns:
+        Generated Python code as a string.
+    """
+    gen = CodeGenerator()
+    return gen.generate_code(prompt)
+
+
+@skill("master")
+def create_new_agent_file(role: str, agent_name: str, identity_core: str, agent_type: str = "SPECIALIST") -> str:
+    """Create a new agent Python file with its skills directory, __init__.py, and goals.md.
+    Use this when the system needs a new specialized agent to fill a gap in the hierarchy.
+
+    Args:
+        role: AgentRole enum value in UPPER_CASE (e.g., "AUDITOR", "CTO", "WATCHDOG").
+        agent_name: Human-readable name (e.g., "Auditor Agent", "CTO Agent").
+        identity_core: The agent's immutable system prompt defining its role, expertise, and constraints.
+        agent_type: AgentType enum value (default "SPECIALIST"). Options: EXECUTIVE, DIRECTOR, ANALYST, SPECIALIST.
+
+    Returns:
+        Absolute path to the generated agent file.
+    """
+    gen = CodeGenerator()
+    return gen.generate_agent_file(role, agent_name, identity_core, agent_type)
+
+
+@skill("master")
+def create_test_file(module_path: str) -> str:
+    """Generate a pytest test file for an agent module.
+    Creates basic tests for import, instantiation, safe_default, and health report.
+
+    Args:
+        module_path: Dotted Python module path (e.g., "agents.auditor_agent").
+
+    Returns:
+        Absolute path to the generated test file.
+    """
+    gen = CodeGenerator()
+    return gen.generate_test_file(module_path)
+
+
+@skill("master")
+def generate_rich_agent_code(
+    role: str,
+    agent_name: str,
+    identity_core: str,
+    agent_type: str = "SPECIALIST",
+    responsibilities: str = "",
+) -> str:
+    """Generate a fully-functional agent file using LLM-assisted code generation.
+    Unlike create_new_agent_file which uses a static template producing stubs,
+    this method asks the LLM to generate domain-appropriate methods and skills.
+    Use this for creating production-quality agents with real business logic.
+
+    Args:
+        role: AgentRole enum value in UPPER_CASE (e.g., "AUDITOR").
+        agent_name: Human-readable name (e.g., "Auditor Agent").
+        identity_core: Immutable system prompt for the agent.
+        agent_type: AgentType enum value (default "SPECIALIST").
+        responsibilities: Comma-separated list of the agent's key responsibilities.
+
+    Returns:
+        The generated Python code as a string (not yet written to disk).
+    """
+    resp_list = [r.strip() for r in responsibilities.split(",") if r.strip()] if responsibilities else ["Execute tasks based on role expertise"]
+
+    prompt = f"""Generate a complete Python agent class for the SelfEvolve autonomous trading system.
+
+Agent Details:
+- Role: {role}
+- Name: {agent_name}
+- Type: {agent_type}
+- Responsibilities: {resp_list}
+
+Requirements:
+1. Must extend BaseAgent from agents.base_agent
+2. Must use AgentIdentity, AgentRole, AgentType from core.models.agents
+3. Must have 2-3 domain-specific async methods relevant to the agent's role (not just generic execute_task)
+4. Must have a _safe_default(self, error: str) -> dict[str, Any] method
+5. Must register at least 1 skill using @skill("{role.lower()}") from agents.skills.validator
+6. Each skill function must have: docstring, type hints for all args, return type hint
+7. The identity_core should be a module-level constant named {role.upper()}_IDENTITY_CORE
+8. Use 'from __future__ import annotations' at the top
+
+Identity Core to embed:
+{identity_core}
+
+Generate ONLY the Python code. No markdown fences. No explanations."""
+
+    gen = CodeGenerator()
+    return gen.generate_code(prompt)
+
+
+@skill("master")
+def load_and_start_agent(agent_file_path: str) -> str:
+    """Load an agent from a Python file, instantiate it, and register it in
+    the agent registry so it can receive tasks and appear in list_all_agents.
+    Use this after create_new_agent_file to bring a newly created agent to life.
+
+    Args:
+        agent_file_path: Absolute path to the agent Python file to load.
+
+    Returns:
+        Status message with the agent name and registration result.
+    """
+    from evolution.agent_loader import load_and_start_agent as _load
+    result = _load(agent_file_path)
+    if result["status"] == "SUCCESS":
+        return f"✅ Agent '{result['agent_name']}' loaded and registered (key: {result['registry_key']})"
+    return f"❌ Failed to load agent: {result.get('error', 'Unknown error')}"

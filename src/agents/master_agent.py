@@ -33,11 +33,25 @@ managing a micro-capital portfolio starting at $100 on the Alpaca brokerage.
 You are NOT just an LLM wrapper — you are the evolutionary engine of the entire system.
 You write code, create agents, open Pull Requests, and drive continuous improvement.
 
+## Organizational Structure (5-Division Hierarchy):
+You manage the following structure with 8 direct reports:
+
+### C-Suite (3 executives):
+- **CTO Agent** — Infrastructure health, latency, resource monitoring
+- **CSO Agent** — Security, prompt injection detection, credential monitoring
+- **CRO Agent** — Portfolio-level risk, drawdown limits, circuit breakers
+
+### Division Directors (4 directors, each managing their team):
+- **Product Agent (Research Director)** — Manages 4 analysts + strategy researcher
+- **Portfolio Manager (Trading Director)** — Manages Bull/Bear debate + Judge + 8 strategy agents
+- **Meta-Review Agent (Evolution Director)** — Manages Developer + Performance Analyst + Model Orchestrator
+- **QA Agent (Operations Director)** — Manages Auditor + Journaling + Watchdog
+
 ## Your Responsibilities:
 1. **Owner Interface**: When the owner asks "what's happening?", provide a comprehensive
    briefing covering: portfolio performance, agent health, recent evolution events,
    active bugs, and strategic outlook.
-2. **Agent Oversight**: Monitor all sub-agents (CTO, CSO, QA, analysts, specialists).
+2. **Agent Oversight**: Monitor all division directors and C-suite executives.
    Track their trust weights, Brier scores, and evolution status.
 3. **Strategic Direction**: Set high-level trading directives based on market regime,
    portfolio performance, and risk constraints.
@@ -60,7 +74,8 @@ You write code, create agents, open Pull Requests, and drive continuous improvem
 
 ## Communication Style:
 - With the owner: Professional, clear, data-backed. Lead with P&L, then details.
-- With sub-agents: Directive, structured. Use JSON schemas for all requests.
+- With division directors: Directive, structured. Use JSON schemas for all requests.
+- With C-suite executives: Collaborative, strategic. Solicit their assessments.
 """
 
 
@@ -74,6 +89,16 @@ class Jarvis(BaseAgent):
     """
 
     def __init__(self, llm, trust_weight: float = 1.0):
+        # ── Import skill modules BEFORE super().__init__() ──────────
+        # This triggers @skill("master") decorators, registering tools
+        # in the SkillRegistry BEFORE BaseAgent._load_skills() runs.
+        import agents.skills.jarvis.code_generation   # noqa: F401
+        import agents.skills.jarvis.system_audit       # noqa: F401
+        import agents.skills.jarvis.agent_planning     # noqa: F401
+        import agents.skills.jarvis.github_ops         # noqa: F401
+        import agents.skills.jarvis.agent_messaging    # noqa: F401
+        import agents.skills.jarvis.decision_tracker   # noqa: F401
+
         identity = AgentIdentity(
             agent_name="Jarvis",
             agent_role=AgentRole.MASTER,
@@ -82,7 +107,7 @@ class Jarvis(BaseAgent):
         )
         super().__init__(identity, llm, trust_weight)
 
-        # Initialize skills
+        # Keep direct references as fallbacks for non-LLM code paths
         self.code_generator = CodeGenerator()
         self.system_auditor = SystemAuditor()
         self.planner = AgentPlanner()
@@ -151,10 +176,21 @@ Format the report with:
         return await self.invoke(message, context)
 
     async def process_owner_message(self, message: str, system_state: dict) -> dict[str, Any]:
-        """Process a direct message from the owner."""
+        """Process a direct message from the owner.
+
+        Uses the tool-calling loop so the LLM can autonomously invoke
+        system audit, planning, and other tools to answer the owner's
+        questions with real data.
+        """
         context = {
             "role": "You are Jarvis, responding to the OWNER — the human who controls everything.",
             "system_state": str(system_state),
+            "instructions": (
+                "Use your available tools to gather real data before answering. "
+                "For example, use run_system_audit to check system health, "
+                "plan_evolution_cycle to check the roadmap, or get_git_status "
+                "to see recent changes. ALWAYS use tools rather than guessing."
+            ),
         }
         return await self.invoke(message, context)
 
@@ -298,6 +334,36 @@ Agent Reports:
             result[agent_dir] = skills
 
         return result
+
+    # ── Autonomous Execution ─────────────────────────────────────
+
+    async def autonomous_execute(self, goal: str, context: dict = None) -> dict[str, Any]:
+        """Let the LLM autonomously use tools to accomplish a goal.
+
+        The LLM will see all registered tools and decide which to use,
+        in what order, using the ReAct loop in BaseAgent._invoke_with_tools().
+
+        Args:
+            goal: High-level description of what to accomplish.
+            context: Optional additional context dict.
+
+        Returns:
+            Dict with the LLM's response and list of tools used.
+        """
+        message = f"""You are Jarvis, the CEO of SelfEvolve. Accomplish the following goal using your available tools.
+
+GOAL: {goal}
+
+Think step by step:
+1. First assess the current system state (use run_system_audit or check_system_resources if needed)
+2. Plan what needs to be done (use plan_evolution_cycle if needed)
+3. Execute the necessary changes (use code generation and git tools as needed)
+4. Report what you accomplished with specific details
+
+IMPORTANT: Use your tools to gather REAL data. Do NOT make up results — always call the actual tool.
+IMPORTANT: After completing, summarize what you did and what the next steps are."""
+
+        return await self.invoke(message, context)
 
     def _safe_default(self, error: str) -> dict[str, Any]:
         return {

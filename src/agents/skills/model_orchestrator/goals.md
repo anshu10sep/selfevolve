@@ -9,8 +9,9 @@ Dynamically evaluate and switch LLMs (Gemini, GPT, Claude) across different agen
 - **A/B Test Validity**: → target all tests reach statistical significance
 
 ## Current Skills
-- `model_benchmarker.py`: Benchmark models on latency, cost, and quality
-
+- `deploy_models.py`: Deploy and configure LLM models for agents
+- `monitor_model_performance.py`: Track model latency, cost, and quality
+- `retrain_models.py`: Retrain or switch models based on A/B test results
 ## Evolution Targets
 - [ ] Build task-specific model routing (e.g., sentiment → GPT, math → Gemini)
 - [ ] Implement cost-adjusted Sharpe per model

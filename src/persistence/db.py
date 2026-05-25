@@ -223,6 +223,92 @@ class CryptoStop(Base):
         }
 
 
+class PredictionRecord(Base):
+    """Records every agent prediction for Brier score calculation.
+
+    Each time an analyst agent produces a ConvictionScore for a trade,
+    we store the predicted probability and later fill in the actual
+    outcome (1 = profitable, 0 = loss) when the trade closes.
+    """
+    __tablename__ = "prediction_records"
+
+    id = Column(String(36), primary_key=True)
+    agent_role = Column(String(50), nullable=False)
+    trade_id = Column(String(36), nullable=False)
+    ticker = Column(String(20), nullable=False)
+    predicted_probability = Column(Float, nullable=False)  # 0.0–1.0
+    confidence = Column(Float, nullable=False)             # 0.0–1.0
+    actual_outcome = Column(Integer, nullable=True)        # 0 or 1, filled on trade close
+    prompt_version = Column(Integer, default=1)            # which prompt version made this
+    is_shadow = Column(Boolean, default=False)             # True if from shadow crew
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    resolved_at = Column(DateTime, nullable=True)
+
+    __table_args__ = (
+        Index("ix_predictions_agent_role", "agent_role"),
+        Index("ix_predictions_trade_id", "trade_id"),
+        Index("ix_predictions_is_shadow", "is_shadow"),
+    )
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "agent_role": self.agent_role,
+            "trade_id": self.trade_id,
+            "ticker": self.ticker,
+            "predicted_probability": self.predicted_probability,
+            "confidence": self.confidence,
+            "actual_outcome": self.actual_outcome,
+            "prompt_version": self.prompt_version,
+            "is_shadow": self.is_shadow,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "resolved_at": self.resolved_at.isoformat() if self.resolved_at else None,
+        }
+
+
+class PromptVersion(Base):
+    """Tracks prompt evolution history for each agent.
+
+    Stores every Strategic_Nuance version so we can A/B test
+    candidate prompts against production and roll back if needed.
+    """
+    __tablename__ = "prompt_versions"
+
+    id = Column(String(36), primary_key=True)
+    agent_role = Column(String(50), nullable=False)
+    version_number = Column(Integer, nullable=False)
+    prompt_text = Column(Text, nullable=False)          # The Strategic_Nuance content
+    is_active = Column(Boolean, default=False)
+    change_description = Column(Text, default="")
+    brier_before = Column(Float, nullable=True)
+    brier_after = Column(Float, nullable=True)
+    trade_count = Column(Integer, default=0)
+    p_value = Column(Float, nullable=True)
+    ab_test_result = Column(String(20), default="PENDING")  # PENDING, PROMOTED, ROLLED_BACK, INCONCLUSIVE
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (
+        Index("ix_prompt_versions_agent_role", "agent_role"),
+        Index("ix_prompt_versions_active", "is_active"),
+    )
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "agent_role": self.agent_role,
+            "version_number": self.version_number,
+            "prompt_text": self.prompt_text,
+            "is_active": self.is_active,
+            "change_description": self.change_description,
+            "brier_before": self.brier_before,
+            "brier_after": self.brier_after,
+            "trade_count": self.trade_count,
+            "p_value": self.p_value,
+            "ab_test_result": self.ab_test_result,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+
 # ══════════════════════════════════════════════════════════════════
 # DATABASE OPERATIONS
 # ══════════════════════════════════════════════════════════════════
@@ -254,6 +340,33 @@ def create_bug(
         s.commit()
         s.refresh(bug)
         logger.info("bug_created_db", id=id[:8], severity=severity, title=title[:50])
+        return bug.to_dict()
+
+
+def create_bug_dedup(
+    title: str, severity: str = "MEDIUM",
+    source: str = "", description: str = "",
+) -> Optional[dict]:
+    """Create a bug only if no bug with the same title already exists.
+
+    This is the preferred entry point for ALL automated bug filing.
+    Returns the new bug dict if created, or None if a duplicate exists.
+    """
+    import uuid
+    with get_session() as s:
+        existing = s.query(Bug).filter(Bug.title == title).first()
+        if existing:
+            logger.debug("bug_dedup_skipped", title=title[:50],
+                         existing_id=existing.id[:8], existing_status=existing.status)
+            return None
+        bug = Bug(
+            id=str(uuid.uuid4()), title=title, severity=severity,
+            source=source, description=description,
+        )
+        s.add(bug)
+        s.commit()
+        s.refresh(bug)
+        logger.info("bug_created_dedup", id=bug.id[:8], severity=severity, title=title[:50])
         return bug.to_dict()
 
 
@@ -486,6 +599,229 @@ def get_active_crypto_stops() -> list[dict]:
         ).all()]
 
 
+# ── Prediction Record Operations ──────────────────────────────────
+
+def create_prediction(
+    id: str, agent_role: str, trade_id: str, ticker: str,
+    predicted_probability: float, confidence: float,
+    prompt_version: int = 1, is_shadow: bool = False,
+) -> dict:
+    """Record an agent's prediction for later Brier scoring."""
+    with get_session() as s:
+        rec = PredictionRecord(
+            id=id, agent_role=agent_role, trade_id=trade_id,
+            ticker=ticker, predicted_probability=predicted_probability,
+            confidence=confidence, prompt_version=prompt_version,
+            is_shadow=is_shadow,
+        )
+        s.add(rec)
+        s.commit()
+        s.refresh(rec)
+        logger.info(
+            "prediction_recorded",
+            agent=agent_role, trade=trade_id[:8], ticker=ticker,
+            prob=f"{predicted_probability:.2f}", shadow=is_shadow,
+        )
+        return rec.to_dict()
+
+
+def update_prediction_outcome(trade_id: str, actual_outcome: int) -> int:
+    """Set the actual outcome (0=loss, 1=win) for all predictions on a trade.
+
+    Called when a trade closes. Returns the number of predictions updated.
+    """
+    with get_session() as s:
+        preds = s.query(PredictionRecord).filter(
+            PredictionRecord.trade_id == trade_id,
+            PredictionRecord.actual_outcome.is_(None),
+        ).all()
+        count = 0
+        for p in preds:
+            p.actual_outcome = actual_outcome
+            p.resolved_at = datetime.now(timezone.utc)
+            count += 1
+        s.commit()
+        if count:
+            logger.info("prediction_outcomes_set", trade=trade_id[:8], count=count, outcome=actual_outcome)
+        return count
+
+
+def get_predictions_for_agent(
+    agent_role: str, resolved_only: bool = True,
+    is_shadow: bool = False, limit: int = 50,
+) -> list[dict]:
+    """Get predictions for an agent, optionally filtered by resolved/shadow status."""
+    with get_session() as s:
+        q = s.query(PredictionRecord).filter(
+            PredictionRecord.agent_role == agent_role,
+            PredictionRecord.is_shadow == is_shadow,
+        )
+        if resolved_only:
+            q = q.filter(PredictionRecord.actual_outcome.isnot(None))
+        q = q.order_by(PredictionRecord.created_at.desc()).limit(limit)
+        return [p.to_dict() for p in q.all()]
+
+
+def get_predictions_for_prompt_version(
+    agent_role: str, prompt_version: int, resolved_only: bool = True,
+) -> list[dict]:
+    """Get predictions made by a specific prompt version (for A/B testing)."""
+    with get_session() as s:
+        q = s.query(PredictionRecord).filter(
+            PredictionRecord.agent_role == agent_role,
+            PredictionRecord.prompt_version == prompt_version,
+        )
+        if resolved_only:
+            q = q.filter(PredictionRecord.actual_outcome.isnot(None))
+        q = q.order_by(PredictionRecord.created_at.desc())
+        return [p.to_dict() for p in q.all()]
+
+
+def get_unresolved_trade_ids() -> list[dict]:
+    """Get unique trade_ids with unresolved predictions (actual_outcome IS NULL).
+
+    Returns list of dicts: {trade_id, ticker, created_at}
+    Used by the PredictionResolver to know which trades still need outcomes.
+    """
+    with get_session() as s:
+        from sqlalchemy import func, distinct
+        rows = (
+            s.query(
+                PredictionRecord.trade_id,
+                PredictionRecord.ticker,
+                func.min(PredictionRecord.created_at).label("created_at"),
+            )
+            .filter(PredictionRecord.actual_outcome.is_(None))
+            .group_by(PredictionRecord.trade_id, PredictionRecord.ticker)
+            .order_by(func.min(PredictionRecord.created_at).asc())
+            .all()
+        )
+        return [
+            {
+                "trade_id": r.trade_id,
+                "ticker": r.ticker,
+                "created_at": r.created_at.isoformat() if r.created_at else None,
+            }
+            for r in rows
+        ]
+
+
+def update_crypto_stop_status(ticker: str, status: str) -> Optional[dict]:
+    """Update a crypto stop's status (ACTIVE → STOPPED or PROFIT_TAKEN)."""
+    with get_session() as s:
+        stop = s.query(CryptoStop).filter(CryptoStop.ticker == ticker).first()
+        if not stop:
+            return None
+        stop.status = status
+        s.commit()
+        s.refresh(stop)
+        return stop.to_dict()
+
+
+# ── Prompt Version Operations ─────────────────────────────────────
+
+def create_prompt_version(
+    id: str, agent_role: str, version_number: int,
+    prompt_text: str, change_description: str = "",
+    brier_before: float = None, is_active: bool = False,
+) -> dict:
+    """Create a new prompt version (candidate for A/B testing)."""
+    with get_session() as s:
+        pv = PromptVersion(
+            id=id, agent_role=agent_role, version_number=version_number,
+            prompt_text=prompt_text, change_description=change_description,
+            brier_before=brier_before, is_active=is_active,
+        )
+        s.add(pv)
+        s.commit()
+        s.refresh(pv)
+        logger.info(
+            "prompt_version_created",
+            agent=agent_role, version=version_number,
+            active=is_active,
+        )
+        return pv.to_dict()
+
+
+def get_active_prompt(agent_role: str) -> Optional[dict]:
+    """Get the currently active Strategic_Nuance for an agent."""
+    with get_session() as s:
+        pv = s.query(PromptVersion).filter(
+            PromptVersion.agent_role == agent_role,
+            PromptVersion.is_active == True,
+        ).order_by(PromptVersion.version_number.desc()).first()
+        return pv.to_dict() if pv else None
+
+
+def get_pending_prompt_versions(agent_role: str) -> list[dict]:
+    """Get prompt versions that are still being A/B tested."""
+    with get_session() as s:
+        pvs = s.query(PromptVersion).filter(
+            PromptVersion.agent_role == agent_role,
+            PromptVersion.ab_test_result == "PENDING",
+        ).order_by(PromptVersion.created_at.desc()).all()
+        return [pv.to_dict() for pv in pvs]
+
+
+def promote_prompt_version(agent_role: str, version_number: int, p_value: float = None) -> Optional[dict]:
+    """Promote a candidate prompt to active and deactivate the old one."""
+    with get_session() as s:
+        # Deactivate current active
+        current = s.query(PromptVersion).filter(
+            PromptVersion.agent_role == agent_role,
+            PromptVersion.is_active == True,
+        ).all()
+        for pv in current:
+            pv.is_active = False
+
+        # Activate new version
+        new = s.query(PromptVersion).filter(
+            PromptVersion.agent_role == agent_role,
+            PromptVersion.version_number == version_number,
+        ).first()
+        if not new:
+            return None
+        new.is_active = True
+        new.ab_test_result = "PROMOTED"
+        if p_value is not None:
+            new.p_value = p_value
+        s.commit()
+        s.refresh(new)
+        logger.info(
+            "prompt_promoted",
+            agent=agent_role, version=version_number,
+            p_value=p_value,
+        )
+        return new.to_dict()
+
+
+def discard_prompt_version(agent_role: str, version_number: int, p_value: float = None) -> Optional[dict]:
+    """Mark a candidate prompt as rolled back / discarded."""
+    with get_session() as s:
+        pv = s.query(PromptVersion).filter(
+            PromptVersion.agent_role == agent_role,
+            PromptVersion.version_number == version_number,
+        ).first()
+        if not pv:
+            return None
+        pv.ab_test_result = "ROLLED_BACK"
+        if p_value is not None:
+            pv.p_value = p_value
+        s.commit()
+        s.refresh(pv)
+        logger.info("prompt_discarded", agent=agent_role, version=version_number)
+        return pv.to_dict()
+
+
+def get_latest_prompt_version_number(agent_role: str) -> int:
+    """Get the highest version number for an agent (0 if none exist)."""
+    with get_session() as s:
+        pv = s.query(PromptVersion).filter(
+            PromptVersion.agent_role == agent_role,
+        ).order_by(PromptVersion.version_number.desc()).first()
+        return pv.version_number if pv else 0
+
+
 # ── Sync: system_state ↔ DB ──────────────────────────────────────
 
 def sync_state_from_db(system_state: dict):
@@ -502,6 +838,13 @@ def sync_state_from_db(system_state: dict):
         if role in scores:
             agent["trust_weight"] = scores[role].get("trust_weight", 1.0)
             agent["brier_score"] = scores[role].get("brier_score")
+
+    # Restore all-time activity counters into the activity tracker
+    try:
+        from core.activity_tracker import tracker
+        tracker.load_from_dict(scores)
+    except Exception as e:
+        logger.warning("activity_tracker_restore_skipped", error=str(e))
 
     logger.info(
         "state_synced_from_db",

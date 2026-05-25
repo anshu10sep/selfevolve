@@ -1,4 +1,7 @@
-def tech_stack_evaluation(new_technology: str, existing_stack: list) -> dict:
+from agents.skills.validator import skill
+
+@skill("cto")
+def tech_stack_evaluation(new_technology: str, existing_stack: list[str]) -> dict:
     """
     Evaluates new technologies for potential integration into the existing tech stack.
 

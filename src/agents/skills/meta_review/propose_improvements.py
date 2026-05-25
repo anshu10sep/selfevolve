@@ -1,3 +1,6 @@
+from agents.skills.validator import skill
+
+@skill("meta_review")
 def propose_improvements(agent_performance_review: dict, strategy_effectiveness_review: dict) -> list:
     """
     Proposes improvements to agent behaviors, system configurations, or trading strategies based on review findings.

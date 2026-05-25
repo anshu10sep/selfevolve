@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
     <link rel="stylesheet" href="index.css">
 </head>
 <body>
@@ -27,6 +28,8 @@
                 <button class="nav-btn active" data-section="overview" id="nav-overview">Overview</button>
                 <button class="nav-btn" data-section="agents" id="nav-agents">Agents</button>
                 <button class="nav-btn" data-section="roadmap" id="nav-roadmap">Roadmap</button>
+                <button class="nav-btn" data-section="architecture" id="nav-architecture">Architecture</button>
+                <button class="nav-btn" data-section="watchdog" id="nav-watchdog">Watchdog</button>
                 <button class="nav-btn" data-section="bugs" id="nav-bugs">Bugs</button>
                 <button class="nav-btn" data-section="hitl" id="nav-hitl">HITL</button>
                 <button class="nav-btn" data-section="audit" id="nav-audit">Audit</button>
@@ -217,6 +220,29 @@
                 <div class="empty-state">Click "Run Full Audit" to analyze the system</div>
             </div>
         </section>
+
+        <!-- ─── ARCHITECTURE SECTION ─── -->
+        <section id="section-architecture" class="section">
+            <div class="section-header">
+                <h1>Interactive System Architecture</h1>
+                <span class="badge" id="arch-agent-count">Loading...</span>
+            </div>
+            <p class="section-desc">Click on any agent node to drill down into their details, tasks, and models used.</p>
+            <div id="architecture-network" style="width: 100%; height: 600px; border: 1px solid var(--border-color); border-radius: 12px; background: rgba(13, 15, 18, 0.4);"></div>
+        </section>
+
+        <!-- ─── WATCHDOG SECTION ─── -->
+        <section id="section-watchdog" class="section">
+            <div class="section-header">
+                <h1>Watchdog Service Data</h1>
+                <div class="section-actions">
+                    <button class="action-btn" onclick="loadWatchdog()">🔄 Refresh Logs</button>
+                </div>
+            </div>
+            <div class="terminal-view" id="watchdog-logs">
+                <div class="empty-state">Loading logs...</div>
+            </div>
+        </section>
     </main>
 
     <!-- ─── CREATE ISSUE MODAL ─── -->
@@ -282,6 +308,49 @@
                 <button class="action-btn warning" onclick="submitHitlAction('ESCALATE')">⬆ Escalate</button>
                 <button class="action-btn" onclick="submitHitlAction('FORCE_FIX')">🔧 Force Fix</button>
                 <button class="action-btn" onclick="submitHitlAction('DEFER')">⏳ Defer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── AGENT DETAIL MODAL ─── -->
+
+    <!-- ─── BUG DETAIL MODAL ─── -->
+    <div class="modal-overlay" id="bug-detail-modal" style="display:none;">
+        <div class="modal modal-wide">
+            <div class="modal-header">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap" id="bug-detail-badges"></div>
+                <button class="modal-close" onclick="closeBugDetail()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h2 id="bug-detail-title" style="font-size:20px;font-weight:700;margin-bottom:6px"></h2>
+                <p id="bug-detail-filed" style="font-size:13px;color:var(--text-secondary);margin-bottom:20px"></p>
+
+                <!-- Timeline -->
+                <div class="bug-timeline" id="bug-detail-timeline"></div>
+
+                <!-- Description -->
+                <div id="bug-detail-desc-section" style="margin-bottom:20px">
+                    <h3 style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px">Description</h3>
+                    <div class="terminal-view" id="bug-detail-desc" style="max-height:250px;overflow-y:auto;font-size:12px;line-height:1.8"></div>
+                </div>
+
+                <!-- Metadata -->
+                <div class="bug-meta-grid" id="bug-detail-meta"></div>
+
+                <!-- PR Link -->
+                <div id="bug-detail-pr-section" style="display:none;margin-bottom:20px">
+                    <h3 style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px">Pull Request</h3>
+                    <a id="bug-detail-pr-link" href="#" target="_blank" class="pr-link-card"></a>
+                </div>
+
+                <!-- Worker Error -->
+                <div id="bug-detail-error-section" style="display:none;margin-bottom:20px">
+                    <h3 style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--accent-red);text-transform:uppercase;letter-spacing:0.5px">Worker Error</h3>
+                    <div class="terminal-view" id="bug-detail-error" style="color:var(--accent-red);border-color:rgba(239,68,68,0.2);background:rgba(239,68,68,0.05);font-size:12px;line-height:1.6"></div>
+                </div>
+
+                <!-- Bug ID -->
+                <p id="bug-detail-id" style="font-size:11px;color:var(--text-muted);text-align:right;font-family:'JetBrains Mono',monospace;margin-top:16px"></p>
             </div>
         </div>
     </div>

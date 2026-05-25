@@ -198,15 +198,64 @@ class BugScanner:
         msg = error.get("message", "")[:80]
         return f"{component}:{event}:{msg}"
 
+    def _is_noise(self, error: dict) -> bool:
+        """Check if this error is uninformative noise that shouldn't be filed.
+
+        Noise patterns:
+        - 'unknown' component with 'plain_text_error' event (generic log parse)
+        - Empty or near-empty messages
+        """
+        component = error.get("component", "unknown")
+        event = error.get("event", "")
+        msg = error.get("message", "")
+
+        # Skip unknown:plain_text_error — these are just raw log lines
+        # with ERROR/CRITICAL keywords that don't map to actionable bugs
+        if component == "unknown" and event == "plain_text_error":
+            return True
+
+        # Skip empty messages
+        if not msg.strip() and not event.strip():
+            return True
+
+        return False
+
+    def _check_db_duplicate(self, title: str) -> bool:
+        """Check if a bug with this title already exists (any status)."""
+        try:
+            from persistence.db import get_bugs
+            existing = get_bugs()
+            for bug in existing:
+                existing_title = bug.get("title", "")
+                # Exact match or fuzzy match (ignore timestamps)
+                if existing_title == title:
+                    return True
+                # Also check if a non-resolved version exists
+                if (bug.get("status") in ("OPEN", "IN_PROGRESS")
+                    and existing_title.lower() == title.lower()):
+                    return True
+        except Exception:
+            pass
+        return False
+
     async def file_bug_from_error(self, error: dict) -> Optional[dict]:
-        """File a bug in the database from a detected error."""
+        """File a bug in the database from a detected error.
+
+        Uses DB-level deduplication via create_bug_dedup to prevent
+        duplicate bugs across process restarts.
+        """
+        # Gate 1: In-memory dedup (fast, avoids DB roundtrips within a session)
         dedup_key = self._make_dedup_key(error)
         if dedup_key in self._seen_errors:
-            return None  # Already filed
+            return None
+
+        # Gate 2: Noise filter
+        if self._is_noise(error):
+            self._seen_errors.add(dedup_key)  # Don't check again
+            return None
 
         try:
-            from persistence.db import create_bug
-            import uuid
+            from persistence.db import create_bug_dedup
 
             severity = error.get("severity", "MEDIUM")
             if error.get("level") == "CRITICAL":
@@ -228,8 +277,8 @@ class BugScanner:
                 f"Original timestamp: {error.get('timestamp', '')}"
             )
 
-            bug = create_bug(
-                id=str(uuid.uuid4()),
+            # Atomic DB-level dedup: returns None if title already exists
+            bug = create_bug_dedup(
                 title=title,
                 severity=severity,
                 source="bug_scanner",
@@ -237,6 +286,10 @@ class BugScanner:
             )
 
             self._seen_errors.add(dedup_key)
+
+            if bug is None:
+                return None  # Duplicate — already exists
+
             self._bugs_filed += 1
             logger.info("bug_auto_filed", title=title[:60], severity=severity)
 

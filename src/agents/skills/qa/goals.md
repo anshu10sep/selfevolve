@@ -10,9 +10,9 @@ Validate agent outputs, track bugs, verify guardrail effectiveness, and ensure t
 - **Regression Count**: → target 0 regressions per release
 
 ## Current Skills
-- `test_generator.py`: Auto-generate unit tests for new code
-- `regression_runner.py`: Run regression test suites
-
+- `execute_tests.py`: Run test suites and report results
+- `report_bugs.py`: Generate structured bug reports
+- `write_test_cases.py`: Auto-generate unit tests for new code
 ## Evolution Targets
 - [ ] Build semantic output validation for Judge Agent
 - [ ] Implement chaos testing framework

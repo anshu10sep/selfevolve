@@ -51,7 +51,7 @@ class ModelOrchestrator:
         Exploration rate determines how often to test a random valid model.
         """
         # Determine candidate models based on agent type
-        if agent_type in ["EXECUTIVE", "MANAGER"]:
+        if agent_type in ["EXECUTIVE", "DIRECTOR", "MANAGER"]:
             candidates = PREMIUM_TIER_MODELS
         else:
             candidates = EFFICIENT_TIER_MODELS

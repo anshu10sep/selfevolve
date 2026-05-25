@@ -1,4 +1,7 @@
-def roadmap_planning(strategic_goals: list, current_tech_stack: dict) -> dict:
+from agents.skills.validator import skill
+
+@skill("cto")
+def roadmap_planning(strategic_goals: list[str], current_tech_stack: dict) -> dict:
     """
     Develops and refines the technology roadmap to align with strategic business goals.
 

@@ -17,44 +17,49 @@ from pydantic import BaseModel, Field, field_validator, computed_field
 
 class AgentRole(str, Enum):
     """All possible agent roles in the hierarchy."""
-    # Executive Layer
+    # Executive Layer (C-Suite → report to Jarvis)
     MASTER = "MASTER"
     CEO = "CEO"
     CTO = "CTO"
     CSO = "CSO"
+    CRO = "CRO"  # Chief Risk Officer — portfolio-level risk management
 
-    # Management Layer
-    QA = "QA"
-    PRODUCT = "PRODUCT"
+    # Director Layer (Division Heads → report to Jarvis)
+    QA = "QA"                              # Operations Division Director
+    PRODUCT = "PRODUCT"                    # Research Division Director
+    PORTFOLIO_MANAGER = "PORTFOLIO_MANAGER" # Trading Division Director
+    META_REVIEW = "META_REVIEW"            # Evolution Division Director
 
-    # Specialist Layer - Research
+    # Research Division (→ report to Product Agent)
     FUNDAMENTAL_ANALYST = "FUNDAMENTAL_ANALYST"
     TECHNICAL_ANALYST = "TECHNICAL_ANALYST"
     SENTIMENT_ANALYST = "SENTIMENT_ANALYST"
     MACRO_ANALYST = "MACRO_ANALYST"
+    STRATEGY_RESEARCHER = "STRATEGY_RESEARCHER"
 
-    # Specialist Layer - Debate
+    # Trading Division (→ report to Portfolio Manager)
     BULL = "BULL"
     BEAR = "BEAR"
-
-    # Specialist Layer - Decision
     JUDGE = "JUDGE"
+    CRYPTO_ANALYST = "CRYPTO_ANALYST"  # Crypto trading — 24/7 scans
 
-    # Specialist Layer - Evolution
-    META_REVIEW = "META_REVIEW"
-
-    # Specialist Layer - Support
+    # Evolution Division (→ report to Meta-Review Agent)
     DEVELOPER = "DEVELOPER"
-    JOURNALING = "JOURNALING"
+    PERFORMANCE_ANALYST = "PERFORMANCE_ANALYST"  # Cross-agent metrics & trust weight tracking
+
+    # Operations Division (→ report to QA Agent)
     AUDITOR = "AUDITOR"
+    JOURNALING = "JOURNALING"
+    WATCHDOG = "WATCHDOG"  # Process monitoring, auto-restart, anomaly detection
 
 
 class AgentType(str, Enum):
     """Agent hierarchy level."""
-    EXECUTIVE = "EXECUTIVE"
-    MANAGER = "MANAGER"
-    ANALYST = "ANALYST"
-    SPECIALIST = "SPECIALIST"
+    EXECUTIVE = "EXECUTIVE"    # C-Suite: CTO, CSO, CRO
+    DIRECTOR = "DIRECTOR"      # Division Heads: Product, PM, Meta-Review, QA
+    MANAGER = "MANAGER"        # Legacy compat — same privileges as DIRECTOR
+    ANALYST = "ANALYST"        # Research analysts
+    SPECIALIST = "SPECIALIST"  # All other operational agents
 
 
 class AgentStatus(str, Enum):

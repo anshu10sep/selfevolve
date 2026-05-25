@@ -1,4 +1,7 @@
-def write_test_cases(feature_requirements: list, test_type: str) -> list:
+from agents.skills.validator import skill
+
+@skill("qa")
+def write_test_cases(feature_requirements: list[str], test_type: str) -> list[str]:
     """
     Writes detailed test cases based on feature requirements for a specific test type (e.g., functional, performance).
 

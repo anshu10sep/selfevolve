@@ -1,3 +1,6 @@
+from agents.skills.validator import skill
+
+@skill("cso")
 def incident_response(incident_report: dict) -> dict:
     """
     Initiates and manages the response to a detected security incident.

@@ -24,6 +24,7 @@ class EventChannels:
     MARKET_EVENTS = "selfevolve:events:market"
     TRADE_EVENTS = "selfevolve:events:trade"
     AGENT_EVENTS = "selfevolve:events:agent"
+    AGENT_INSIGHTS = "selfevolve:events:agent_insights"  # Inter-agent intelligence sharing
     EVOLUTION_EVENTS = "selfevolve:events:evolution"
     ALERT_EVENTS = "selfevolve:events:alert"
     HEALTH_EVENTS = "selfevolve:events:health"

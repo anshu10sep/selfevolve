@@ -9,8 +9,9 @@ Analyze macroeconomic conditions, Fed policy, yield curves, and sector rotation 
 - **Macro Event Detection**: → target catch all FOMC/CPI/NFP events
 
 ## Current Skills
-- `regime_classifier.py`: Classify current market regime (BULL/BEAR/SIDEWAYS/HIGH_VOL/PANIC)
-
+- `analyze_global_economy.py`: Analyze GDP, inflation, employment data
+- `assess_geopolitical_risks.py`: Evaluate geopolitical risk factors
+- `forecast_interest_rates.py`: Predict rate changes and yield curve movements
 ## Evolution Targets
 - [ ] Build yield curve inversion detector
 - [ ] Implement Fed funds rate impact model

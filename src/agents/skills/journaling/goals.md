@@ -9,8 +9,9 @@ Translate LangSmith JSON traces into human-readable trade rationale documents an
 - **Latency**: → target journal entry within 5 minutes of trade
 
 ## Current Skills
-- `trade_documenter.py`: Create Markdown trade summaries from trace data
-
+- `record_decisions.py`: Record trade decisions with full rationale
+- `summarize_daily_activity.py`: Generate daily trading summaries
+- `log_market_events.py`: Log significant market events and responses
 ## Evolution Targets
 - [ ] Build weekly performance narrative generator
 - [ ] Implement visual trade timeline

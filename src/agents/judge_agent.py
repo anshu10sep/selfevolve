@@ -67,6 +67,12 @@ class JudgeAgent(BaseAgent):
             agent_type=AgentType.SPECIALIST,
             identity_core=JUDGE_IDENTITY_CORE,
         )
+        # Load Judge skills into SkillRegistry before super() loads them
+        import agents.skills.judge.make_final_decision  # noqa: F401
+        import agents.skills.judge.evaluate_proposals  # noqa: F401
+        import agents.skills.judge.execution_tools  # noqa: F401
+        import agents.skills.judge.resolve_conflicts  # noqa: F401
+        import agents.skills.insights.insight_skills  # noqa: F401
         super().__init__(identity, llm, trust_weight)
 
     async def evaluate(

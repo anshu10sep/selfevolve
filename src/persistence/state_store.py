@@ -40,6 +40,7 @@ PERSISTENT_KEYS = [
 # Agent fields that persist (trust scores, brier, activity counters)
 AGENT_PERSISTENT_FIELDS = [
     "trust_weight", "brier_score", "tasks_today", "cost_today",
+    "tasks_alltime", "cost_alltime", "tokens_alltime", "last_activity",
 ]
 
 
@@ -72,6 +73,13 @@ def save_state(system_state: dict[str, Any]) -> bool:
                     f: agent.get(f) for f in AGENT_PERSISTENT_FIELDS
                 }
         data["agent_scores"] = agent_data
+
+        # Persist activity tracker counters
+        try:
+            from core.activity_tracker import tracker
+            data["activity_counters"] = tracker.snapshot_for_persist()
+        except Exception:
+            pass
 
         # Atomic write: write to temp file, then rename
         tmp_file = STATE_FILE + ".tmp"
@@ -125,6 +133,16 @@ def load_state(system_state: dict[str, Any]) -> bool:
                         if value is not None:
                             agent[field] = value
             loaded_keys.append(f"agents({len(agent_scores)})")
+
+        # Restore activity tracker counters
+        activity_data = data.get("activity_counters", {})
+        if activity_data:
+            try:
+                from core.activity_tracker import tracker
+                tracker.load_from_dict(activity_data)
+                loaded_keys.append(f"activity({len(activity_data)})")
+            except Exception:
+                pass
 
         # Restore feature_requests if present
         if "feature_requests" in data:

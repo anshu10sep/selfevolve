@@ -1,3 +1,6 @@
+from agents.skills.validator import skill
+
+@skill("meta_review")
 def evaluate_strategy_effectiveness(strategy_id: str, performance_data: dict, market_conditions: dict) -> dict:
     """
     Evaluates the effectiveness of a specific trading strategy under various market conditions.

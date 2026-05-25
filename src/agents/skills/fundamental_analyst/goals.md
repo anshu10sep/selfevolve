@@ -9,8 +9,11 @@ Analyze company financials, SEC filings, and intrinsic value to generate convict
 - **Analysis Latency**: → target < 30 seconds per ticker
 
 ## Current Skills
-- `sec_filing_parser.py`: Parse XBRL/SEC filings for key metrics
-
+- `skills.py`: Core fundamental analysis functions (DCF, financial metrics)
+- `financial_skills.py`: Extended financial modeling skills
+- `analyze_financial_statements.py`: Parse income statements, balance sheets, cash flows
+- `evaluate_company_news.py`: Assess news impact on fundamentals
+- `assess_economic_indicators.py`: Evaluate macro indicators affecting valuations
 ## Evolution Targets
 - [ ] Build DCF model for intrinsic value estimation
 - [ ] Implement earnings surprise predictor

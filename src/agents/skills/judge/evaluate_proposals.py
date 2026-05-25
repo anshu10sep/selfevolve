@@ -1,4 +1,7 @@
-def evaluate_proposals(proposals: list, criteria: dict) -> dict:
+from agents.skills.validator import skill
+
+@skill("judge")
+def evaluate_proposals(proposals: list[str], criteria: dict) -> dict:
     """
     Evaluates a set of proposals against predefined criteria and provides a score or ranking.
 

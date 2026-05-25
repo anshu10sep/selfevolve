@@ -9,8 +9,9 @@ Conduct post-market analysis of all trades, generate linguistic post-mortems, pr
 - **A/B Test Throughput**: → target ≥2 tests running at all times
 
 ## Current Skills
-- `prompt_optimizer.py`: Generate and test prompt variations
-
+- `review_agent_performance.py`: Evaluate agent performance via Brier scores
+- `propose_improvements.py`: Generate Strategic_Nuance prompt updates
+- `evaluate_strategy_effectiveness.py`: Assess strategy changes with A/B test results
 ## Evolution Targets
 - [ ] Build automated post-mortem generator
 - [ ] Implement multi-armed bandit for prompt testing

@@ -1,4 +1,4 @@
-def evaluate_company_news(company_symbol: str, news_articles: list) -> dict:
+def evaluate_company_news(company_symbol: str, news_articles: list[str]) -> dict:
     """
     Evaluates recent news articles related to a specific company to understand their potential impact on its fundamentals.
 

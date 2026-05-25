@@ -73,3 +73,27 @@ class DatabaseErrorHandler:
                         "Action: Check if the service is running using 'systemctl status <service>' or 'docker ps'.")
         else:
             logger.error(f"{prefix}Unexpected Database Error: {error}")
+
+
+def handle_redis_errors(default_return: Any = None) -> Callable:
+    """
+    A decorator to handle Redis-specific errors gracefully.
+    
+    Args:
+        default_return: The value to return if a Redis error occurs.
+        
+    Returns:
+        A decorated function that catches and logs Redis errors.
+    """
+    return with_db_error_handling(fallback_value=default_return)
+
+
+def diagnose_database_error(error: Exception, context: str = "") -> None:
+    """
+    Diagnose a database error and log actionable recommendations.
+    
+    Args:
+        error: The exception that occurred.
+        context: Additional context about where the error occurred.
+    """
+    DatabaseErrorHandler.log_and_diagnose(error, context)

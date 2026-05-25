@@ -1,3 +1,6 @@
+from agents.skills.validator import skill
+
+@skill("developer")
 def debug_code(file_path: str, error_message: str) -> str:
     """
     Analyzes code to identify and fix bugs based on error messages or reported issues.

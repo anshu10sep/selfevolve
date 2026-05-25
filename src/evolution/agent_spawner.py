@@ -29,6 +29,7 @@ logger = structlog.get_logger(component="agent_spawner")
 
 # Default identity cores for each agent role
 AGENT_TEMPLATES: dict[AgentRole, dict[str, Any]] = {
+    # ── C-Suite (report to Jarvis) ──────────────────────────────────
     AgentRole.CTO: {
         "name": "CTO Agent",
         "type": AgentType.EXECUTIVE,
@@ -45,14 +46,47 @@ You monitor for security threats, prompt injection attempts, API key exposure,
 and regulatory compliance. You review all data sanitization pipelines and
 ensure zero-trust architecture principles are maintained.""",
     },
+    AgentRole.CRO: {
+        "name": "CRO Agent",
+        "type": AgentType.EXECUTIVE,
+        "identity_core": """You are the Chief Risk Officer of the SelfEvolve trading system.
+You manage portfolio-level risk, monitor drawdown thresholds, circuit breakers,
+and systemic risk across all strategies. You can halt all trading when risk
+thresholds are breached.""",
+    },
+
+    # ── Division Directors (report to Jarvis) ──────────────────────
     AgentRole.QA: {
         "name": "QA Agent",
-        "type": AgentType.MANAGER,
-        "identity_core": """You are the QA Agent of the SelfEvolve trading system.
+        "type": AgentType.DIRECTOR,
+        "identity_core": """You are the QA Agent — Operations Division Director.
 You validate agent outputs, track bugs, verify guardrail effectiveness,
-and ensure system reliability. You review the Semantic Audit results
-and flag anomalies in Judge Agent decisions.""",
+and ensure system reliability. You manage Auditor, Journaling, and Watchdog agents.""",
     },
+    AgentRole.PRODUCT: {
+        "name": "Product Agent",
+        "type": AgentType.DIRECTOR,
+        "identity_core": """You are the Product Agent — Research Division Director.
+You prioritize research tasks, manage the analyst team, translate owner requirements
+into actionable research assignments, and maintain the evolution roadmap.""",
+    },
+    AgentRole.PORTFOLIO_MANAGER: {
+        "name": "Portfolio Manager",
+        "type": AgentType.DIRECTOR,
+        "identity_core": """You are the Portfolio Manager — Trading Division Director.
+You manage capital allocation across strategies, oversee the Bull/Bear debate,
+and coordinate with the Judge Agent for trade execution decisions.""",
+    },
+    AgentRole.META_REVIEW: {
+        "name": "Meta-Review Agent",
+        "type": AgentType.DIRECTOR,
+        "identity_core": """You are the Meta-Review Agent — Evolution Division Director.
+You conduct post-market analysis, generate post-mortems, propose prompt updates,
+and manage the Shadow Crew A/B testing pipeline. You oversee Developer,
+Performance Analyst, and Model Orchestrator.""",
+    },
+
+    # ── Specialists ────────────────────────────────────────────────
     AgentRole.DEVELOPER: {
         "name": "Developer Agent",
         "type": AgentType.SPECIALIST,
@@ -61,27 +95,12 @@ You analyze system bugs, propose fixes within the evolutionary boundaries
 (prompts and parameters only — NEVER infrastructure code), and validate
 that proposed changes pass schema validation.""",
     },
-    AgentRole.PRODUCT: {
-        "name": "Product Agent",
-        "type": AgentType.MANAGER,
-        "identity_core": """You are the Product Agent of the SelfEvolve trading system.
-You prioritize feature development, track user (owner) requirements,
-and ensure the system evolves toward the owner's goals. You translate
-business requirements into actionable agent directives.""",
-    },
-    AgentRole.META_REVIEW: {
-        "name": "Meta-Review Agent",
+    AgentRole.PERFORMANCE_ANALYST: {
+        "name": "Performance Analyst",
         "type": AgentType.SPECIALIST,
-        "identity_core": """You are the Meta-Review Agent of the SelfEvolve trading system.
-You conduct post-market analysis of all trades, generate linguistic post-mortems,
-propose prompt updates for underperforming agents, and manage the Shadow Crew
-A/B testing pipeline. You are the engine of self-evolution.
-
-STRICT RULES:
-- You only update Strategic_Nuance, NEVER Identity_Core.
-- All prompt changes must pass statistical significance testing (p < 0.05).
-- You consolidate rules to prevent prompt saturation (max 3 rules per agent).
-- You generate deterministic Brier Score evaluations, not subjective assessments.""",
+        "identity_core": """You are the Performance Analyst of the SelfEvolve trading system.
+You track cross-agent performance metrics, manage trust weights, evaluate
+architecture fitness, and recommend structural changes to the agent hierarchy.""",
     },
     AgentRole.JOURNALING: {
         "name": "Journaling Agent",
@@ -98,6 +117,13 @@ and trading decision for the audit trail.""",
 You monitor for freeriding violations, verify trade chronology, cross-reference
 the internal ledger with Alpaca's clearing records, and ensure OFAC/FINRA
 compliance. You are the regulatory watchdog.""",
+    },
+    AgentRole.WATCHDOG: {
+        "name": "Watchdog Agent",
+        "type": AgentType.SPECIALIST,
+        "identity_core": """You are the Watchdog Agent of the SelfEvolve trading system.
+You monitor agent heartbeats, detect dead or stuck agents, trigger auto-restart,
+and track system-level anomalies. You are the system's immune system.""",
     },
 }
 
@@ -159,39 +185,46 @@ class AgentSpawner:
 
     def spawn_full_hierarchy(self, master_id: str) -> list[AgentIdentity]:
         """
-        Spawn the complete agent hierarchy under the Master Agent.
-        
-        Creates all executive, manager, and specialist agents
-        with proper parent relationships.
+        Spawn the complete 5-division agent hierarchy under the Master Agent.
+
+        Structure:
+          Jarvis (CEO)
+          ├── C-Suite: CTO, CSO, CRO
+          ├── Research Division: Product → 4 Analysts + Strategy Researcher
+          ├── Trading Division: Portfolio Mgr → Bull, Bear, Judge
+          ├── Evolution Division: Meta-Review → Developer, Performance Analyst
+          └── Operations Division: QA → Auditor, Journaling, Watchdog
         """
         agents: list[AgentIdentity] = []
 
-        # Executive Layer
-        for role in [AgentRole.CTO, AgentRole.CSO]:
+        # ── C-Suite (report to Jarvis) ──────────────────────────
+        for role in [AgentRole.CTO, AgentRole.CSO, AgentRole.CRO]:
             agent = self.spawn_agent(role, parent_id=master_id)
             agents.append(agent)
 
-        # Manager Layer
-        cto_id = agents[0].agent_id  # CTO is parent of managers
-        for role in [AgentRole.QA, AgentRole.PRODUCT]:
-            agent = self.spawn_agent(role, parent_id=cto_id)
+        # ── Division Directors (report to Jarvis) ───────────────
+        directors = {}
+        for role in [AgentRole.PRODUCT, AgentRole.PORTFOLIO_MANAGER, AgentRole.META_REVIEW, AgentRole.QA]:
+            agent = self.spawn_agent(role, parent_id=master_id)
+            agents.append(agent)
+            directors[role] = agent.agent_id
+
+        # ── Operations Division (report to QA) ──────────────────
+        qa_id = directors[AgentRole.QA]
+        for role in [AgentRole.AUDITOR, AgentRole.JOURNALING, AgentRole.WATCHDOG]:
+            agent = self.spawn_agent(role, parent_id=qa_id)
             agents.append(agent)
 
-        # Specialist Layer
-        qa_id = agents[2].agent_id  # QA is parent of specialists
-        for role in [
-            AgentRole.DEVELOPER,
-            AgentRole.META_REVIEW,
-            AgentRole.JOURNALING,
-            AgentRole.AUDITOR,
-        ]:
-            agent = self.spawn_agent(role, parent_id=qa_id)
+        # ── Evolution Division (report to Meta-Review) ──────────
+        meta_id = directors[AgentRole.META_REVIEW]
+        for role in [AgentRole.DEVELOPER, AgentRole.PERFORMANCE_ANALYST]:
+            agent = self.spawn_agent(role, parent_id=meta_id)
             agents.append(agent)
 
         logger.info(
             "full_hierarchy_spawned",
             total_agents=len(agents),
-            hierarchy="Master → CTO/CSO → QA/Product → Dev/Meta/Journal/Auditor",
+            hierarchy="Jarvis → C-Suite(CTO/CSO/CRO) + Directors(Product/PM/Meta/QA) → Specialists",
         )
 
         return agents

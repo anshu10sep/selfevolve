@@ -1,7 +1,7 @@
 from typing import Dict, Any
 from agents.skills.validator import skill
 
-@skill
+@skill("developer")
 def generate_trading_algorithm(strategy_name: str, parameters: Dict[str, Any]) -> str:
     """
     Generates Python code for a specific trading algorithm based on provided parameters.

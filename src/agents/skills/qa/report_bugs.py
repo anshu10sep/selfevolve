@@ -1,4 +1,7 @@
-def report_bugs(bug_description: str, steps_to_reproduce: list, severity: str, affected_component: str) -> dict:
+from agents.skills.validator import skill
+
+@skill("qa")
+def report_bugs(bug_description: str, steps_to_reproduce: list[str], severity: str, affected_component: str) -> dict:
     """
     Reports a newly discovered bug, including detailed steps to reproduce and severity.
 

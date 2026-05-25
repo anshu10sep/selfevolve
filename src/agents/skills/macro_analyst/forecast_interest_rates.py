@@ -1,4 +1,4 @@
-def forecast_interest_rates(central_bank_statements: list, inflation_data: dict) -> dict:
+def forecast_interest_rates(central_bank_statements: list[str], inflation_data: dict) -> dict:
     """
     Forecasts future interest rate movements based on central bank communications and inflation data.
 

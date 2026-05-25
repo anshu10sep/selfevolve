@@ -1,3 +1,6 @@
+from agents.skills.validator import skill
+
+@skill("journaling")
 def summarize_daily_activity(date: str) -> dict:
     """
     Generates a summary of all system activities, market events, and decisions for a given day.

@@ -1,0 +1,49 @@
+{"component": "main", "environment": "paper", "initial_capital": 100000.0, "version": "1.0.0", "event": "selfevolve_starting", "logger": "__main__", "level": "info", "correlation_id": "824e8418", "timestamp": "2026-05-25T04:41:59.693123Z"}
+{"component": "database", "url": "localhost:5432/selfevolve", "event": "database_engine_created", "logger": "persistence.database", "level": "info", "correlation_id": "7fdd7cf4", "timestamp": "2026-05-25T04:41:59.723408Z"}
+{"component": "main", "error": "[Errno 111] Connect call failed ('127.0.0.1', 5432)", "event": "database_init_failed", "logger": "__main__", "level": "error", "correlation_id": "7fdd7cf4", "timestamp": "2026-05-25T04:41:59.726554Z"}
+{"component": "redis_client", "url": "redis://localhost:6379/0", "event": "redis_client_created", "logger": "persistence.redis_client", "level": "info", "correlation_id": "7fdd7cf4", "timestamp": "2026-05-25T04:41:59.726987Z"}
+{"component": "main", "error": "Error 111 connecting to localhost:6379. Connect call failed ('127.0.0.1', 6379).", "message": "Running in DASHBOARD-ONLY mode. Start Redis/Postgres for full trading functionality.", "event": "infra_not_available", "logger": "__main__", "level": "warning", "correlation_id": "7fdd7cf4", "timestamp": "2026-05-25T04:41:59.728134Z"}
+Scheduler started
+Application started
+{"component": "telegram_bot", "username": "selfevolve_trade_bot", "event": "telegram_bot_started", "logger": "integrations.telegram_bot", "level": "info", "correlation_id": "7fdd7cf4", "timestamp": "2026-05-25T04:42:00.756990Z"}
+{"component": "telegram_bot", "length": 85, "event": "telegram_alert_sent", "logger": "integrations.telegram_bot", "level": "info", "correlation_id": "7fdd7cf4", "timestamp": "2026-05-25T04:42:01.373778Z"}
+{"component": "main", "event": "telegram_bot_started", "logger": "__main__", "level": "info", "correlation_id": "7fdd7cf4", "timestamp": "2026-05-25T04:42:01.374000Z"}
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Added job "SelfEvolveSystem._run_pre_market" to job store "default"
+Added job "SelfEvolveSystem._run_market_open" to job store "default"
+Added job "SelfEvolveSystem._run_intraday_scan" to job store "default"
+Added job "SelfEvolveSystem._run_intraday_scan" to job store "default"
+Added job "SelfEvolveSystem._run_intraday_scan" to job store "default"
+Added job "SelfEvolveSystem._run_market_close" to job store "default"
+Added job "SelfEvolveSystem._run_post_market_evolution" to job store "default"
+Added job "SelfEvolveSystem._run_crypto_scan" to job store "default"
+Added job "SelfEvolveSystem._run_continuous_evolution" to job store "default"
+Scheduler started
+{"component": "main", "event": "scheduler_started", "logger": "__main__", "level": "info", "correlation_id": "7fdd7cf4", "timestamp": "2026-05-25T04:42:01.376520Z"}
+{"component": "watchdog", "interval": "5min", "event": "watchdog_started", "logger": "evolution.watchdog", "level": "info", "correlation_id": "7fdd7cf4", "timestamp": "2026-05-25T04:42:01.377222Z"}
+{"component": "watchdog", "cycle": 1, "event": "watchdog_cycle_start", "logger": "evolution.watchdog", "level": "info", "correlation_id": "7fdd7cf4", "timestamp": "2026-05-25T04:42:01.377277Z"}
+{"component": "main", "interval": "5min", "event": "watchdog_started", "logger": "__main__", "level": "info", "correlation_id": "7fdd7cf4", "timestamp": "2026-05-25T04:42:01.377378Z"}
+{"component": "watchdog", "titles_loaded": 10, "cache_size": 10, "event": "watchdog_scanner_cache_synced", "logger": "evolution.watchdog", "level": "info", "correlation_id": "7fdd7cf4", "timestamp": "2026-05-25T04:42:01.396802Z"}
+{"component": "watchdog", "cycle": 1, "cleaned": 0, "duration_sec": 0.03, "event": "watchdog_cycle_complete", "logger": "evolution.watchdog", "level": "info", "correlation_id": "7fdd7cf4", "timestamp": "2026-05-25T04:42:01.404485Z"}
+{"component": "main", "status": "RUNNING", "event": "selfevolve_started", "logger": "__main__", "level": "info", "correlation_id": "7fdd7cf4", "timestamp": "2026-05-25T04:42:01.404794Z"}
+{"component": "database", "url": "sqlite:////home/agentx/self-evolving/src/persistence/../../data/jarvis.db", "tables": 8, "event": "database_initialized", "logger": "persistence.db", "level": "info", "correlation_id": "7fdd7cf4", "timestamp": "2026-05-25T04:42:01.485091Z"}
+{"component": "activity_tracker", "agents": 0, "event": "activity_counters_restored", "logger": "core.activity_tracker", "level": "info", "correlation_id": "7fdd7cf4", "timestamp": "2026-05-25T04:42:01.489944Z"}
+{"component": "database", "bugs": 18, "frs": 2, "trades": 0, "event": "state_synced_from_db", "logger": "persistence.db", "level": "info", "correlation_id": "7fdd7cf4", "timestamp": "2026-05-25T04:42:01.490029Z"}
+{"component": "dashboard_api", "bugs": 18, "frs": 2, "event": "database_ready", "logger": "dashboard.api.main", "level": "info", "correlation_id": "7fdd7cf4", "timestamp": "2026-05-25T04:42:01.490072Z"}
+{"component": "hot_reloader", "watched_dirs": 3, "files_tracked": 99, "event": "hot_reloader_started", "logger": "evolution.hot_reloader", "level": "info", "correlation_id": "7fdd7cf4", "timestamp": "2026-05-25T04:42:01.523186Z"}
+{"component": "bug_worker", "interval": "30min", "event": "bug_worker_started", "logger": "evolution.bug_worker", "level": "info", "correlation_id": "7fdd7cf4", "timestamp": "2026-05-25T04:42:01.523970Z"}
+{"component": "bug_worker", "message": "No open bugs", "event": "bug_worker_idle", "logger": "evolution.bug_worker", "level": "info", "correlation_id": "7fdd7cf4", "timestamp": "2026-05-25T04:42:01.525431Z"}
+{"component": "pr_review_pipeline", "interval": "30min", "event": "pr_review_loop_started", "logger": "agents.skills.pr_reviewer.review_pipeline", "level": "info", "correlation_id": "7fdd7cf4", "timestamp": "2026-05-25T04:42:01.525519Z"}
+{"component": "self_evolution", "interval": "10min", "event": "evolution_loop_started", "logger": "evolution.self_evolution", "level": "info", "correlation_id": "7fdd7cf4", "timestamp": "2026-05-25T04:42:01.530018Z"}
+{"component": "bug_scanner", "interval": "30min", "event": "bug_scanner_started", "logger": "evolution.bug_scanner", "level": "info", "correlation_id": "7fdd7cf4", "timestamp": "2026-05-25T04:42:01.530106Z"}
+{"component": "tpm_tracker", "interval": "30min", "event": "tpm_tracker_started", "logger": "evolution.tpm_tracker", "level": "info", "correlation_id": "7fdd7cf4", "timestamp": "2026-05-25T04:42:01.530152Z"}
+{"component": "process_monitor", "interval": "30min", "event": "process_monitor_started", "logger": "evolution.process_monitor", "level": "info", "correlation_id": "7fdd7cf4", "timestamp": "2026-05-25T04:42:01.530188Z"}
+{"component": "dashboard_api", "equity": 99857.61, "cash": 95052.04, "positions": 3, "daily_pnl": -142.38999999999942, "event": "alpaca_synced", "logger": "dashboard.api.main", "level": "info", "correlation_id": "7fdd7cf4", "timestamp": "2026-05-25T04:42:01.914216Z"}

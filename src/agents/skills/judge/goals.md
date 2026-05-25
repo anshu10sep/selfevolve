@@ -9,8 +9,9 @@ Serve as the final decision gateway — evaluate debate outcomes, enforce risk r
 - **Brier Score**: → target < 0.20 (highest calibration in system)
 
 ## Current Skills
-- `decision_framework.py`: Structured decision-making with hard rules engine
-
+- `evaluate_proposals.py`: Evaluate trade proposals against risk rules
+- `make_final_decision.py`: Final BUY/PASS decision with ExecutionOrder output
+- `resolve_conflicts.py`: Resolve conflicting analyst signals
 ## Evolution Targets
 - [ ] Build confidence calibration model
 - [ ] Implement position sizing recommendations

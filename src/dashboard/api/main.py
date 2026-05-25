@@ -21,6 +21,8 @@ from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 import structlog
 
+from core.activity_tracker import tracker as activity_tracker
+
 logger = structlog.get_logger(component="dashboard_api")
 
 app = FastAPI(
@@ -83,27 +85,33 @@ system_state: dict[str, Any] = {
         "settling_tranches": 0,
     },
     "agents": [
+        # ── CEO ──────────────────────────────────────────────────────
         {"id": str(uuid.uuid4()), "name": "Jarvis", "role": "MASTER", "type": "EXECUTIVE", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": datetime.now(timezone.utc).isoformat()},
-        {"id": str(uuid.uuid4()), "name": "CTO — Stocks", "role": "CTO", "type": "EXECUTIVE", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None, "division": "stocks"},
-        {"id": str(uuid.uuid4()), "name": "CTO — Crypto", "role": "CTO_CRYPTO", "type": "EXECUTIVE", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None, "division": "crypto"},
+        # ── C-Suite (report to Jarvis) ───────────────────────────────
+        {"id": str(uuid.uuid4()), "name": "CTO Agent", "role": "CTO", "type": "EXECUTIVE", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
         {"id": str(uuid.uuid4()), "name": "CSO Agent", "role": "CSO", "type": "EXECUTIVE", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
-        {"id": str(uuid.uuid4()), "name": "QA Agent", "role": "QA", "type": "MANAGER", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
-        {"id": str(uuid.uuid4()), "name": "Developer Agent", "role": "DEVELOPER", "type": "SPECIALIST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
-        {"id": str(uuid.uuid4()), "name": "Product Agent", "role": "PRODUCT", "type": "MANAGER", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
+        {"id": str(uuid.uuid4()), "name": "CRO Agent", "role": "CRO", "type": "EXECUTIVE", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
+        # ── Research Division (Product Agent directs) ────────────────
+        {"id": str(uuid.uuid4()), "name": "Product Agent", "role": "PRODUCT", "type": "DIRECTOR", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
         {"id": str(uuid.uuid4()), "name": "Fundamental Analyst", "role": "FUNDAMENTAL_ANALYST", "type": "ANALYST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": 0.22, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
         {"id": str(uuid.uuid4()), "name": "Technical Analyst", "role": "TECHNICAL_ANALYST", "type": "ANALYST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": 0.19, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
         {"id": str(uuid.uuid4()), "name": "Sentiment Analyst", "role": "SENTIMENT_ANALYST", "type": "ANALYST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": 0.28, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
         {"id": str(uuid.uuid4()), "name": "Macro Analyst", "role": "MACRO_ANALYST", "type": "ANALYST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": 0.24, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
+        {"id": str(uuid.uuid4()), "name": "Strategy Researcher", "role": "STRATEGY_RESEARCHER", "type": "SPECIALIST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
+        # ── Trading Division (Portfolio Manager directs) ─────────────
+        {"id": str(uuid.uuid4()), "name": "Portfolio Manager", "role": "PORTFOLIO_MANAGER", "type": "DIRECTOR", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
         {"id": str(uuid.uuid4()), "name": "Bull Agent", "role": "BULL", "type": "SPECIALIST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
         {"id": str(uuid.uuid4()), "name": "Bear Agent", "role": "BEAR", "type": "SPECIALIST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
         {"id": str(uuid.uuid4()), "name": "Judge Agent", "role": "JUDGE", "type": "SPECIALIST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": 0.18, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
-        {"id": str(uuid.uuid4()), "name": "Meta-Review Agent", "role": "META_REVIEW", "type": "SPECIALIST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
-        {"id": str(uuid.uuid4()), "name": "Journaling Agent", "role": "JOURNALING", "type": "SPECIALIST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
+        # ── Evolution Division (Meta-Review Agent directs) ───────────
+        {"id": str(uuid.uuid4()), "name": "Meta-Review Agent", "role": "META_REVIEW", "type": "DIRECTOR", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
+        {"id": str(uuid.uuid4()), "name": "Developer Agent", "role": "DEVELOPER", "type": "SPECIALIST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
+        {"id": str(uuid.uuid4()), "name": "Performance Analyst", "role": "PERFORMANCE_ANALYST", "type": "SPECIALIST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
+        # ── Operations Division (QA Agent directs) ───────────────────
+        {"id": str(uuid.uuid4()), "name": "QA Agent", "role": "QA", "type": "DIRECTOR", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
         {"id": str(uuid.uuid4()), "name": "Auditor Agent", "role": "AUDITOR", "type": "SPECIALIST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
-        {"id": str(uuid.uuid4()), "name": "Model Orchestrator", "role": "MODEL_ORCHESTRATOR", "type": "SPECIALIST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
-        {"id": str(uuid.uuid4()), "name": "Crypto Analyst", "role": "CRYPTO_ANALYST", "type": "ANALYST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None, "division": "crypto"},
-        {"id": str(uuid.uuid4()), "name": "Crypto Sentiment", "role": "CRYPTO_SENTIMENT", "type": "ANALYST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None, "division": "crypto"},
-        {"id": str(uuid.uuid4()), "name": "PR Reviewer", "role": "PR_REVIEWER", "type": "SPECIALIST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
+        {"id": str(uuid.uuid4()), "name": "Journaling Agent", "role": "JOURNALING", "type": "SPECIALIST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
+        {"id": str(uuid.uuid4()), "name": "Watchdog Agent", "role": "WATCHDOG", "type": "SPECIALIST", "status": "ACTIVE", "trust_weight": 1.0, "brier_score": None, "tasks_today": 0, "cost_today": 0.0, "last_activity": None},
     ],
     "recent_trades": [],
     "evolution_events": [],
@@ -291,6 +299,8 @@ async def get_portfolio_history():
 
 @app.get("/api/agents")
 async def get_agents():
+    # Merge live activity counters into agent dicts before returning
+    activity_tracker.merge_into_agents_list(system_state["agents"])
     return {"agents": system_state["agents"]}
 
 
@@ -307,16 +317,17 @@ async def get_agent_detail(agent_id: str):
 
     # Map role to skills directory name
     role_to_dir = {
-        "MASTER": "jarvis", "CTO": "cto", "CTO_CRYPTO": "cto_crypto", "CSO": "cso", "QA": "qa",
-        "DEVELOPER": "developer", "PRODUCT": "product",
+        "MASTER": "jarvis", "CTO": "cto", "CSO": "cso", "CRO": "cro",
+        "QA": "qa", "DEVELOPER": "developer", "PRODUCT": "product",
+        "PORTFOLIO_MANAGER": "portfolio_manager", "STRATEGY_RESEARCHER": "strategy_researcher",
         "FUNDAMENTAL_ANALYST": "fundamental_analyst",
         "TECHNICAL_ANALYST": "technical_analyst",
         "SENTIMENT_ANALYST": "sentiment_analyst",
         "MACRO_ANALYST": "macro_analyst",
         "BULL": "bull", "BEAR": "bear", "JUDGE": "judge",
         "META_REVIEW": "meta_review", "JOURNALING": "journaling",
-        "AUDITOR": "auditor", "MODEL_ORCHESTRATOR": "model_orchestrator",
-        "CRYPTO_ANALYST": "crypto_analyst", "CRYPTO_SENTIMENT": "crypto_sentiment",
+        "AUDITOR": "auditor", "PERFORMANCE_ANALYST": "performance_analyst",
+        "WATCHDOG": "watchdog",
     }
 
     role = agent.get("role", "")
@@ -341,6 +352,9 @@ async def get_agent_detail(agent_id: str):
     except FileNotFoundError:
         pass
 
+    # Get live counters from the activity tracker
+    live = activity_tracker.get(role)
+
     # Build detailed response
     return {
         **agent,
@@ -351,13 +365,13 @@ async def get_agent_detail(agent_id: str):
         "metrics": {
             "trust_weight": agent.get("trust_weight", 1.0),
             "brier_score": agent.get("brier_score"),
-            "tasks_today": agent.get("tasks_today", 0),
-            "tasks_alltime": agent.get("tasks_alltime", 0),
-            "cost_today": agent.get("cost_today", 0.0),
-            "cost_alltime": agent.get("cost_alltime", 0.0),
-            "tokens_today": agent.get("tokens_today", 0),
-            "last_activity": agent.get("last_activity"),
-            "consecutive_failures": agent.get("consecutive_failures", 0),
+            "tasks_today": live.get("tasks_today", 0),
+            "tasks_alltime": live.get("tasks_alltime", 0),
+            "cost_today": live.get("cost_today", 0.0),
+            "cost_alltime": live.get("cost_alltime", 0.0),
+            "tokens_today": live.get("tokens_today", 0),
+            "last_activity": live.get("last_activity") or agent.get("last_activity"),
+            "consecutive_failures": live.get("consecutive_failures", 0),
             "evolution_count": agent.get("evolution_count", 0),
         },
     }
@@ -486,26 +500,80 @@ async def get_velocity():
     }
 
 
+@app.get("/api/watchdog")
+async def get_watchdog_logs():
+    """Get recent logs from the watchdog service."""
+    log_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "logs", "watchdog_report.log")
+    try:
+        if not os.path.exists(log_path):
+            return {"logs": ["Watchdog log file not found."]}
+        
+        with open(log_path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        
+        # Return last 100 lines
+        return {"logs": lines[-100:]}
+    except Exception as e:
+        return {"logs": [f"Error reading watchdog log: {str(e)}"]}
+
+
+
 # ════════════════════════════════════════════════════════════════════
 # BUGS
 # ════════════════════════════════════════════════════════════════════
 
 @app.get("/api/bugs")
 async def get_bugs():
-    return {"bugs": system_state["bugs"]}
+    """Get all bugs — reads LIVE from database, not stale cache."""
+    try:
+        from persistence.db import get_bugs as db_get_bugs
+        bugs = db_get_bugs()
+        system_state["bugs"] = bugs  # Sync cache for WebSocket
+        return {"bugs": bugs}
+    except Exception:
+        return {"bugs": system_state["bugs"]}
 
 
 @app.get("/api/bugs/summary")
 async def get_bug_summary():
-    bugs = system_state["bugs"]
-    return {
-        "total": len(bugs),
-        "open": len([b for b in bugs if b.get("status") == "OPEN"]),
-        "in_progress": len([b for b in bugs if b.get("status") == "IN_PROGRESS"]),
-        "resolved": len([b for b in bugs if b.get("status") == "RESOLVED"]),
-        "critical": len([b for b in bugs if b.get("severity") == "CRITICAL"]),
-        "high": len([b for b in bugs if b.get("severity") == "HIGH"]),
-    }
+    """Get bug counts — reads LIVE from database."""
+    try:
+        from persistence.db import get_bug_summary as db_bug_summary
+        summary = db_bug_summary()
+        # Also refresh the bugs cache
+        from persistence.db import get_bugs as db_get_bugs
+        system_state["bugs"] = db_get_bugs()
+        return summary
+    except Exception:
+        bugs = system_state["bugs"]
+        return {
+            "total": len(bugs),
+            "open": len([b for b in bugs if b.get("status") == "OPEN"]),
+            "in_progress": len([b for b in bugs if b.get("status") == "IN_PROGRESS"]),
+            "resolved": len([b for b in bugs if b.get("status") == "RESOLVED"]),
+            "critical": len([b for b in bugs if b.get("severity") == "CRITICAL"]),
+            "high": len([b for b in bugs if b.get("severity") == "HIGH"]),
+        }
+
+
+@app.get("/api/bugs/{bug_id}")
+async def get_bug_detail(bug_id: str):
+    """Get full details for a single bug by ID."""
+    try:
+        from persistence.db import get_session, Bug
+        with get_session() as s:
+            bug = s.query(Bug).filter(Bug.id == bug_id).first()
+            if not bug:
+                raise HTTPException(status_code=404, detail=f"Bug {bug_id} not found")
+            return bug.to_dict()
+    except HTTPException:
+        raise
+    except Exception:
+        # Fallback to in-memory cache
+        for b in system_state["bugs"]:
+            if b.get("id") == bug_id:
+                return b
+        raise HTTPException(status_code=404, detail=f"Bug {bug_id} not found")
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -598,6 +666,127 @@ async def create_hitl_issue(issue: dict):
 
 
 # ════════════════════════════════════════════════════════════════════
+# HITL TRADE APPROVALS (Phase 3)
+# ════════════════════════════════════════════════════════════════════
+
+
+class HITLTradeAction(BaseModel):
+    """Action on a HITL trade approval request."""
+    action: str  # "APPROVE", "REJECT", "MODIFY"
+    notes: Optional[str] = None
+    modified_sl: Optional[float] = None
+    modified_tp: Optional[float] = None
+
+
+@app.get("/api/hitl/trades")
+async def get_hitl_trade_queue():
+    """Get pending trade approval requests (separate from bug HITL)."""
+    try:
+        from core.hitl_gateway import hitl_gateway
+        pending = hitl_gateway.get_pending()
+        return {
+            "pending": [r.to_dict() for r in pending],
+            "pending_count": len(pending),
+        }
+    except Exception as e:
+        return {"pending": [], "pending_count": 0, "error": str(e)}
+
+
+@app.post("/api/hitl/trades/{request_id}/approve")
+async def approve_hitl_trade(request_id: str):
+    """Approve a pending trade via dashboard."""
+    try:
+        from core.hitl_gateway import hitl_gateway, HITLSource
+        resolved = await hitl_gateway.resolve(
+            request_id=request_id,
+            action="APPROVED",
+            source=HITLSource.DASHBOARD,
+        )
+        if not resolved:
+            raise HTTPException(status_code=404, detail=f"HITL request {request_id} not found")
+
+        await _broadcast({
+            "type": "hitl_trade_resolved",
+            "request_id": request_id,
+            "action": "APPROVED",
+            "ticker": resolved.ticker,
+        })
+        return {"status": "approved", "request": resolved.to_dict()}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/hitl/trades/{request_id}/reject")
+async def reject_hitl_trade(request_id: str, body: HITLTradeAction = None):
+    """Reject a pending trade via dashboard."""
+    try:
+        from core.hitl_gateway import hitl_gateway, HITLSource
+        notes = body.notes if body else None
+        resolved = await hitl_gateway.resolve(
+            request_id=request_id,
+            action="REJECTED",
+            source=HITLSource.DASHBOARD,
+            notes=notes or "Rejected via Dashboard",
+        )
+        if not resolved:
+            raise HTTPException(status_code=404, detail=f"HITL request {request_id} not found")
+
+        await _broadcast({
+            "type": "hitl_trade_resolved",
+            "request_id": request_id,
+            "action": "REJECTED",
+            "ticker": resolved.ticker,
+        })
+        return {"status": "rejected", "request": resolved.to_dict()}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/hitl/trades/{request_id}/modify")
+async def modify_hitl_trade(request_id: str, body: HITLTradeAction):
+    """Modify SL/TP and approve a trade via dashboard."""
+    try:
+        from core.hitl_gateway import hitl_gateway, HITLSource
+        resolved = await hitl_gateway.resolve(
+            request_id=request_id,
+            action="MODIFIED",
+            source=HITLSource.DASHBOARD,
+            notes=body.notes or "Modified via Dashboard",
+            modified_sl=body.modified_sl,
+            modified_tp=body.modified_tp,
+        )
+        if not resolved:
+            raise HTTPException(status_code=404, detail=f"HITL request {request_id} not found")
+
+        await _broadcast({
+            "type": "hitl_trade_resolved",
+            "request_id": request_id,
+            "action": "MODIFIED",
+            "ticker": resolved.ticker,
+        })
+        return {"status": "modified", "request": resolved.to_dict()}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/hitl/trades/history")
+async def get_hitl_trade_history():
+    """Get resolved HITL trade requests (last 50)."""
+    try:
+        from core.hitl_gateway import hitl_gateway
+        history = hitl_gateway.get_history(limit=50)
+        return {"history": history, "total": len(history)}
+    except Exception as e:
+        return {"history": [], "total": 0, "error": str(e)}
+
+
+# ════════════════════════════════════════════════════════════════════
 # COSTS
 # ════════════════════════════════════════════════════════════════════
 
@@ -607,7 +796,10 @@ async def get_cost_breakdown():
         "total_cost_today": system_state["portfolio"].get("total_api_cost_today", 0),
         "total_cost_alltime": system_state["portfolio"].get("total_api_cost_alltime", 0),
         "model_config": system_state["model_config"],
-        "breakdown_by_agent": {a["name"]: a["cost_today"] for a in system_state["agents"]},
+        "breakdown_by_agent": {
+            a["name"]: activity_tracker.get(a.get("role", "")).get("cost_today", 0.0)
+            for a in system_state["agents"]
+        },
     }
 
 
