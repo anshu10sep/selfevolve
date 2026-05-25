@@ -26,6 +26,7 @@
         <div class="topbar-center">
             <nav class="main-nav">
                 <button class="nav-btn active" data-section="overview" id="nav-overview">Overview</button>
+                <button class="nav-btn" data-section="trades" id="nav-trades">Trades & Costs</button>
                 <button class="nav-btn" data-section="agents" id="nav-agents">Agents</button>
                 <button class="nav-btn" data-section="roadmap" id="nav-roadmap">Roadmap</button>
                 <button class="nav-btn" data-section="architecture" id="nav-architecture">Architecture</button>
@@ -84,6 +85,25 @@
                     <div class="kpi-delta neutral" id="kpi-bugs-label">None</div>
                 </div>
             </div>
+            
+            <!-- Velocity KPI Row -->
+            <div class="kpi-row" style="margin-top: 16px; margin-bottom: 20px;">
+                <div class="kpi-card" style="background: rgba(30, 41, 59, 0.4);">
+                    <div class="kpi-label">Evolutions</div>
+                    <div class="kpi-value" id="kpi-evolutions">0</div>
+                    <div class="kpi-delta positive">System improvements</div>
+                </div>
+                <div class="kpi-card" style="background: rgba(30, 41, 59, 0.4);">
+                    <div class="kpi-label">Bugs Resolved</div>
+                    <div class="kpi-value" id="kpi-bugs-resolved">0</div>
+                    <div class="kpi-delta positive">Self-healing events</div>
+                </div>
+                <div class="kpi-card" style="background: rgba(30, 41, 59, 0.4);">
+                    <div class="kpi-label">Development Velocity</div>
+                    <div class="kpi-value" id="kpi-dev-velocity">0</div>
+                    <div class="kpi-delta neutral">Files changed/day</div>
+                </div>
+            </div>
 
             <!-- Two-column layout -->
             <div class="grid-2col">
@@ -138,6 +158,56 @@
                             <div class="stat-row"><span>Drawdown</span><span id="stat-drawdown">0.0%</span></div>
                             <div class="stat-row"><span>Model</span><span id="stat-model">gemini-2.5-flash</span></div>
                             <div class="stat-row"><span>Uptime</span><span id="stat-uptime">0h</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─── TRADES & COSTS SECTION ─── -->
+        <section id="section-trades" class="section">
+            <div class="section-header">
+                <h1>Trades & API Cost Breakdown</h1>
+                <div class="section-actions">
+                    <button class="action-btn" onclick="loadTradesAndCosts()">🔄 Refresh</button>
+                </div>
+            </div>
+            <div class="grid-2col">
+                <!-- Left: Recent Trades -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Recent Executions</h2>
+                    </div>
+                    <div class="card-body">
+                        <div style="overflow-x: auto;">
+                            <table class="trades-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-secondary);">
+                                        <th style="padding: 10px;">Ticker</th>
+                                        <th style="padding: 10px;">Side</th>
+                                        <th style="padding: 10px;">Qty</th>
+                                        <th style="padding: 10px;">Price</th>
+                                        <th style="padding: 10px;">PnL</th>
+                                        <th style="padding: 10px;">Agent</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="trades-table-body">
+                                    <tr><td colspan="6" style="padding: 20px; text-align: center; color: var(--text-muted);">Loading trades...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Cost Breakdown -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>API Cost Allocation</h2>
+                        <span class="badge" id="total-api-cost-badge">$0.00 today</span>
+                    </div>
+                    <div class="card-body">
+                        <div id="cost-breakdown-list" style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
+                            <div class="empty-state">Loading cost breakdown...</div>
                         </div>
                     </div>
                 </div>

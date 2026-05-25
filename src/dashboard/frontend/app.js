@@ -40,6 +40,7 @@ function loadSectionData(section) {
     case 'bugs': loadBugs(); break;
     case 'hitl': loadHitlQueue(); break;
     case 'audit': break; // loaded on demand
+    case 'trades': loadTradesAndCosts(); break;
   }
 }
 
@@ -107,6 +108,14 @@ async function loadOverview() {
 
   document.getElementById('phase-badge').textContent = data.current_phase || 'IDLE';
 
+  // Fetch velocity metrics
+  const vel = await api('/api/velocity');
+  if (vel) {
+    document.getElementById('kpi-evolutions').textContent = vel.evolution_events || 0;
+    document.getElementById('kpi-bugs-resolved').textContent = vel.bugs_resolved || 0;
+    document.getElementById('kpi-dev-velocity').textContent = (vel.files_per_day || 0);
+  }
+
   // Render tranches
   renderTranches(p);
 }
@@ -126,6 +135,58 @@ function renderTranches(portfolio) {
     else if (i < avail + locked) { t.classList.add('locked'); t.textContent = '🔒'; }
     else { t.classList.add('settling'); t.textContent = '⏳'; }
     grid.appendChild(t);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// TRADES & COSTS
+// ════════════════════════════════════════════════════════════════
+
+async function loadTradesAndCosts() {
+  const tradesData = await api('/api/trades');
+  const costsData = await api('/api/costs');
+  
+  // Render Trades
+  const tbody = document.getElementById('trades-table-body');
+  if (tradesData && tradesData.trades && tradesData.trades.length > 0) {
+    tbody.innerHTML = tradesData.trades.map(t => {
+      const pnlColor = t.pnl > 0 ? 'var(--accent-green)' : (t.pnl < 0 ? 'var(--accent-red)' : 'var(--text-primary)');
+      const pnlPrefix = t.pnl > 0 ? '+' : '';
+      return `
+        <tr style="border-bottom: 1px solid var(--border-color);">
+          <td style="padding: 10px;"><strong>${t.ticker || '—'}</strong></td>
+          <td style="padding: 10px;"><span style="color: ${t.side === 'long' ? 'var(--accent-green)' : 'var(--accent-red)'}">${(t.side || '—').toUpperCase()}</span></td>
+          <td style="padding: 10px;">${t.quantity || 0}</td>
+          <td style="padding: 10px;">$${(t.price || 0).toFixed(4)}</td>
+          <td style="padding: 10px; color: ${pnlColor};">${pnlPrefix}${(t.pnl || 0).toFixed(2)}</td>
+          <td style="padding: 10px;">${t.agent || 'Jarvis'}</td>
+        </tr>
+      `;
+    }).join('');
+  } else {
+    tbody.innerHTML = '<tr><td colspan="6" style="padding: 20px; text-align: center; color: var(--text-muted);">No recent trades found</td></tr>';
+  }
+
+  // Render Costs
+  const costList = document.getElementById('cost-breakdown-list');
+  if (costsData && costsData.breakdown_by_agent) {
+    document.getElementById('total-api-cost-badge').textContent = `$${(costsData.total_cost_today || 0).toFixed(2)} today`;
+    const sortedAgents = Object.entries(costsData.breakdown_by_agent)
+      .filter(([name, cost]) => cost > 0)
+      .sort((a, b) => b[1] - a[1]);
+      
+    if (sortedAgents.length > 0) {
+      costList.innerHTML = sortedAgents.map(([name, cost]) => `
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(30, 41, 59, 0.4); border-radius: 6px;">
+          <span>${name}</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-weight: 600;">$${cost.toFixed(3)}</span>
+        </div>
+      `).join('');
+    } else {
+      costList.innerHTML = '<div class="empty-state">No API costs incurred today</div>';
+    }
+  } else {
+    costList.innerHTML = '<div class="empty-state">Unable to load cost breakdown</div>';
   }
 }
 
