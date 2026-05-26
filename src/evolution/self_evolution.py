@@ -181,7 +181,15 @@ class SelfEvolutionEngine:
         Approval sources (checked in order):
           1. GitHub formal APPROVED review (works with separate reviewer PAT)
           2. AI reviewer comment containing "Code Review: APPROVE"
-          3. BugWorker PRs with [severity] prefix (already passed presubmit)
+
+        Safety gates:
+          - PR must have been reviewed (formal review or AI comment approval)
+          - Review must be at least 2 minutes old (allows human intervention)
+          - BugWorker PRs are NOT auto-approved by title tag alone
+
+        NOTE: Check 3 (title-tag auto-approval for BugWorker PRs) was removed
+        because it allowed PRs to merge without any actual review. All PRs now
+        require a proper APPROVE review or comment-based approval.
         """
         if not self._pat:
             logger.debug("no_pat_skip_evolution")
@@ -197,10 +205,26 @@ class SelfEvolutionEngine:
 
             # ── Check 1: GitHub formal APPROVED review ────────────
             reviews = await self._get_pr_reviews(pr_number)
-            approved = any(
-                r.get("state") == "APPROVED"
-                for r in reviews
-            )
+            approved = False
+            review_age_ok = False
+
+            for r in reviews:
+                if r.get("state") == "APPROVED":
+                    approved = True
+                    # Check review age (minimum 2 minutes for human intervention)
+                    try:
+                        submitted = r.get("submitted_at", "")
+                        if submitted:
+                            review_dt = datetime.fromisoformat(
+                                submitted.replace("Z", "+00:00")
+                            )
+                            age = (datetime.now(timezone.utc) - review_dt).total_seconds()
+                            review_age_ok = age >= 120  # 2 minutes
+                        else:
+                            review_age_ok = True  # No timestamp = old review
+                    except (ValueError, TypeError):
+                        review_age_ok = True
+                    break
 
             # ── Check 2: AI reviewer comment-based approval ──────
             # GitHub blocks self-approval when same PAT creates + reviews PR
@@ -217,21 +241,35 @@ class SelfEvolutionEngine:
                             if ("Code Review: APPROVE" in body
                                     and "Reviewed by PR Reviewer Agent" in body):
                                 approved = True
+                                # Check comment age
+                                try:
+                                    created = comment.get("created_at", "")
+                                    if created:
+                                        comment_dt = datetime.fromisoformat(
+                                            created.replace("Z", "+00:00")
+                                        )
+                                        age = (datetime.now(timezone.utc) - comment_dt).total_seconds()
+                                        review_age_ok = age >= 120
+                                    else:
+                                        review_age_ok = True
+                                except (ValueError, TypeError):
+                                    review_age_ok = True
                                 logger.info("approved_via_comment", pr=pr_number)
                                 break
                 except Exception as e:
                     logger.warning("comment_check_failed", pr=pr_number, error=str(e))
 
-            # ── Check 3: BugWorker PRs (already passed presubmit) ─
-            if not approved:
-                if (pr_title.startswith("[") and
-                        any(tag in pr_title for tag in ["CRITICAL", "HIGH", "MEDIUM", "LOW", "FIX"])):
-                    approved = True
-                    logger.info("auto_approved_bugworker_pr", pr=pr_number,
-                                title=pr_title[:50])
-
             if not approved:
                 logger.debug("pr_not_approved", pr=pr_number, title=pr_title[:50])
+                continue
+
+            if not review_age_ok:
+                logger.info(
+                    "pr_approved_but_too_recent",
+                    pr=pr_number,
+                    title=pr_title[:50],
+                    message="Waiting 2 min for human intervention window",
+                )
                 continue
 
             logger.info(
@@ -239,6 +277,17 @@ class SelfEvolutionEngine:
                 pr=pr_number,
                 title=pr_title[:50],
             )
+
+            # Notify BEFORE merge — clear lifecycle status
+            try:
+                from integrations.telegram_bot import send_alert
+                await send_alert(
+                    f"🔀 *Merging PR #{pr_number}*\n\n"
+                    f"`{pr_title[:60]}`\n"
+                    f"Status: ✅ Approved → 🔀 Merging..."
+                )
+            except Exception:
+                pass
 
             # Merge it
             result = await self._merge_pr(pr_number)
@@ -264,19 +313,30 @@ class SelfEvolutionEngine:
                 except Exception:
                     pass
 
-                # Notify
+                # Notify — merge succeeded
                 try:
                     from integrations.telegram_bot import send_alert
                     await send_alert(
-                        f"🔀 *PR #{pr_number} Auto-Merged*\n\n"
+                        f"✅ *PR #{pr_number} Merged*\n\n"
                         f"`{pr['title'][:60]}`\n"
-                        f"SHA: `{result.get('sha', '?')[:8]}`"
+                        f"SHA: `{result.get('sha', '?')[:8]}`\n"
+                        f"🔄 Pulling code and restarting..."
                     )
                 except Exception:
                     pass
             else:
                 logger.warning("merge_attempt_failed", pr=pr_number,
                                error=result.get("error", "?")[:100])
+                # Notify — merge failed
+                try:
+                    from integrations.telegram_bot import send_alert
+                    await send_alert(
+                        f"❌ *PR #{pr_number} Merge Failed*\n\n"
+                        f"`{pr_title[:60]}`\n"
+                        f"Error: `{result.get('error', '?')[:100]}`"
+                    )
+                except Exception:
+                    pass
 
         # If any PRs were merged → pull and restart
         if merged:
