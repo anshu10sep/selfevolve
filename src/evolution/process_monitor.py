@@ -262,22 +262,26 @@ class ProcessMonitor:
             # Note: if service is truly dead, this code wouldn't be running.
             # This catches edge cases like "activating" or "degraded" states.
 
-        # Send summary
+        # Send summary — only when there are issues to report
+        has_problems = agent_issues or throughput.get("stalled") or not service.get("healthy")
         try:
             from integrations.telegram_bot import send_alert
-            health_emoji = "✅" if not agent_issues and service.get("healthy") else "⚠️"
-            stall_emoji = "🔴 STALLED" if throughput.get("stalled") else "🟢 Flowing"
+            if has_problems:
+                health_emoji = "✅" if not agent_issues and service.get("healthy") else "⚠️"
+                stall_emoji = "🔴 STALLED" if throughput.get("stalled") else "🟢 Flowing"
 
-            await send_alert(
-                f"🔍 *Process Monitor*\n\n"
-                f"{health_emoji} Pipeline Health\n"
-                f"  Agents: {len(agent_issues)} issues\n"
-                f"  Service: {service.get('status', '?')}\n"
-                f"  Flow: {stall_emoji}\n"
-                f"  Open bugs: {throughput.get('open', '?')}\n"
-                f"  Resolved: {throughput.get('resolved', '?')}\n"
-                f"  Actions: {len(actions)}"
-            )
+                await send_alert(
+                    f"🔍 *Process Monitor*\n\n"
+                    f"{health_emoji} Pipeline Health\n"
+                    f"  Agents: {len(agent_issues)} issues\n"
+                    f"  Service: {service.get('status', '?')}\n"
+                    f"  Flow: {stall_emoji}\n"
+                    f"  Open bugs: {throughput.get('open', '?')}\n"
+                    f"  Resolved: {throughput.get('resolved', '?')}\n"
+                    f"  Actions: {len(actions)}"
+                )
+            else:
+                logger.debug("process_monitor_report_suppressed", reason="no_issues")
         except Exception:
             pass
 

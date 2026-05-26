@@ -115,27 +115,92 @@ class PRTools:
             ]
         return []
 
-    async def list_unreviewed_prs(self) -> list[dict]:
-        """List PRs that haven't been reviewed yet."""
-        prs = await self.list_open_prs()
-        unreviewed = []
+    async def _get_authenticated_user(self) -> str:
+        """Get the login name of the authenticated GitHub user (PAT owner).
 
-        for pr in prs:
-            # Check if PR has any reviews
+        Cached after first call to avoid repeated API requests.
+        """
+        if hasattr(self, "_cached_login") and self._cached_login:
+            return self._cached_login
+
+        try:
             async with httpx.AsyncClient() as client:
                 r = await client.get(
-                    f"{self._base_url}/pulls/{pr['number']}/reviews",
+                    "https://api.github.com/user",
                     headers=self._headers,
                 )
             if r.status_code == 200:
-                reviews = r.json()
-                # If no reviews from our bot, it's unreviewed
-                bot_reviews = [rv for rv in reviews if "jarvis" in rv.get("user", {}).get("login", "").lower()
-                               or "bot" in rv.get("user", {}).get("login", "").lower()]
-                if not bot_reviews:
-                    unreviewed.append(pr)
-            else:
-                unreviewed.append(pr)  # Can't check, assume unreviewed
+                self._cached_login = r.json().get("login", "")
+                return self._cached_login
+        except Exception as e:
+            logger.debug("get_authenticated_user_failed", error=str(e))
+
+        self._cached_login = ""
+        return ""
+
+    async def _has_our_review(self, pr_number: int, my_login: str) -> bool:
+        """Check if we've already reviewed a PR (via formal review OR comment).
+
+        Checks two sources:
+          1. GitHub formal reviews from our user
+          2. Issue comments containing our review signature
+        """
+        # ── Check 1: Formal GitHub reviews ────────────────────────
+        try:
+            async with httpx.AsyncClient() as client:
+                r = await client.get(
+                    f"{self._base_url}/pulls/{pr_number}/reviews",
+                    headers=self._headers,
+                )
+            if r.status_code == 200:
+                for rv in r.json():
+                    reviewer = rv.get("user", {}).get("login", "").lower()
+                    # Match our login, or common bot names
+                    if reviewer and (
+                        reviewer == my_login.lower()
+                        or "jarvis" in reviewer
+                        or "bot" in reviewer
+                    ):
+                        return True
+        except Exception as e:
+            logger.debug("review_check_failed", pr=pr_number, error=str(e))
+
+        # ── Check 2: Comment-based reviews (fallback path) ────────
+        try:
+            async with httpx.AsyncClient() as client:
+                r = await client.get(
+                    f"{self._base_url}/issues/{pr_number}/comments",
+                    headers=self._headers,
+                )
+            if r.status_code == 200:
+                for comment in r.json():
+                    body = comment.get("body", "")
+                    commenter = comment.get("user", {}).get("login", "").lower()
+                    # Our review signature from code_review.py to_markdown()
+                    if "Reviewed by PR Reviewer Agent" in body:
+                        return True
+                    # Our user posted a review-like comment
+                    if commenter == my_login.lower() and "Code Review:" in body:
+                        return True
+        except Exception as e:
+            logger.debug("comment_check_failed", pr=pr_number, error=str(e))
+
+        return False
+
+    async def list_unreviewed_prs(self) -> list[dict]:
+        """List PRs that haven't been reviewed yet by our system.
+
+        Checks both formal GitHub reviews and comment-based reviews
+        to avoid re-reviewing PRs that were already processed.
+        """
+        prs = await self.list_open_prs()
+        my_login = await self._get_authenticated_user()
+        unreviewed = []
+
+        for pr in prs:
+            if await self._has_our_review(pr["number"], my_login):
+                continue  # Already reviewed — skip
+            unreviewed.append(pr)
 
         return unreviewed
 

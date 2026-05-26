@@ -135,6 +135,13 @@ class TPMTracker:
             stuck_c = len(bugs.get("stuck", []))
             res_c = len(bugs.get("resolved_today", []))
 
+            # Only send report when something meaningful is happening
+            has_activity = (open_c > 0 or ip_c > 0 or stuck_c > 0
+                            or violations or actions)
+            if not has_activity:
+                logger.debug("tpm_report_suppressed", reason="no_activity")
+                return
+
             viol_text = ""
             if violations:
                 viol_text = "\n\n⚠️ *SLA Violations:*\n" + "\n".join(

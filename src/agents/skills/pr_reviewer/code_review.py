@@ -144,10 +144,10 @@ class CodeReviewer:
 
         if not file_contents:
             return CodeReviewReport(
-                verdict="APPROVE",
-                summary="No Python files to review.",
+                verdict="COMMENT",
+                summary="No Python files to review. Manual review recommended for non-Python changes.",
                 comments=[],
-                risk_score=0.0,
+                risk_score=0.2,
             )
 
         # Build the review prompt

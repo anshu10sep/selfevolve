@@ -32,6 +32,8 @@ class PRReviewPipeline:
     def __init__(self):
         self._review_count = 0
         self._history: list[dict] = []
+        # In-memory dedup: PR numbers we've already reviewed this process lifecycle
+        self._reviewed_prs: set[int] = set()
 
     async def presubmit_and_create_pr(
         self,
@@ -154,6 +156,62 @@ class PRReviewPipeline:
             "blocked": False,
         }
 
+    async def _file_review_bugs(self, pr_number: int, pr_title: str, review) -> list[str]:
+        """File bugs for issues found during code review.
+
+        Only files bugs for REQUEST_CHANGES verdicts or reviews with
+        CRITICAL/WARNING comments. Returns list of bug descriptions.
+        """
+        bugs_filed = []
+
+        if review.verdict != "REQUEST_CHANGES" and review.critical_count == 0:
+            return bugs_filed
+
+        try:
+            from persistence.db import create_bug_dedup
+
+            # File one bug per critical issue, or a summary bug for warnings
+            if review.critical_count > 0:
+                for comment in review.comments:
+                    if comment.severity == "CRITICAL":
+                        title = f"[PR #{pr_number}] {comment.category}: {comment.message[:80]}"
+                        bug = create_bug_dedup(
+                            title=title,
+                            severity="HIGH",
+                            source=f"pr_review:PR#{pr_number}",
+                            description=(
+                                f"PR #{pr_number}: {pr_title}\n"
+                                f"File: {comment.file}:{comment.line}\n"
+                                f"Category: {comment.category}\n"
+                                f"Issue: {comment.message}"
+                            ),
+                        )
+                        if bug:
+                            bugs_filed.append(title[:60])
+                            logger.info("review_bug_filed", pr=pr_number, title=title[:60])
+            elif review.verdict == "REQUEST_CHANGES":
+                # Summary bug for REQUEST_CHANGES without critical issues
+                title = f"[PR #{pr_number}] Review: changes requested ({review.warning_count} warnings)"
+                bug = create_bug_dedup(
+                    title=title,
+                    severity="MEDIUM",
+                    source=f"pr_review:PR#{pr_number}",
+                    description=(
+                        f"PR #{pr_number}: {pr_title}\n"
+                        f"Verdict: {review.verdict}\n"
+                        f"Risk: {review.risk_score:.1f}\n"
+                        f"Warnings: {review.warning_count}\n"
+                        f"Summary: {review.summary}"
+                    ),
+                )
+                if bug:
+                    bugs_filed.append(title[:60])
+
+        except Exception as e:
+            logger.warning("review_bug_filing_failed", pr=pr_number, error=str(e))
+
+        return bugs_filed
+
     async def review_pr_by_number(
         self,
         pr_number: int,
@@ -215,16 +273,36 @@ class PRReviewPipeline:
             except Exception:
                 pass
 
-        # Notify via Telegram
+        # Mark as reviewed in memory
+        self._reviewed_prs.add(pr_number)
+
+        # File bugs for issues found
+        bugs_filed = await self._file_review_bugs(pr_number, pr_title, review)
+
+        # Send consolidated Telegram notification
         try:
             from integrations.telegram_bot import send_alert
             icon = {"APPROVE": "✅", "REQUEST_CHANGES": "❌", "COMMENT": "💬"}.get(review.verdict, "📝")
+            bugs_line = ""
+            if bugs_filed:
+                bugs_line = f"\n🐛 Bugs filed: {len(bugs_filed)}"
+                for b in bugs_filed[:3]:
+                    bugs_line += f"\n  • {b}"
+
+            merge_status = ""
+            if review.verdict == "APPROVE":
+                merge_status = "\n🔀 Status: Queued for auto-merge"
+            elif review.verdict == "REQUEST_CHANGES":
+                merge_status = "\n🚫 Status: Blocked — changes needed"
+            else:
+                merge_status = "\n⏸ Status: Manual review recommended"
+
             await send_alert(
-                f"🔍 *PR #{pr_number} Reviewed*\n\n"
-                f"{icon} Verdict: {review.verdict}\n"
-                f"Risk: {review.risk_score:.1f}/1.0\n"
-                f"Issues: {review.critical_count} critical, {review.warning_count} warnings\n"
-                f"Summary: {review.summary[:100]}"
+                f"🔍 *PR #{pr_number}* — `{pr_title[:50]}`\n"
+                f"┣ {icon} Review: {review.verdict} (Risk: {review.risk_score:.1f}, "
+                f"{review.critical_count} critical, {review.warning_count} warnings)"
+                f"{bugs_line}"
+                f"{merge_status}"
             )
         except Exception:
             pass
@@ -232,13 +310,23 @@ class PRReviewPipeline:
         return review.to_dict()
 
     async def review_all_open_prs(self) -> list[dict]:
-        """Review all open PRs that haven't been reviewed yet."""
+        """Review all open PRs that haven't been reviewed yet.
+
+        Uses two dedup layers:
+          1. GitHub-level: pr_tools.list_unreviewed_prs() checks reviews+comments
+          2. In-memory: self._reviewed_prs tracks PRs reviewed this process lifecycle
+        """
         from agents.skills.pr_reviewer.pr_tools import pr_tools
 
         unreviewed = await pr_tools.list_unreviewed_prs()
         results = []
 
         for pr in unreviewed:
+            # In-memory dedup — skip PRs already reviewed this process lifecycle
+            if pr["number"] in self._reviewed_prs:
+                logger.debug("pr_already_reviewed_in_memory", pr=pr["number"])
+                continue
+
             try:
                 result = await self.review_pr_by_number(pr["number"])
                 results.append({
@@ -260,6 +348,8 @@ class PRReviewPipeline:
                 results = await self.review_all_open_prs()
                 if results:
                     logger.info("pr_review_cycle_done", reviewed=len(results))
+                else:
+                    logger.debug("pr_review_cycle_no_new_prs")
                 await asyncio.sleep(interval_minutes * 60)
             except asyncio.CancelledError:
                 break
