@@ -738,8 +738,15 @@ class SelfEvolveSystem:
 
             await send_alert("☀️ *Pre-Market Phase Started*\nScanning for opportunities...")
 
-            # Screen for candidates
+            # Check if market will be open today — skip on holidays
             mdc = MarketDataClient()
+            is_open = await mdc.is_market_open()
+            if not is_open:
+                await mdc.close()
+                await send_alert("⏸ Market is closed today. Skipping pre-market scan.")
+                return
+
+            # Screen for candidates
             screener = StockScreener(mdc)
             candidates = await screener.screen_candidates(max_results=5)
             await mdc.close()
@@ -779,9 +786,7 @@ class SelfEvolveSystem:
             from dashboard.api.main import system_state
             system_state["current_phase"] = "MARKET_OPEN"
 
-            await send_alert("🔔 *Market Open*\nTrading engine active.")
-
-            # Check if market is actually open
+            # Check if market is actually open BEFORE announcing
             from integrations.market_data import MarketDataClient
             mdc = MarketDataClient()
             is_open = await mdc.is_market_open()
@@ -790,6 +795,9 @@ class SelfEvolveSystem:
             if not is_open:
                 await send_alert("⏸ Market is closed today. Skipping trading.")
                 return
+
+            # Market is confirmed open — now announce
+            await send_alert("🔔 *Market Open*\nTrading engine active.")
 
             # Get today's candidates from pre-market
             candidates = system_state.get("today_candidates", [])
