@@ -27,6 +27,46 @@ function fmtUSD(val) {
   return prefix + fmt(Math.abs(val));
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// HELPER: Format timestamps in PST (Pacific Time)
+// ═══════════════════════════════════════════════════════════════════
+const PST_TIMEZONE = 'America/Los_Angeles';
+
+function formatPST(isoString, options = {}) {
+  if (!isoString) return null;
+  try {
+    const d = new Date(isoString);
+    const defaults = { timeZone: PST_TIMEZONE };
+    return d.toLocaleString('en-US', { ...defaults, ...options });
+  } catch { return isoString; }
+}
+
+function formatDatePST(isoString) {
+  if (!isoString) return null;
+  try {
+    const d = new Date(isoString);
+    return d.toLocaleDateString('en-US', {
+      timeZone: PST_TIMEZONE,
+      weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
+    }) + ' at ' + d.toLocaleTimeString('en-US', {
+      timeZone: PST_TIMEZONE,
+      hour: '2-digit', minute: '2-digit',
+    }) + ' PST';
+  } catch { return isoString; }
+}
+
+function formatTimePST(isoString) {
+  if (!isoString) return null;
+  try {
+    const d = new Date(isoString);
+    return d.toLocaleTimeString('en-US', {
+      timeZone: PST_TIMEZONE,
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      hour12: false,
+    });
+  } catch { return isoString; }
+}
+
 function pnlClass(val) {
   if (val == null) return '';
   return val >= 0 ? 'positive' : 'negative';
@@ -349,7 +389,7 @@ function AgentDetailModal({ agentId, onClose }) {
             {/* Last Activity */}
             {detail.metrics?.last_activity && (
               <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '16px', textAlign: 'right' }}>
-                Last active: {new Date(detail.metrics.last_activity).toLocaleString()}
+                Last active: {formatDatePST(detail.metrics.last_activity)}
               </p>
             )}
           </>
@@ -488,14 +528,7 @@ function BugDetailModal({ bug, onClose }) {
   const sev = severityColors[bug.severity] || severityColors.MEDIUM;
   const stat = statusConfig[bug.status] || statusConfig.OPEN;
 
-  const formatDate = (iso) => {
-    if (!iso) return null;
-    try {
-      const d = new Date(iso);
-      return d.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })
-        + ' at ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    } catch { return iso; }
-  };
+
 
   const timeAgo = (iso) => {
     if (!iso) return '';
@@ -561,7 +594,7 @@ function BugDetailModal({ bug, onClose }) {
             <h2 style={{ fontSize: '20px', fontWeight: '700', lineHeight: '1.4' }}>{bug.title}</h2>
             {bug.created_at && (
               <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '6px' }}>
-                Filed {formatDate(bug.created_at)} <span style={{ color: 'var(--text-muted)' }}>({timeAgo(bug.created_at)})</span>
+                Filed {formatDatePST(bug.created_at)} <span style={{ color: 'var(--text-muted)' }}>({timeAgo(bug.created_at)})</span>
               </p>
             )}
           </div>
@@ -581,18 +614,18 @@ function BugDetailModal({ bug, onClose }) {
         }}>
           <div className="glass-card" style={{ padding: '14px' }}>
             <p style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Created</p>
-            <p style={{ fontSize: '14px', fontWeight: '600' }}>{formatDate(bug.created_at) || '—'}</p>
+            <p style={{ fontSize: '14px', fontWeight: '600' }}>{formatDatePST(bug.created_at) || '—'}</p>
           </div>
           {bug.started_at && (
             <div className="glass-card" style={{ padding: '14px' }}>
               <p style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Work Started</p>
-              <p style={{ fontSize: '14px', fontWeight: '600' }}>{formatDate(bug.started_at)}</p>
+              <p style={{ fontSize: '14px', fontWeight: '600' }}>{formatDatePST(bug.started_at)}</p>
             </div>
           )}
           {bug.resolved_at && (
             <div className="glass-card" style={{ padding: '14px' }}>
               <p style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Resolved</p>
-              <p style={{ fontSize: '14px', fontWeight: '600', color: 'var(--status-green)' }}>{formatDate(bug.resolved_at)}</p>
+              <p style={{ fontSize: '14px', fontWeight: '600', color: 'var(--status-green)' }}>{formatDatePST(bug.resolved_at)}</p>
             </div>
           )}
           {duration() && (
@@ -1128,7 +1161,7 @@ export default function App() {
   const [feedLogs, setFeedLogs] = useState([]);
 
   const addLog = (msg, type = 'info') => {
-    const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+    const time = new Date().toLocaleTimeString('en-US', { hour12: false, timeZone: PST_TIMEZONE });
     setFeedLogs(prev => [{ time, msg, type }, ...prev].slice(0, 50));
   };
 

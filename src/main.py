@@ -1659,7 +1659,7 @@ class SelfEvolveSystem:
 
             await send_alert(
                 f"🧬 *Evolution Report*\n\n"
-                f"⏰ Cycle: {datetime.now(timezone.utc).strftime('%H:%M UTC')}\n"
+                f"⏰ Cycle: {datetime.now(timezone.utc).astimezone(__import__('zoneinfo').ZoneInfo('America/Los_Angeles')).strftime('%I:%M %p PST')}\n"
                 f"📊 Readiness: `{readiness:.0f}%`\n"
                 f"📈 Strategies tested: {len(backtest_results)}"
                 f"{trust_summary}\n"

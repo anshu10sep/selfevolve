@@ -5,6 +5,7 @@
 const API_BASE = window.location.origin;
 let ws = null;
 let currentHitlIssueId = null;
+const PST_TIMEZONE = 'America/Los_Angeles';
 
 // Format currency nicely
 function fmt(n) {
@@ -278,7 +279,7 @@ async function openAgentDetail(agentId) {
   document.getElementById('ad-tokens').textContent = (m.tokens_today || 0).toLocaleString();
   document.getElementById('ad-failures').textContent = m.consecutive_failures || 0;
   document.getElementById('ad-evolutions').textContent = m.evolution_count || 0;
-  document.getElementById('ad-last-activity').textContent = m.last_activity ? new Date(m.last_activity).toLocaleString() : 'Never';
+  document.getElementById('ad-last-activity').textContent = m.last_activity ? new Date(m.last_activity).toLocaleString('en-US', { timeZone: PST_TIMEZONE }) + ' PST' : 'Never';
 
   // Trust bar
   const trustPct = ((m.trust_weight || 1) * 100);
@@ -433,8 +434,8 @@ function formatDateFull(iso) {
   if (!iso) return null;
   try {
     const d = new Date(iso);
-    return d.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })
-      + ' at ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleDateString('en-US', { timeZone: PST_TIMEZONE, weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })
+      + ' at ' + d.toLocaleTimeString('en-US', { timeZone: PST_TIMEZONE, hour: '2-digit', minute: '2-digit' }) + ' PST';
   } catch(e) { return iso; }
 }
 

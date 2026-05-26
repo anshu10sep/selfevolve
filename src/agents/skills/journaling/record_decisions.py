@@ -14,7 +14,7 @@ def record_decisions(decision_maker: str, decision_details: dict, rationale: str
         A dictionary confirming the recording and providing a timestamp.
     """
     import datetime
-    timestamp = datetime.datetime.now().isoformat()
+    timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
     print(f"Journaling: Recording decision by {decision_maker} at {timestamp}. Rationale: {rationale[:100]}...")
     # Placeholder for actual persistent storage
     return {"status": "recorded", "timestamp": timestamp, "decision_maker": decision_maker, "decision": decision_details}

@@ -18,7 +18,10 @@ from __future__ import annotations
 
 import asyncio
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from typing import Any
+
+PST_TZ = ZoneInfo('America/Los_Angeles')
 
 import structlog
 
@@ -64,7 +67,7 @@ async def _handle_volume_spike(data: dict) -> None:
             f"📊 *Volume Spike: {ticker}*\n\n"
             f"🔊 Volume: *{multiplier:.1f}x* average\n"
             f"💰 Price: *${price:,.2f}*\n"
-            f"⏰ {datetime.now(timezone.utc).strftime('%H:%M UTC')}\n\n"
+            f"⏰ {datetime.now(PST_TZ).strftime('%I:%M %p PST')}\n\n"
             f"_Triggered reactive analysis..._"
         )
     except Exception:
@@ -334,7 +337,7 @@ async def _handle_health_degradation(data: dict) -> None:
             f"⚠️ *System Health: DEGRADED*\n\n"
             f"Component: `{component}`\n"
             f"Reason: {reason}\n"
-            f"⏰ {datetime.now(timezone.utc).strftime('%H:%M UTC')}"
+            f"⏰ {datetime.now(PST_TZ).strftime('%I:%M %p PST')}"
         )
     except Exception:
         pass
@@ -349,7 +352,7 @@ async def _handle_health_recovery(data: dict) -> None:
         await send_alert(
             f"✅ *System Health: RECOVERED*\n\n"
             f"Component: `{component}`\n"
-            f"⏰ {datetime.now(timezone.utc).strftime('%H:%M UTC')}"
+            f"⏰ {datetime.now(PST_TZ).strftime('%I:%M %p PST')}"
         )
     except Exception:
         pass

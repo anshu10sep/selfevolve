@@ -13,7 +13,7 @@ def log_market_events(event_type: str, event_details: dict) -> dict:
         A dictionary confirming the logging and providing a timestamp.
     """
     import datetime
-    timestamp = datetime.datetime.now().isoformat()
+    timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
     print(f"Journaling: Logging market event '{event_type}' at {timestamp} with details: {event_details}")
     # Placeholder for actual persistent storage
     return {"status": "logged", "timestamp": timestamp, "event_type": event_type}
