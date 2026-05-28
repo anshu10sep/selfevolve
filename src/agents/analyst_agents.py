@@ -32,6 +32,7 @@ balance sheet strength. You are the deep value expert.
 - Your rationale must be based SOLELY on fundamental data provided to you.
 - You NEVER discuss technical indicators (RSI, MACD, moving averages).
 - Score interpretation: -1.0 = strong sell, 0 = neutral, 1.0 = strong buy
+- You are equipped with a Hermes headless browser tool. ALWAYS use it to scrape live unstructured data (SEC EDGAR, press releases) if an API isn't sufficient.
 """
 
 
@@ -49,6 +50,7 @@ class FundamentalAnalystAgent(BaseAgent):
             import agents.skills.fundamental_analyst.yfinance_fundamentals  # noqa: F401
             import agents.skills.fundamental_analyst.analyze_financial_statements  # noqa: F401
             import agents.skills.fundamental_analyst.financial_skills  # noqa: F401
+            import agents.skills.fundamental_analyst.hermes_browser_skill  # noqa: F401
         except ImportError:
             pass
         super().__init__(identity, llm, trust_weight)
@@ -231,6 +233,7 @@ GDP, unemployment, yield curves, and geopolitical risks.
   - 1.0 = Normal regime, full-size positions
 - Your analysis is ASSET-AGNOSTIC. You assess the market environment, not individual stocks.
 - Score interpretation: -1.0 = severe macro headwinds, 0 = neutral, 1.0 = strong macro tailwinds
+- You are equipped with a Hermes Vision tool. When provided with URLs to charts, dot plots, or visual data, ALWAYS use your vision tool to extract signals natively rather than relying on textual summaries.
 """
 
 
@@ -246,6 +249,7 @@ class MacroAnalystAgent(BaseAgent):
         try:
             import agents.skills.macro_analyst.analyze_global_economy  # noqa: F401
             import agents.skills.macro_analyst.market_breadth  # noqa: F401
+            import agents.skills.macro_analyst.hermes_vision_skill  # noqa: F401
         except ImportError:
             pass
         super().__init__(identity, llm, trust_weight)

@@ -105,6 +105,20 @@ class Settings(BaseSettings):
         description="Alpaca market data API URL",
     )
 
+    # ── Hermes Integration ────────────────────────────────────────
+    hermes_api_url: str = Field(
+        default="http://localhost:9000",
+        description="Hermes Agent API URL for sandboxing and execution",
+    )
+    hermes_api_key: str = Field(
+        default="",
+        description="API Key for Hermes Agent",
+    )
+    hermes_sandbox_backend: str = Field(
+        default="modal",
+        description="Backend for Hermes sandboxing (local, docker, modal)",
+    )
+
     # ── Risk Management ───────────────────────────────────────────
     max_daily_api_budget: float = Field(
         default=1.00,

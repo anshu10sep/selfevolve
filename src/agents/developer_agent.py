@@ -145,6 +145,14 @@ Check for:
 """
         return await self.invoke(message)
 
+    async def execute_sandbox_test(self, code: str) -> dict[str, Any]:
+        """Execute a code snippet safely in the Hermes sandbox to test a hypothesis."""
+        try:
+            from integrations.hermes_client import hermes_client
+            return await hermes_client.execute_in_sandbox(code)
+        except Exception as e:
+            return {"success": False, "stdout": "", "stderr": str(e), "exit_code": 1}
+
     def _safe_default(self, error: str) -> dict[str, Any]:
         return {
             "bug_id": "",
