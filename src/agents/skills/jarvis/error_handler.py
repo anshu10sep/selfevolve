@@ -1,98 +1,68 @@
 import logging
-import re
-from typing import Dict, Any, Optional
+import socket
+import time
+from typing import Callable, Any
+from functools import wraps
+import requests
 
 logger = logging.getLogger(__name__)
 
-class GlobalErrorHandler:
+def handle_network_errors(max_retries: int = 5, backoff_factor: float = 2.0) -> Callable:
     """
-    Global error handler for Jarvis to process and categorize system errors.
-    """
-    
-    def __init__(self):
-        self.error_patterns = {
-            "connection_failed": re.compile(r"Connect call failed\s+(.+)"),
-            "connection_refused": re.compile(r"Connection refused", re.IGNORECASE),
-            "timeout": re.compile(r"Timeout|timed out", re.IGNORECASE),
-            "auth_failed": re.compile(r"Authentication failed|Unauthorized|401|403", re.IGNORECASE),
-            "not_found": re.compile(r"Not found|404", re.IGNORECASE)
-        }
-
-    def parse_error_log(self, log_message: str) -> Dict[str, Any]:
-        """
-        Parse an error log message to extract meaningful information.
-        
-        Args:
-            log_message: The raw error log message.
-            
-        Returns:
-            A dictionary with parsed error details.
-        """
-        result = {
-            "category": "unknown",
-            "target": None,
-            "raw_message": log_message,
-            "action_required": True
-        }
-        
-        for category, pattern in self.error_patterns.items():
-            match = pattern.search(log_message)
-            if match:
-                result["category"] = category
-                if category == "connection_failed" and match.groups():
-                    result["target"] = match.group(1).strip()
-                break
-                
-        return result
-
-    def handle_error(self, error: Exception, context: Optional[str] = None) -> Dict[str, Any]:
-        """
-        Handle an exception and determine the appropriate response.
-        
-        Args:
-            error: The exception that occurred.
-            context: Optional context where the error occurred.
-            
-        Returns:
-            A dictionary containing the handling strategy.
-        """
-        error_msg = str(error)
-        parsed = self.parse_error_log(error_msg)
-        
-        strategy = {
-            "log_level": logging.ERROR,
-            "retry_recommended": False,
-            "alert_admin": False,
-            "parsed_info": parsed,
-            "context": context
-        }
-        
-        if parsed["category"] in ["connection_failed", "connection_refused", "timeout"]:
-            strategy["retry_recommended"] = True
-            strategy["alert_admin"] = True
-            logger.error(f"Network error detected in {context or 'unknown context'}: {error_msg}")
-        elif parsed["category"] == "auth_failed":
-            strategy["alert_admin"] = True
-            logger.critical(f"Authentication error detected in {context or 'unknown context'}: {error_msg}")
-        else:
-            logger.error(f"Unhandled error in {context or 'unknown context'}: {error_msg}")
-            
-        return strategy
-
-def process_system_error(error_message: str, source: str) -> None:
-    """
-    Process a system error reported by the bug scanner.
+    A decorator to handle network errors, specifically DNS resolution failures like
+    '[Errno -3] Temporary failure in name resolution'.
     
     Args:
-        error_message: The error message.
-        source: The source file or component.
+        max_retries (int): Maximum number of times to retry the function.
+        backoff_factor (float): Multiplier for exponential backoff sleep time.
     """
-    handler = GlobalErrorHandler()
-    parsed = handler.parse_error_log(error_message)
-    
-    if parsed["category"] == "connection_failed":
-        target = parsed.get("target", "unknown address")
-        logger.warning(f"System Error Processed: Connection failed to {target} in {source}. "
-                       f"Recommendation: Implement retry logic and verify service availability.")
-    else:
-        logger.warning(f"System Error Processed: {error_message} in {source}")
+    def decorator(func: Callable) -> Callable:
+        @wraps(func)
+        def wrapper(*args, **kwargs) -> Any:
+            retries = 0
+            while retries <= max_retries:
+                try:
+                    return func(*args, **kwargs)
+                except (socket.gaierror, requests.exceptions.RequestException, ConnectionError) as e:
+                    retries += 1
+                    if retries > max_retries:
+                        logger.error(f"Network error in {func.__name__} after {max_retries} retries: {e}")
+                        raise
+                    sleep_time = backoff_factor ** retries
+                    logger.warning(f"Network error in {func.__name__}: {e}. Retrying in {sleep_time}s... ({retries}/{max_retries})")
+                    time.sleep(sleep_time)
+                except Exception as e:
+                    # Catch generic exceptions that might wrap the underlying socket error string
+                    if "[Errno -3]" in str(e) or "Temporary failure in name resolution" in str(e):
+                        retries += 1
+                        if retries > max_retries:
+                            logger.error(f"DNS error in {func.__name__} after {max_retries} retries: {e}")
+                            raise
+                        sleep_time = backoff_factor ** retries
+                        logger.warning(f"DNS resolution error in {func.__name__}: {e}. Retrying in {sleep_time}s... ({retries}/{max_retries})")
+                        time.sleep(sleep_time)
+                    else:
+                        raise
+        return wrapper
+    return decorator
+
+class ErrorHandler:
+    """
+    Centralized error handling for the Jarvis agent.
+    """
+    @staticmethod
+    def log_error(component: str, event: str, message: str, exc_info: bool = True):
+        logger.error(f"[{component}] {event}: {message}", exc_info=exc_info)
+
+    @staticmethod
+    def is_transient_error(error_message: str) -> bool:
+        transient_indicators = [
+            "[Errno -3]",
+            "Temporary failure in name resolution",
+            "Connection reset by peer",
+            "Timeout",
+            "502 Bad Gateway",
+            "503 Service Unavailable",
+            "504 Gateway Timeout"
+        ]
+        return any(indicator in error_message for indicator in transient_indicators)
