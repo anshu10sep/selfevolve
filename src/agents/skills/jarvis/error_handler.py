@@ -1,67 +1,68 @@
 import logging
 import socket
-import requests
-from typing import Callable, Any, Optional
+import time
+from typing import Callable, Any
 from functools import wraps
+import requests
 
 logger = logging.getLogger(__name__)
 
-def safe_execute(default_return: Any = None, log_level: int = logging.ERROR) -> Callable:
+def handle_network_errors(max_retries: int = 5, backoff_factor: float = 2.0) -> Callable:
     """
-    A decorator to safely execute a function, catching common network and system errors.
-    Returns `default_return` if an exception occurs.
+    A decorator to handle network errors, specifically DNS resolution failures like
+    '[Errno -3] Temporary failure in name resolution'.
+    
+    Args:
+        max_retries (int): Maximum number of times to retry the function.
+        backoff_factor (float): Multiplier for exponential backoff sleep time.
     """
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs) -> Any:
-            try:
-                return func(*args, **kwargs)
-            except socket.gaierror as e:
-                logger.log(log_level, f"[{func.__name__}] DNS Resolution Error (Errno -3): {e}")
-                return default_return
-            except requests.exceptions.ConnectionError as e:
-                logger.log(log_level, f"[{func.__name__}] Connection Error: {e}")
-                return default_return
-            except requests.exceptions.Timeout as e:
-                logger.log(log_level, f"[{func.__name__}] Timeout Error: {e}")
-                return default_return
-            except requests.exceptions.RequestException as e:
-                logger.log(log_level, f"[{func.__name__}] HTTP Request Error: {e}")
-                return default_return
-            except Exception as e:
-                logger.log(log_level, f"[{func.__name__}] Unexpected Error: {e}")
-                return default_return
+            retries = 0
+            while retries <= max_retries:
+                try:
+                    return func(*args, **kwargs)
+                except (socket.gaierror, requests.exceptions.RequestException, ConnectionError) as e:
+                    retries += 1
+                    if retries > max_retries:
+                        logger.error(f"Network error in {func.__name__} after {max_retries} retries: {e}")
+                        raise
+                    sleep_time = backoff_factor ** retries
+                    logger.warning(f"Network error in {func.__name__}: {e}. Retrying in {sleep_time}s... ({retries}/{max_retries})")
+                    time.sleep(sleep_time)
+                except Exception as e:
+                    # Catch generic exceptions that might wrap the underlying socket error string
+                    if "[Errno -3]" in str(e) or "Temporary failure in name resolution" in str(e):
+                        retries += 1
+                        if retries > max_retries:
+                            logger.error(f"DNS error in {func.__name__} after {max_retries} retries: {e}")
+                            raise
+                        sleep_time = backoff_factor ** retries
+                        logger.warning(f"DNS resolution error in {func.__name__}: {e}. Retrying in {sleep_time}s... ({retries}/{max_retries})")
+                        time.sleep(sleep_time)
+                    else:
+                        raise
         return wrapper
     return decorator
 
 class ErrorHandler:
     """
-    Centralized error handling utility for Jarvis.
+    Centralized error handling for the Jarvis agent.
     """
-    
     @staticmethod
-    def handle_network_error(error: Exception, context: str) -> None:
-        """
-        Logs network errors with appropriate severity and context.
-        """
-        if isinstance(error, socket.gaierror):
-            logger.error(f"[{context}] Temporary failure in name resolution: {error}")
-        elif isinstance(error, requests.exceptions.ConnectionError):
-            logger.error(f"[{context}] Failed to establish a connection: {error}")
-        elif isinstance(error, requests.exceptions.Timeout):
-            logger.error(f"[{context}] Request timed out: {error}")
-        else:
-            logger.error(f"[{context}] Network operation failed: {error}")
+    def log_error(component: str, event: str, message: str, exc_info: bool = True):
+        logger.error(f"[{component}] {event}: {message}", exc_info=exc_info)
 
     @staticmethod
-    def is_recoverable(error: Exception) -> bool:
-        """
-        Determines if an error is likely recoverable via retries.
-        """
-        recoverable_exceptions = (
-            socket.gaierror,
-            requests.exceptions.ConnectionError,
-            requests.exceptions.Timeout,
-            requests.exceptions.ChunkedEncodingError
-        )
-        return isinstance(error, recoverable_exceptions)
+    def is_transient_error(error_message: str) -> bool:
+        transient_indicators = [
+            "[Errno -3]",
+            "Temporary failure in name resolution",
+            "Connection reset by peer",
+            "Timeout",
+            "502 Bad Gateway",
+            "503 Service Unavailable",
+            "504 Gateway Timeout"
+        ]
+        return any(indicator in error_message for indicator in transient_indicators)
