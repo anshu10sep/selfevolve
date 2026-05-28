@@ -743,3 +743,633 @@
 [2026-05-25T23:30:01.487616+00:00] 
 [2026-05-25T23:30:01.487624+00:00] ✅ ALL SYSTEMS HEALTHY
 [2026-05-25T23:30:01.487631+00:00] 
+[2026-05-27T17:00:01.999957+00:00] ============================================================
+[2026-05-27T17:00:02.000014+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-27T17:00:02.000030+00:00] ============================================================
+[2026-05-27T17:00:02.006148+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-27T17:00:02.006233+00:00]   Logging: ✅ Log updated 214s ago
+[2026-05-27T17:00:02.006368+00:00]   Errors (last 35min): ✅ 2
+[2026-05-27T17:00:02.006381+00:00]     - [main] database_init_failed: [Errno 111] Connect call failed ('127.0.0.1', 5432)
+[2026-05-27T17:00:02.006391+00:00]     - [main] database_init_failed: [Errno 111] Connect call failed ('127.0.0.1', 5432)
+[2026-05-27T17:00:02.006816+00:00]   Bugs: Open=0 InProgress=1 Resolved=22 RecentlyResolved=0 Stuck=0
+[2026-05-27T17:00:02.430537+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-27T17:00:02.430784+00:00]   Evolution: Last check=2026-05-27T16:51:59.769555Z Merges=0
+[2026-05-27T17:00:02.430800+00:00] 
+[2026-05-27T17:00:02.430809+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-27T17:00:02.430818+00:00] 
+[2026-05-27T17:30:01.510418+00:00] ============================================================
+[2026-05-27T17:30:01.510481+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-27T17:30:01.510497+00:00] ============================================================
+[2026-05-27T17:30:01.516714+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-27T17:30:01.516805+00:00]   Logging: ✅ Log updated 213s ago
+[2026-05-27T17:30:01.516951+00:00]   Errors (last 35min): ✅ 0
+[2026-05-27T17:30:01.517383+00:00]   Bugs: Open=0 InProgress=1 Resolved=22 RecentlyResolved=0 Stuck=0
+[2026-05-27T17:30:01.883288+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-27T17:30:01.883634+00:00]   Evolution: Last check=2026-05-27T17:22:03.935484Z Merges=0
+[2026-05-27T17:30:01.883651+00:00] 
+[2026-05-27T17:30:01.883661+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-27T17:30:01.883671+00:00] 
+[2026-05-27T18:00:01.944555+00:00] ============================================================
+[2026-05-27T18:00:01.944637+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-27T18:00:01.944654+00:00] ============================================================
+[2026-05-27T18:00:01.951216+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-27T18:00:01.951291+00:00]   Logging: ✅ Log updated 214s ago
+[2026-05-27T18:00:01.951442+00:00]   Errors (last 35min): ✅ 0
+[2026-05-27T18:00:01.951874+00:00]   Bugs: Open=1 InProgress=0 Resolved=22 RecentlyResolved=0 Stuck=1
+[2026-05-27T18:00:02.320316+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-27T18:00:02.320891+00:00]   Evolution: Last check=2026-05-27T17:52:07.968764Z Merges=0
+[2026-05-27T18:00:02.320907+00:00] 
+[2026-05-27T18:00:02.320917+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-27T18:00:02.320927+00:00] 
+[2026-05-27T18:30:01.388386+00:00] ============================================================
+[2026-05-27T18:30:01.388449+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-27T18:30:01.388472+00:00] ============================================================
+[2026-05-27T18:30:01.394673+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-27T18:30:01.394768+00:00]   Logging: ✅ Log updated 213s ago
+[2026-05-27T18:30:01.394996+00:00]   Errors (last 35min): ✅ 0
+[2026-05-27T18:30:01.395542+00:00]   Bugs: Open=1 InProgress=0 Resolved=22 RecentlyResolved=0 Stuck=1
+[2026-05-27T18:30:01.743631+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-27T18:30:01.744034+00:00]   Evolution: Last check=2026-05-27T18:22:12.810134Z Merges=0
+[2026-05-27T18:30:01.744050+00:00] 
+[2026-05-27T18:30:01.744059+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-27T18:30:01.744068+00:00] 
+[2026-05-27T19:00:01.802744+00:00] ============================================================
+[2026-05-27T19:00:01.802795+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-27T19:00:01.802811+00:00] ============================================================
+[2026-05-27T19:00:01.809626+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-27T19:00:01.809717+00:00]   Logging: ✅ Log updated 0s ago
+[2026-05-27T19:00:01.809930+00:00]   Errors (last 35min): ✅ 0
+[2026-05-27T19:00:01.810472+00:00]   Bugs: Open=1 InProgress=0 Resolved=22 RecentlyResolved=0 Stuck=1
+[2026-05-27T19:00:02.181403+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-27T19:00:02.182041+00:00]   Evolution: Last check=2026-05-27T18:52:16.922103Z Merges=0
+[2026-05-27T19:00:02.182058+00:00] 
+[2026-05-27T19:00:02.182068+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-27T19:00:02.182077+00:00] 
+[2026-05-27T19:30:01.251402+00:00] ============================================================
+[2026-05-27T19:30:01.251459+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-27T19:30:01.251475+00:00] ============================================================
+[2026-05-27T19:30:01.257888+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-27T19:30:01.257953+00:00]   Logging: ✅ Log updated 213s ago
+[2026-05-27T19:30:01.258132+00:00]   Errors (last 35min): ✅ 0
+[2026-05-27T19:30:01.258545+00:00]   Bugs: Open=0 InProgress=0 Resolved=23 RecentlyResolved=0 Stuck=0
+[2026-05-27T19:30:01.582630+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-27T19:30:01.583258+00:00]   Evolution: Last check=2026-05-27T19:22:21.007714Z Merges=0
+[2026-05-27T19:30:01.583282+00:00] 
+[2026-05-27T19:30:01.583295+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-27T19:30:01.583308+00:00] 
+[2026-05-27T20:00:01.642238+00:00] ============================================================
+[2026-05-27T20:00:01.642293+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-27T20:00:01.642309+00:00] ============================================================
+[2026-05-27T20:00:01.649397+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-27T20:00:01.649482+00:00]   Logging: ✅ Log updated 2s ago
+[2026-05-27T20:00:01.649685+00:00]   Errors (last 35min): ✅ 0
+[2026-05-27T20:00:01.650120+00:00]   Bugs: Open=0 InProgress=0 Resolved=23 RecentlyResolved=0 Stuck=0
+[2026-05-27T20:00:02.059170+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-27T20:00:02.059989+00:00]   Evolution: Last check=2026-05-27T19:52:27.184541Z Merges=0
+[2026-05-27T20:00:02.060071+00:00] 
+[2026-05-27T20:00:02.060095+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-27T20:00:02.060116+00:00] 
+[2026-05-27T20:30:01.128742+00:00] ============================================================
+[2026-05-27T20:30:01.128809+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-27T20:30:01.128825+00:00] ============================================================
+[2026-05-27T20:30:01.135771+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-27T20:30:01.135876+00:00]   Logging: ✅ Log updated 0s ago
+[2026-05-27T20:30:01.136095+00:00]   Errors (last 35min): ✅ 0
+[2026-05-27T20:30:01.136532+00:00]   Bugs: Open=0 InProgress=0 Resolved=23 RecentlyResolved=0 Stuck=0
+[2026-05-27T20:30:01.662768+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-27T20:30:01.663322+00:00]   Evolution: Last check=2026-05-27T20:22:34.220651Z Merges=0
+[2026-05-27T20:30:01.663339+00:00] 
+[2026-05-27T20:30:01.663362+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-27T20:30:01.663371+00:00] 
+[2026-05-27T21:00:01.719652+00:00] ============================================================
+[2026-05-27T21:00:01.719715+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-27T21:00:01.719730+00:00] ============================================================
+[2026-05-27T21:00:01.725474+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-27T21:00:01.725579+00:00]   Logging: ✅ Log updated 1s ago
+[2026-05-27T21:00:01.725851+00:00]   Errors (last 35min): ✅ 0
+[2026-05-27T21:00:01.726395+00:00]   Bugs: Open=0 InProgress=0 Resolved=23 RecentlyResolved=0 Stuck=0
+[2026-05-27T21:00:02.087681+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-27T21:00:02.088316+00:00]   Evolution: Last check=2026-05-27T20:52:40.800607Z Merges=0
+[2026-05-27T21:00:02.088334+00:00] 
+[2026-05-27T21:00:02.088343+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-27T21:00:02.088352+00:00] 
+[2026-05-27T21:30:01.163052+00:00] ============================================================
+[2026-05-27T21:30:01.163159+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-27T21:30:01.163181+00:00] ============================================================
+[2026-05-27T21:30:01.171404+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-27T21:30:01.171525+00:00]   Logging: ✅ Log updated 1s ago
+[2026-05-27T21:30:01.171793+00:00]   Errors (last 35min): ✅ 0
+[2026-05-27T21:30:01.172333+00:00]   Bugs: Open=0 InProgress=0 Resolved=23 RecentlyResolved=0 Stuck=0
+[2026-05-27T21:30:01.567518+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-27T21:30:01.568121+00:00]   Evolution: Last check=2026-05-27T21:22:47.930242Z Merges=0
+[2026-05-27T21:30:01.568156+00:00] 
+[2026-05-27T21:30:01.568165+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-27T21:30:01.568174+00:00] 
+[2026-05-27T22:00:01.667445+00:00] ============================================================
+[2026-05-27T22:00:01.667501+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-27T22:00:01.667516+00:00] ============================================================
+[2026-05-27T22:00:01.675403+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-27T22:00:01.675488+00:00]   Logging: ✅ Log updated 1s ago
+[2026-05-27T22:00:01.675711+00:00]   Errors (last 35min): ✅ 0
+[2026-05-27T22:00:01.676149+00:00]   Bugs: Open=0 InProgress=0 Resolved=23 RecentlyResolved=0 Stuck=0
+[2026-05-27T22:00:02.030284+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-27T22:00:02.030809+00:00]   Evolution: Last check=2026-05-27T21:52:54.331168Z Merges=0
+[2026-05-27T22:00:02.030826+00:00] 
+[2026-05-27T22:00:02.030835+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-27T22:00:02.030844+00:00] 
+[2026-05-27T22:30:01.097691+00:00] ============================================================
+[2026-05-27T22:30:01.097758+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-27T22:30:01.097774+00:00] ============================================================
+[2026-05-27T22:30:01.104996+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-27T22:30:01.105101+00:00]   Logging: ✅ Log updated 1s ago
+[2026-05-27T22:30:01.105414+00:00]   Errors (last 35min): ✅ 0
+[2026-05-27T22:30:01.105967+00:00]   Bugs: Open=0 InProgress=0 Resolved=23 RecentlyResolved=0 Stuck=0
+[2026-05-27T22:30:01.447914+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-27T22:30:01.448538+00:00]   Evolution: Last check=2026-05-27T22:23:02.871754Z Merges=0
+[2026-05-27T22:30:01.448555+00:00] 
+[2026-05-27T22:30:01.448565+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-27T22:30:01.448579+00:00] 
+[2026-05-27T23:00:01.504139+00:00] ============================================================
+[2026-05-27T23:00:01.504194+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-27T23:00:01.504209+00:00] ============================================================
+[2026-05-27T23:00:01.511270+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-27T23:00:01.511380+00:00]   Logging: ✅ Log updated 1s ago
+[2026-05-27T23:00:01.511704+00:00]   Errors (last 35min): ✅ 0
+[2026-05-27T23:00:01.512257+00:00]   Bugs: Open=0 InProgress=0 Resolved=23 RecentlyResolved=0 Stuck=0
+[2026-05-27T23:00:01.868183+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-27T23:00:01.868870+00:00]   Evolution: Last check=2026-05-27T22:53:14.569827Z Merges=0
+[2026-05-27T23:00:01.868890+00:00] 
+[2026-05-27T23:00:01.868900+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-27T23:00:01.868910+00:00] 
+[2026-05-27T23:30:01.932292+00:00] ============================================================
+[2026-05-27T23:30:01.932359+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-27T23:30:01.932376+00:00] ============================================================
+[2026-05-27T23:30:01.938824+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-27T23:30:01.938900+00:00]   Logging: ✅ Log updated 2s ago
+[2026-05-27T23:30:01.939155+00:00]   Errors (last 35min): ✅ 0
+[2026-05-27T23:30:01.939592+00:00]   Bugs: Open=0 InProgress=0 Resolved=23 RecentlyResolved=0 Stuck=0
+[2026-05-27T23:30:02.271247+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-27T23:30:02.271954+00:00]   Evolution: Last check=2026-05-27T23:23:21.720176Z Merges=0
+[2026-05-27T23:30:02.271972+00:00] 
+[2026-05-27T23:30:02.271982+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-27T23:30:02.271992+00:00] 
+[2026-05-28T00:00:01.327818+00:00] ============================================================
+[2026-05-28T00:00:01.327874+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T00:00:01.327890+00:00] ============================================================
+[2026-05-28T00:00:01.334640+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T00:00:01.334718+00:00]   Logging: ✅ Log updated 1s ago
+[2026-05-28T00:00:01.334971+00:00]   Errors (last 35min): ✅ 0
+[2026-05-28T00:00:01.335382+00:00]   Bugs: Open=0 InProgress=0 Resolved=23 RecentlyResolved=0 Stuck=0
+[2026-05-28T00:00:01.808152+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-28T00:00:01.808992+00:00]   Evolution: Last check=2026-05-27T23:53:27.793188Z Merges=0
+[2026-05-28T00:00:01.809017+00:00] 
+[2026-05-28T00:00:01.809030+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T00:00:01.809042+00:00] 
+[2026-05-28T00:30:01.890813+00:00] ============================================================
+[2026-05-28T00:30:01.890893+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T00:30:01.890909+00:00] ============================================================
+[2026-05-28T00:30:01.898308+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T00:30:01.898414+00:00]   Logging: ✅ Log updated 2s ago
+[2026-05-28T00:30:01.898772+00:00]   Errors (last 35min): ✅ 0
+[2026-05-28T00:30:01.899330+00:00]   Bugs: Open=0 InProgress=0 Resolved=23 RecentlyResolved=0 Stuck=0
+[2026-05-28T00:30:02.250488+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-28T00:30:02.251368+00:00]   Evolution: Last check=2026-05-28T00:23:34.477930Z Merges=0
+[2026-05-28T00:30:02.251386+00:00] 
+[2026-05-28T00:30:02.251395+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T00:30:02.251404+00:00] 
+[2026-05-28T01:00:01.314375+00:00] ============================================================
+[2026-05-28T01:00:01.314438+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T01:00:01.314453+00:00] ============================================================
+[2026-05-28T01:00:01.322872+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T01:00:01.322999+00:00]   Logging: ✅ Log updated 1s ago
+[2026-05-28T01:00:01.323477+00:00]   Errors (last 35min): ✅ 0
+[2026-05-28T01:00:01.324150+00:00]   Bugs: Open=0 InProgress=0 Resolved=23 RecentlyResolved=0 Stuck=0
+[2026-05-28T01:00:01.671290+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-28T01:00:01.672681+00:00]   Evolution: Last check=2026-05-28T00:53:40.850958Z Merges=0
+[2026-05-28T01:00:01.672793+00:00] 
+[2026-05-28T01:00:01.672828+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T01:00:01.672856+00:00] 
+[2026-05-28T01:30:01.740005+00:00] ============================================================
+[2026-05-28T01:30:01.740059+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T01:30:01.740074+00:00] ============================================================
+[2026-05-28T01:30:01.747879+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T01:30:01.747999+00:00]   Logging: ✅ Log updated 1s ago
+[2026-05-28T01:30:01.748365+00:00]   Errors (last 35min): ✅ 0
+[2026-05-28T01:30:01.748931+00:00]   Bugs: Open=0 InProgress=0 Resolved=23 RecentlyResolved=0 Stuck=0
+[2026-05-28T01:30:02.150016+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-28T01:30:02.150798+00:00]   Evolution: Last check=2026-05-28T01:23:47.510052Z Merges=0
+[2026-05-28T01:30:02.150815+00:00] 
+[2026-05-28T01:30:02.150825+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T01:30:02.150834+00:00] 
+[2026-05-28T02:00:01.203337+00:00] ============================================================
+[2026-05-28T02:00:01.203393+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T02:00:01.203409+00:00] ============================================================
+[2026-05-28T02:00:01.210127+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T02:00:01.210221+00:00]   Logging: ✅ Log updated 1s ago
+[2026-05-28T02:00:01.210595+00:00]   Errors (last 35min): ✅ 0
+[2026-05-28T02:00:01.211134+00:00]   Bugs: Open=0 InProgress=0 Resolved=23 RecentlyResolved=0 Stuck=0
+[2026-05-28T02:00:01.552512+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-28T02:00:01.553403+00:00]   Evolution: Last check=2026-05-28T01:53:54.088948Z Merges=0
+[2026-05-28T02:00:01.553421+00:00] 
+[2026-05-28T02:00:01.553431+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T02:00:01.553441+00:00] 
+[2026-05-28T02:30:01.621413+00:00] ============================================================
+[2026-05-28T02:30:01.621469+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T02:30:01.621485+00:00] ============================================================
+[2026-05-28T02:30:01.628694+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T02:30:01.628810+00:00]   Logging: ✅ Log updated 1s ago
+[2026-05-28T02:30:01.629206+00:00]   Errors (last 35min): ✅ 0
+[2026-05-28T02:30:01.629781+00:00]   Bugs: Open=0 InProgress=0 Resolved=23 RecentlyResolved=0 Stuck=0
+[2026-05-28T02:30:01.978130+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-28T02:30:01.978943+00:00]   Evolution: Last check=2026-05-28T02:24:00.334636Z Merges=0
+[2026-05-28T02:30:01.978960+00:00] 
+[2026-05-28T02:30:01.978970+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T02:30:01.978979+00:00] 
+[2026-05-28T03:00:01.038469+00:00] ============================================================
+[2026-05-28T03:00:01.038518+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T03:00:01.038534+00:00] ============================================================
+[2026-05-28T03:00:01.045963+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T03:00:01.046063+00:00]   Logging: ✅ Log updated 0s ago
+[2026-05-28T03:00:01.046442+00:00]   Errors (last 35min): ✅ 0
+[2026-05-28T03:00:01.046954+00:00]   Bugs: Open=0 InProgress=0 Resolved=23 RecentlyResolved=0 Stuck=0
+[2026-05-28T03:00:01.375564+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-28T03:00:01.376643+00:00]   Evolution: Last check=2026-05-28T02:54:06.744848Z Merges=0
+[2026-05-28T03:00:01.376675+00:00] 
+[2026-05-28T03:00:01.376689+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T03:00:01.376702+00:00] 
+[2026-05-28T03:30:01.442314+00:00] ============================================================
+[2026-05-28T03:30:01.442378+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T03:30:01.442394+00:00] ============================================================
+[2026-05-28T03:30:01.449183+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T03:30:01.449287+00:00]   Logging: ✅ Log updated 0s ago
+[2026-05-28T03:30:01.449703+00:00]   Errors (last 35min): ✅ 0
+[2026-05-28T03:30:01.450275+00:00]   Bugs: Open=0 InProgress=0 Resolved=23 RecentlyResolved=0 Stuck=0
+[2026-05-28T03:30:01.988559+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-28T03:30:01.989727+00:00]   Evolution: Last check=2026-05-28T03:24:13.272165Z Merges=0
+[2026-05-28T03:30:01.989752+00:00] 
+[2026-05-28T03:30:01.989764+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T03:30:01.989777+00:00] 
+[2026-05-28T04:00:01.050885+00:00] ============================================================
+[2026-05-28T04:00:01.050954+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T04:00:01.050970+00:00] ============================================================
+[2026-05-28T04:00:01.057074+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T04:00:01.057171+00:00]   Logging: ✅ Log updated 212s ago
+[2026-05-28T04:00:01.057600+00:00]   Errors (last 35min): ✅ 0
+[2026-05-28T04:00:01.058148+00:00]   Bugs: Open=0 InProgress=0 Resolved=23 RecentlyResolved=0 Stuck=0
+[2026-05-28T04:00:01.473222+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-28T04:00:01.474192+00:00]   Evolution: Last check=2026-05-28T03:54:20.217544Z Merges=0
+[2026-05-28T04:00:01.474210+00:00] 
+[2026-05-28T04:00:01.474220+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T04:00:01.474230+00:00] 
+[2026-05-28T04:30:01.548114+00:00] ============================================================
+[2026-05-28T04:30:01.548172+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T04:30:01.548188+00:00] ============================================================
+[2026-05-28T04:30:01.555202+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T04:30:01.555298+00:00]   Logging: ✅ Log updated 212s ago
+[2026-05-28T04:30:01.555736+00:00]   Errors (last 35min): ✅ 0
+[2026-05-28T04:30:01.556194+00:00]   Bugs: Open=0 InProgress=0 Resolved=23 RecentlyResolved=0 Stuck=0
+[2026-05-28T04:30:01.902036+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-28T04:30:01.902914+00:00]   Evolution: Last check=2026-05-28T04:24:26.560210Z Merges=0
+[2026-05-28T04:30:01.902932+00:00] 
+[2026-05-28T04:30:01.902942+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T04:30:01.902951+00:00] 
+[2026-05-28T05:00:01.978397+00:00] ============================================================
+[2026-05-28T05:00:01.978453+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T05:00:01.978472+00:00] ============================================================
+[2026-05-28T05:00:01.985702+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T05:00:01.985768+00:00]   Logging: ✅ Log updated 213s ago
+[2026-05-28T05:00:01.986076+00:00]   Errors (last 35min): ✅ 0
+[2026-05-28T05:00:01.986484+00:00]   Bugs: Open=0 InProgress=0 Resolved=23 RecentlyResolved=0 Stuck=0
+[2026-05-28T05:00:02.370370+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-28T05:00:02.371461+00:00]   Evolution: Last check=2026-05-28T04:54:34.176100Z Merges=0
+[2026-05-28T05:00:02.371479+00:00] 
+[2026-05-28T05:00:02.371488+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T05:00:02.371498+00:00] 
+[2026-05-28T05:30:01.434207+00:00] ============================================================
+[2026-05-28T05:30:01.434264+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T05:30:01.434276+00:00] ============================================================
+[2026-05-28T05:30:01.439645+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T05:30:01.439762+00:00]   Logging: ✅ Log updated 158s ago
+[2026-05-28T05:30:01.440234+00:00]   Errors (last 35min): ✅ 1
+[2026-05-28T05:30:01.440258+00:00]     - [crypto_data] crypto_screening_failed: Server error '500 Internal Server Error' for url 'https://data.alpaca.markets/v1
+[2026-05-28T05:30:01.440850+00:00]   Bugs: Open=0 InProgress=0 Resolved=24 RecentlyResolved=0 Stuck=0
+[2026-05-28T05:30:01.787789+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-28T05:30:01.788772+00:00]   Evolution: Last check=2026-05-28T05:24:41.041344Z Merges=0
+[2026-05-28T05:30:01.788784+00:00] 
+[2026-05-28T05:30:01.788792+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T05:30:01.788798+00:00] 
+[2026-05-28T06:00:01.849114+00:00] ============================================================
+[2026-05-28T06:00:01.849181+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T06:00:01.849197+00:00] ============================================================
+[2026-05-28T06:00:01.856185+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T06:00:01.856251+00:00]   Logging: ✅ Log updated 158s ago
+[2026-05-28T06:00:01.856626+00:00]   Errors (last 35min): ✅ 1
+[2026-05-28T06:00:01.856642+00:00]     - [crypto_data] crypto_screening_failed: Server error '500 Internal Server Error' for url 'https://data.alpaca.markets/v1
+[2026-05-28T06:00:01.857068+00:00]   Bugs: Open=0 InProgress=0 Resolved=24 RecentlyResolved=0 Stuck=0
+[2026-05-28T06:00:02.217146+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-28T06:00:02.218182+00:00]   Evolution: Last check=2026-05-28T05:54:49.722618Z Merges=0
+[2026-05-28T06:00:02.218217+00:00] 
+[2026-05-28T06:00:02.218227+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T06:00:02.218237+00:00] 
+[2026-05-28T06:30:01.284897+00:00] ============================================================
+[2026-05-28T06:30:01.284961+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T06:30:01.284978+00:00] ============================================================
+[2026-05-28T06:30:01.292992+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T06:30:01.293084+00:00]   Logging: ✅ Log updated 157s ago
+[2026-05-28T06:30:01.293450+00:00]   Errors (last 35min): ✅ 1
+[2026-05-28T06:30:01.293466+00:00]     - [crypto_data] crypto_screening_failed: Server error '500 Internal Server Error' for url 'https://data.alpaca.markets/v1
+[2026-05-28T06:30:01.293926+00:00]   Bugs: Open=0 InProgress=0 Resolved=24 RecentlyResolved=0 Stuck=0
+[2026-05-28T06:30:01.631363+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-28T06:30:01.632380+00:00]   Evolution: Last check=2026-05-28T06:24:58.788656Z Merges=0
+[2026-05-28T06:30:01.632407+00:00] 
+[2026-05-28T06:30:01.632417+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T06:30:01.632427+00:00] 
+[2026-05-28T07:00:01.694582+00:00] ============================================================
+[2026-05-28T07:00:01.694650+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T07:00:01.694666+00:00] ============================================================
+[2026-05-28T07:00:01.700979+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T07:00:01.701087+00:00]   Logging: ✅ Log updated 158s ago
+[2026-05-28T07:00:01.701600+00:00]   Errors (last 35min): ✅ 1
+[2026-05-28T07:00:01.701627+00:00]     - [crypto_data] crypto_screening_failed: Server error '500 Internal Server Error' for url 'https://data.alpaca.markets/v1
+[2026-05-28T07:00:01.702288+00:00]   Bugs: Open=0 InProgress=0 Resolved=24 RecentlyResolved=0 Stuck=0
+[2026-05-28T07:00:02.040410+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-28T07:00:02.041397+00:00]   Evolution: Last check=2026-05-28T06:55:13.104145Z Merges=0
+[2026-05-28T07:00:02.041414+00:00] 
+[2026-05-28T07:00:02.041424+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T07:00:02.041433+00:00] 
+[2026-05-28T07:30:01.108826+00:00] ============================================================
+[2026-05-28T07:30:01.108891+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T07:30:01.108907+00:00] ============================================================
+[2026-05-28T07:30:01.115385+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T07:30:01.115508+00:00]   Logging: ✅ Log updated 157s ago
+[2026-05-28T07:30:01.116049+00:00]   Errors (last 35min): ✅ 1
+[2026-05-28T07:30:01.116074+00:00]     - [crypto_data] crypto_screening_failed: Server error '500 Internal Server Error' for url 'https://data.alpaca.markets/v1
+[2026-05-28T07:30:01.116741+00:00]   Bugs: Open=0 InProgress=0 Resolved=24 RecentlyResolved=0 Stuck=0
+[2026-05-28T07:30:01.466599+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-28T07:30:01.467649+00:00]   Evolution: Last check=2026-05-28T07:25:23.021389Z Merges=0
+[2026-05-28T07:30:01.467666+00:00] 
+[2026-05-28T07:30:01.467676+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T07:30:01.467685+00:00] 
+[2026-05-28T08:00:01.525967+00:00] ============================================================
+[2026-05-28T08:00:01.526024+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T08:00:01.526040+00:00] ============================================================
+[2026-05-28T08:00:01.532937+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T08:00:01.533044+00:00]   Logging: ✅ Log updated 0s ago
+[2026-05-28T08:00:01.533519+00:00]   Errors (last 35min): ✅ 1
+[2026-05-28T08:00:01.533535+00:00]     - [crypto_data] crypto_screening_failed: Server error '500 Internal Server Error' for url 'https://data.alpaca.markets/v1
+[2026-05-28T08:00:01.534004+00:00]   Bugs: Open=0 InProgress=0 Resolved=24 RecentlyResolved=0 Stuck=0
+[2026-05-28T08:00:01.644696+00:00]   GitHub: ❌ <urlopen error [Errno -3] Temporary failure in name resolution>
+[2026-05-28T08:00:01.646260+00:00]   Evolution: Last check=2026-05-28T07:55:31.885860Z Merges=0
+[2026-05-28T08:00:01.646284+00:00] 
+[2026-05-28T08:00:01.646297+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T08:00:01.646309+00:00] 
+[2026-05-28T08:30:01.717898+00:00] ============================================================
+[2026-05-28T08:30:01.717971+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T08:30:01.717988+00:00] ============================================================
+[2026-05-28T08:30:01.725097+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T08:30:01.725181+00:00]   Logging: ✅ Log updated 25s ago
+[2026-05-28T08:30:01.726251+00:00]   Errors (last 35min): ⚠️ 40
+[2026-05-28T08:30:01.726272+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T08:30:01.726282+00:00]     - [pr_review_pipeline] pr_review_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T08:30:01.726290+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T08:30:01.726297+00:00]     - [pr_review_pipeline] pr_review_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T08:30:01.726303+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T08:30:01.726757+00:00]   Bugs: Open=2 InProgress=0 Resolved=25 RecentlyResolved=0 Stuck=2
+[2026-05-28T08:30:01.835496+00:00]   GitHub: ❌ <urlopen error [Errno -3] Temporary failure in name resolution>
+[2026-05-28T08:30:01.837550+00:00]   Evolution: Last check=2026-05-28T07:55:31.885860Z Merges=0
+[2026-05-28T08:30:01.837586+00:00] 
+[2026-05-28T08:30:01.837596+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T08:30:01.837604+00:00] 
+[2026-05-28T09:00:01.894774+00:00] ============================================================
+[2026-05-28T09:00:01.894838+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T09:00:01.894854+00:00] ============================================================
+[2026-05-28T09:00:01.901198+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T09:00:01.901335+00:00]   Logging: ✅ Log updated 25s ago
+[2026-05-28T09:00:01.903816+00:00]   Errors (last 35min): ⚠️ 75
+[2026-05-28T09:00:01.903864+00:00]     - [telegram_bot] telegram_alert_failed: [Errno -3] Temporary failure in name resolution
+[2026-05-28T09:00:01.903879+00:00]     - [pr_review_pipeline] pr_review_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T09:00:01.903890+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T09:00:01.903900+00:00]     - [pr_review_pipeline] pr_review_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T09:00:01.903909+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T09:00:01.904490+00:00]   Bugs: Open=3 InProgress=0 Resolved=25 RecentlyResolved=0 Stuck=3
+[2026-05-28T09:00:02.021178+00:00]   GitHub: ❌ <urlopen error [Errno -3] Temporary failure in name resolution>
+[2026-05-28T09:00:02.024234+00:00]   Evolution: Last check=2026-05-28T07:55:31.885860Z Merges=0
+[2026-05-28T09:00:02.024273+00:00] 
+[2026-05-28T09:00:02.024286+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T09:00:02.024295+00:00] 
+[2026-05-28T09:30:01.088036+00:00] ============================================================
+[2026-05-28T09:30:01.088101+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T09:30:01.088117+00:00] ============================================================
+[2026-05-28T09:30:01.095064+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T09:30:01.095138+00:00]   Logging: ✅ Log updated 24s ago
+[2026-05-28T09:30:01.097384+00:00]   Errors (last 35min): ⚠️ 76
+[2026-05-28T09:30:01.097409+00:00]     - [pr_review_pipeline] pr_review_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T09:30:01.097418+00:00]     - [telegram_bot] telegram_alert_failed: [Errno -3] Temporary failure in name resolution
+[2026-05-28T09:30:01.097425+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T09:30:01.097432+00:00]     - [pr_review_pipeline] pr_review_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T09:30:01.097438+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T09:30:01.097883+00:00]   Bugs: Open=3 InProgress=0 Resolved=25 RecentlyResolved=0 Stuck=3
+[2026-05-28T09:30:01.213703+00:00]   GitHub: ❌ <urlopen error [Errno -3] Temporary failure in name resolution>
+[2026-05-28T09:30:01.219428+00:00]   Evolution: Last check=2026-05-28T07:55:31.885860Z Merges=0
+[2026-05-28T09:30:01.219481+00:00] 
+[2026-05-28T09:30:01.219494+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T09:30:01.219506+00:00] 
+[2026-05-28T10:00:01.280609+00:00] ============================================================
+[2026-05-28T10:00:01.280678+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T10:00:01.280695+00:00] ============================================================
+[2026-05-28T10:00:01.287165+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T10:00:01.287296+00:00]   Logging: ✅ Log updated 23s ago
+[2026-05-28T10:00:01.291322+00:00]   Errors (last 35min): ⚠️ 81
+[2026-05-28T10:00:01.291374+00:00]     - [pr_review_pipeline] pr_review_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T10:00:01.291392+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T10:00:01.291408+00:00]     - [telegram_bot] telegram_alert_failed: [Errno -3] Temporary failure in name resolution
+[2026-05-28T10:00:01.291423+00:00]     - [pr_review_pipeline] pr_review_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T10:00:01.291435+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T10:00:01.292023+00:00]   Bugs: Open=4 InProgress=0 Resolved=26 RecentlyResolved=0 Stuck=4
+[2026-05-28T10:00:01.396781+00:00]   GitHub: ❌ <urlopen error [Errno -3] Temporary failure in name resolution>
+[2026-05-28T10:00:01.401106+00:00]   Evolution: Last check=2026-05-28T07:55:31.885860Z Merges=0
+[2026-05-28T10:00:01.401153+00:00] 
+[2026-05-28T10:00:01.401163+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T10:00:01.401173+00:00] 
+[2026-05-28T10:30:01.465993+00:00] ============================================================
+[2026-05-28T10:30:01.466052+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T10:30:01.466065+00:00] ============================================================
+[2026-05-28T10:30:01.473554+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T10:30:01.473734+00:00]   Logging: ✅ Log updated 6s ago
+[2026-05-28T10:30:01.477276+00:00]   Errors (last 35min): ⚠️ 81
+[2026-05-28T10:30:01.477314+00:00]     - [telegram_bot] telegram_alert_failed: [Errno -3] Temporary failure in name resolution
+[2026-05-28T10:30:01.477325+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T10:30:01.477331+00:00]     - [pr_review_pipeline] pr_review_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T10:30:01.477337+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T10:30:01.477342+00:00]     - [telegram_bot] telegram_alert_failed: [Errno -3] Temporary failure in name resolution
+[2026-05-28T10:30:01.477770+00:00]   Bugs: Open=3 InProgress=1 Resolved=26 RecentlyResolved=0 Stuck=3
+[2026-05-28T10:30:01.565020+00:00]   GitHub: ❌ <urlopen error [Errno -3] Temporary failure in name resolution>
+[2026-05-28T10:30:01.569794+00:00]   Evolution: Last check=2026-05-28T07:55:31.885860Z Merges=0
+[2026-05-28T10:30:01.569865+00:00] 
+[2026-05-28T10:30:01.569884+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T10:30:01.569891+00:00] 
+[2026-05-28T11:00:01.617390+00:00] ============================================================
+[2026-05-28T11:00:01.617460+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T11:00:01.617477+00:00] ============================================================
+[2026-05-28T11:00:01.625031+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T11:00:01.625172+00:00]   Logging: ✅ Log updated 6s ago
+[2026-05-28T11:00:01.629895+00:00]   Errors (last 35min): ⚠️ 78
+[2026-05-28T11:00:01.629931+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T11:00:01.629941+00:00]     - [engineer_agent] engineer_diagnosis_failed: [Errno -3] Temporary failure in name resolution
+[2026-05-28T11:00:01.629947+00:00]     - [pr_review_pipeline] pr_review_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T11:00:01.629952+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T11:00:01.629957+00:00]     - [engineer_agent] engineer_diagnosis_failed: [Errno -3] Temporary failure in name resolution
+[2026-05-28T11:00:01.630327+00:00]   Bugs: Open=4 InProgress=0 Resolved=26 RecentlyResolved=0 Stuck=4
+[2026-05-28T11:00:01.719893+00:00]   GitHub: ❌ <urlopen error [Errno -3] Temporary failure in name resolution>
+[2026-05-28T11:00:01.726825+00:00]   Evolution: Last check=2026-05-28T07:55:31.885860Z Merges=0
+[2026-05-28T11:00:01.726867+00:00] 
+[2026-05-28T11:00:01.726874+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T11:00:01.726881+00:00] 
+[2026-05-28T11:30:01.790341+00:00] ============================================================
+[2026-05-28T11:30:01.790398+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T11:30:01.790410+00:00] ============================================================
+[2026-05-28T11:30:01.796303+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T11:30:01.796372+00:00]   Logging: ✅ Log updated 24s ago
+[2026-05-28T11:30:01.799765+00:00]   Errors (last 35min): ⚠️ 76
+[2026-05-28T11:30:01.799793+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T11:30:01.799800+00:00]     - [pr_review_pipeline] pr_review_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T11:30:01.799805+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T11:30:01.799810+00:00]     - [pr_review_pipeline] pr_review_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T11:30:01.799815+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T11:30:01.800178+00:00]   Bugs: Open=4 InProgress=0 Resolved=26 RecentlyResolved=0 Stuck=4
+[2026-05-28T11:30:01.892989+00:00]   GitHub: ❌ <urlopen error [Errno -3] Temporary failure in name resolution>
+[2026-05-28T11:30:01.898489+00:00]   Evolution: Last check=2026-05-28T07:55:31.885860Z Merges=0
+[2026-05-28T11:30:01.898505+00:00] 
+[2026-05-28T11:30:01.898512+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T11:30:01.898518+00:00] 
+[2026-05-28T12:00:01.949782+00:00] ============================================================
+[2026-05-28T12:00:01.949831+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T12:00:01.949842+00:00] ============================================================
+[2026-05-28T12:00:01.956799+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T12:00:01.956892+00:00]   Logging: ✅ Log updated 24s ago
+[2026-05-28T12:00:01.960734+00:00]   Errors (last 35min): ⚠️ 76
+[2026-05-28T12:00:01.960759+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T12:00:01.960766+00:00]     - [pr_review_pipeline] pr_review_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T12:00:01.960772+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T12:00:01.960777+00:00]     - [pr_review_pipeline] pr_review_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T12:00:01.960789+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T12:00:01.961155+00:00]   Bugs: Open=4 InProgress=0 Resolved=26 RecentlyResolved=0 Stuck=4
+[2026-05-28T12:00:02.042843+00:00]   GitHub: ❌ <urlopen error [Errno -3] Temporary failure in name resolution>
+[2026-05-28T12:00:02.049035+00:00]   Evolution: Last check=2026-05-28T07:55:31.885860Z Merges=0
+[2026-05-28T12:00:02.049062+00:00] 
+[2026-05-28T12:00:02.049071+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T12:00:02.049078+00:00] 
+[2026-05-28T12:30:01.107140+00:00] ============================================================
+[2026-05-28T12:30:01.107199+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T12:30:01.107211+00:00] ============================================================
+[2026-05-28T12:30:01.113093+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T12:30:01.113160+00:00]   Logging: ✅ Log updated 22s ago
+[2026-05-28T12:30:01.117467+00:00]   Errors (last 35min): ⚠️ 76
+[2026-05-28T12:30:01.117497+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T12:30:01.117506+00:00]     - [pr_review_pipeline] pr_review_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T12:30:01.117513+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T12:30:01.117518+00:00]     - [pr_review_pipeline] pr_review_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T12:30:01.117523+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T12:30:01.117919+00:00]   Bugs: Open=4 InProgress=0 Resolved=26 RecentlyResolved=0 Stuck=4
+[2026-05-28T12:30:01.210167+00:00]   GitHub: ❌ <urlopen error [Errno -3] Temporary failure in name resolution>
+[2026-05-28T12:30:01.216932+00:00]   Evolution: Last check=2026-05-28T07:55:31.885860Z Merges=0
+[2026-05-28T12:30:01.216947+00:00] 
+[2026-05-28T12:30:01.216954+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T12:30:01.216960+00:00] 
+[2026-05-28T13:00:01.268203+00:00] ============================================================
+[2026-05-28T13:00:01.268271+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T13:00:01.268285+00:00] ============================================================
+[2026-05-28T13:00:01.274964+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T13:00:01.275104+00:00]   Logging: ✅ Log updated 22s ago
+[2026-05-28T13:00:01.281150+00:00]   Errors (last 35min): ⚠️ 76
+[2026-05-28T13:00:01.281203+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T13:00:01.281214+00:00]     - [pr_review_pipeline] pr_review_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T13:00:01.281220+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T13:00:01.281226+00:00]     - [pr_review_pipeline] pr_review_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T13:00:01.281230+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T13:00:01.281611+00:00]   Bugs: Open=4 InProgress=0 Resolved=26 RecentlyResolved=0 Stuck=4
+[2026-05-28T13:00:01.368632+00:00]   GitHub: ❌ <urlopen error [Errno -3] Temporary failure in name resolution>
+[2026-05-28T13:00:01.376219+00:00]   Evolution: Last check=2026-05-28T07:55:31.885860Z Merges=0
+[2026-05-28T13:00:01.376298+00:00] 
+[2026-05-28T13:00:01.376307+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T13:00:01.376315+00:00] 
+[2026-05-28T13:30:01.440441+00:00] ============================================================
+[2026-05-28T13:30:01.440512+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T13:30:01.440542+00:00] ============================================================
+[2026-05-28T13:30:01.447191+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T13:30:01.447315+00:00]   Logging: ✅ Log updated 22s ago
+[2026-05-28T13:30:01.457986+00:00]   Errors (last 35min): ⚠️ 76
+[2026-05-28T13:30:01.458076+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T13:30:01.458095+00:00]     - [pr_review_pipeline] pr_review_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T13:30:01.458107+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T13:30:01.458117+00:00]     - [pr_review_pipeline] pr_review_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T13:30:01.458126+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T13:30:01.458724+00:00]   Bugs: Open=4 InProgress=0 Resolved=26 RecentlyResolved=0 Stuck=4
+[2026-05-28T13:30:01.549536+00:00]   GitHub: ❌ <urlopen error [Errno -3] Temporary failure in name resolution>
+[2026-05-28T13:30:01.557740+00:00]   Evolution: Last check=2026-05-28T07:55:31.885860Z Merges=0
+[2026-05-28T13:30:01.557823+00:00] 
+[2026-05-28T13:30:01.557832+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T13:30:01.557839+00:00] 
+[2026-05-28T14:00:01.616813+00:00] ============================================================
+[2026-05-28T14:00:01.616873+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T14:00:01.616884+00:00] ============================================================
+[2026-05-28T14:00:01.624463+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T14:00:01.624543+00:00]   Logging: ✅ Log updated 0s ago
+[2026-05-28T14:00:01.631156+00:00]   Errors (last 35min): ⚠️ 76
+[2026-05-28T14:00:01.631226+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T14:00:01.631235+00:00]     - [pr_review_pipeline] pr_review_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T14:00:01.631242+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T14:00:01.631247+00:00]     - [pr_review_pipeline] pr_review_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T14:00:01.631252+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T14:00:01.631652+00:00]   Bugs: Open=4 InProgress=0 Resolved=26 RecentlyResolved=0 Stuck=4
+[2026-05-28T14:00:01.727740+00:00]   GitHub: ❌ <urlopen error [Errno -3] Temporary failure in name resolution>
+[2026-05-28T14:00:01.744087+00:00]   Evolution: Last check=2026-05-28T07:55:31.885860Z Merges=0
+[2026-05-28T14:00:01.744170+00:00] 
+[2026-05-28T14:00:01.744179+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T14:00:01.744188+00:00] 
+[2026-05-28T14:30:01.815903+00:00] ============================================================
+[2026-05-28T14:30:01.815961+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T14:30:01.815973+00:00] ============================================================
+[2026-05-28T14:30:01.822870+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T14:30:01.822962+00:00]   Logging: ✅ Log updated 22s ago
+[2026-05-28T14:30:01.828946+00:00]   Errors (last 35min): ⚠️ 77
+[2026-05-28T14:30:01.829008+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T14:30:01.829018+00:00]     - [pr_review_pipeline] pr_review_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T14:30:01.829024+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T14:30:01.829029+00:00]     - [pr_review_pipeline] pr_review_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T14:30:01.829034+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T14:30:01.829457+00:00]   Bugs: Open=4 InProgress=0 Resolved=26 RecentlyResolved=0 Stuck=4
+[2026-05-28T14:30:01.922885+00:00]   GitHub: ❌ <urlopen error [Errno -3] Temporary failure in name resolution>
+[2026-05-28T14:30:01.937516+00:00]   Evolution: Last check=2026-05-28T07:55:31.885860Z Merges=0
+[2026-05-28T14:30:01.937611+00:00] 
+[2026-05-28T14:30:01.937620+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T14:30:01.937628+00:00] 
+[2026-05-28T15:00:02.004140+00:00] ============================================================
+[2026-05-28T15:00:02.004207+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T15:00:02.004222+00:00] ============================================================
+[2026-05-28T15:00:02.010156+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T15:00:02.010249+00:00]   Logging: ✅ Log updated 16s ago
+[2026-05-28T15:00:02.022419+00:00]   Errors (last 35min): ⚠️ 29
+[2026-05-28T15:00:02.022487+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T15:00:02.022505+00:00]     - [pr_review_pipeline] pr_review_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T15:00:02.022516+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T15:00:02.022528+00:00]     - [pr_review_pipeline] pr_review_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T15:00:02.022537+00:00]     - [self_evolution] evolution_loop_error: [Errno -3] Temporary failure in name resolution
+[2026-05-28T15:00:02.023048+00:00]   Bugs: Open=4 InProgress=0 Resolved=26 RecentlyResolved=0 Stuck=4
+[2026-05-28T15:00:02.337920+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-28T15:00:02.352008+00:00]   Evolution: Last check=2026-05-28T14:59:45.544477Z Merges=0
+[2026-05-28T15:00:02.352076+00:00] 
+[2026-05-28T15:00:02.352087+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T15:00:02.352098+00:00] 
+[2026-05-28T15:30:01.428230+00:00] ============================================================
+[2026-05-28T15:30:01.428295+00:00] 🔍 JARVIS WATCHDOG CHECK
+[2026-05-28T15:30:01.428311+00:00] ============================================================
+[2026-05-28T15:30:01.434956+00:00]   Service: ✅ active (PID 1958932)
+[2026-05-28T15:30:01.435038+00:00]   Logging: ✅ Log updated 3s ago
+[2026-05-28T15:30:01.443304+00:00]   Errors (last 35min): ✅ 0
+[2026-05-28T15:30:01.443750+00:00]   Bugs: Open=2 InProgress=0 Resolved=28 RecentlyResolved=0 Stuck=2
+[2026-05-28T15:30:01.804551+00:00]   GitHub: ❌ HTTP Error 401: Unauthorized
+[2026-05-28T15:30:01.818972+00:00]   Evolution: Last check=2026-05-28T15:29:58.727142Z Merges=0
+[2026-05-28T15:30:01.819026+00:00] 
+[2026-05-28T15:30:01.819039+00:00] ✅ ALL SYSTEMS HEALTHY
+[2026-05-28T15:30:01.819049+00:00] 
