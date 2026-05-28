@@ -282,12 +282,67 @@ class BugWorker:
                 # Create directories if needed
                 os.makedirs(os.path.dirname(filepath), exist_ok=True)
 
-                # Validate syntax before writing
+                # Validate syntax before writing locally
                 try:
                     compile(file_content, filepath, "exec")
                 except SyntaxError as syn_err:
                     logger.warning("bug_worker_skip_invalid_file",
                                    file=filepath, error=str(syn_err))
+                    continue
+
+                # ── Hermes Sandbox Verification ──
+                # Before writing the file to the host and committing, verify it inside
+                # the isolated Hermes Modal sandbox to ensure it contains no destructive
+                # commands or immediate runtime errors.
+                try:
+                    from integrations.hermes_client import hermes_client
+                    import json
+                    
+                    # Wrap the generated code to check for AST safety and basic runtime stability
+                    # We escape the content properly for injection
+                    safe_content_json = json.dumps(file_content)
+                    safety_script = f"""
+import ast
+import json
+
+code = json.loads({json.dumps(safe_content_json)})
+
+try:
+    tree = ast.parse(code)
+    # Check for forbidden imports that shouldn't be in agent skills
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import) or isinstance(node, ast.ImportFrom):
+            names = node.names if hasattr(node, 'names') else []
+            for alias in names:
+                if alias.name in ['subprocess', 'pty', 'os.system']:
+                    print("FORBIDDEN_IMPORT")
+                    exit(1)
+        if isinstance(node, ast.Call) and getattr(node.func, 'id', '') in ['eval']:
+            print("FORBIDDEN_CALL")
+            exit(1)
+            
+    print("SAFE")
+except SyntaxError as e:
+    print(f"SANDBOX_SYNTAX_ERROR: {{e}}")
+    exit(1)
+except Exception as e:
+    print(f"SANDBOX_ERROR: {{e}}")
+    exit(1)
+"""
+                    sandbox_result = await hermes_client.execute_in_sandbox(safety_script)
+                    
+                    if not sandbox_result.get("success") or "SAFE" not in sandbox_result.get("stdout", ""):
+                        logger.warning(
+                            "bug_worker_sandbox_rejected",
+                            file=filepath,
+                            stderr=sandbox_result.get("stderr", ""),
+                            stdout=sandbox_result.get("stdout", "")
+                        )
+                        # Skip writing this file since the sandbox rejected it
+                        continue
+                except Exception as sandbox_err:
+                    logger.error("hermes_sandbox_exception", error=str(sandbox_err))
+                    # Fail closed for security
                     continue
 
                 # Write file

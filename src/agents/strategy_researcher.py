@@ -50,6 +50,7 @@ performance, and propose evidence-based improvements.
 - You propose ONE change at a time (scientific method).
 - You document every hypothesis, test result, and conclusion.
 - You never recommend more than 3 new experiments at once.
+- You are equipped with a Hermes delegation tool. ALWAYS use it to offload computationally heavy backtests to asynchronous sub-agents.
 
 ## Research Cycle:
 1. Review current strategy performance (daily)
@@ -78,6 +79,10 @@ class StrategyResearcherAgent(BaseAgent):
             agent_type=AgentType.SPECIALIST,
             identity_core=RESEARCHER_IDENTITY_CORE,
         )
+        try:
+            import agents.skills.strategy_researcher.hermes_delegation_skill  # noqa: F401
+        except ImportError:
+            pass
         super().__init__(identity, llm, trust_weight)
         self._research_log: list[dict] = []
 
@@ -189,24 +194,37 @@ class StrategyResearcherAgent(BaseAgent):
         # Cross-strategy analysis
         correlation_findings = self._analyze_strategy_correlations(performances)
 
-        # Parameter experiments for underperformers
+        # Parameter experiments for underperformers via Hermes Async Swarm
         experiments = []
+        import asyncio
+        from integrations.hermes_client import hermes_client
+        
+        dispatch_tasks = []
+        strategy_names = []
+        
         for name, perf in performances.items():
             trade_history = tracker.load_trades(name)
             if len(trade_history) >= 30:
-                proposal = propose_parameter_evolution(
-                    trade_history=trade_history,
-                    current_params=perf.get("params", {}),
-                    fitness_report=evaluate_parameter_fitness(
-                        trade_history, perf.get("params", {})
-                    ),
-                    strategy_type=name,
+                task_prompt = (
+                    f"Analyze strategy '{name}' with current parameters {perf.get('params', {})}. "
+                    f"Analyze the trade history ({len(trade_history)} trades) and propose a parameter evolution "
+                    f"that increases the Sharpe ratio with statistical significance."
                 )
-                if proposal.get("action") == "PROPOSE":
-                    experiments.append({
-                        "strategy": name,
-                        "proposal": proposal,
-                    })
+                dispatch_tasks.append(hermes_client.dispatch_subagent(task_prompt=task_prompt))
+                strategy_names.append(name)
+                
+        if dispatch_tasks:
+            results = await asyncio.gather(*dispatch_tasks, return_exceptions=True)
+            for name, result in zip(strategy_names, results):
+                if isinstance(result, dict) and result.get("success"):
+                    proposal = result.get("result", {})
+                    # If the sub-agent proposed a change
+                    if proposal:
+                        experiments.append({
+                            "strategy": name,
+                            "proposal": proposal,
+                            "source": "hermes_swarm_subagent"
+                        })
 
         # New strategy ideas (LLM-assisted)
         new_ideas = await self._brainstorm_strategies(performances, backtest_results)
